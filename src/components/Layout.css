@@ -1,0 +1,52 @@
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.mobile-header {
+    height: 60px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    gap: var(--spacing-md);
+    flex-shrink: 0;
+}
+
+.menu-btn {
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-logo {
+    font-weight: 700;
+    font-size: var(--font-size-header);
+    color: #1e3a8a;
+}
+
+.main-content {
+    flex: 1;
+    padding: var(--spacing-xl);
+    overflow-y: auto;
+    background-color: var(--background);
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: var(--spacing-md);
+    }
+}
