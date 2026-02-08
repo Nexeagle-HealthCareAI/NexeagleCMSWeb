@@ -43,6 +43,72 @@ const HospitalDetails: React.FC = () => {
                             <span>ID: {hospital.id}</span>
                             <span>•</span>
                             <span>{hospital.city}, {hospital.state}</span>
+                            <span className={`status-badge ${hospital.status === 'Active' ? 'status-active' : 'status-inactive'}`} style={{ marginLeft: '12px' }}>
+                                {hospital.status}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="header-divider"></div>
+
+                <div className="header-details-grid">
+                    <div className="header-info-item">
+                        <MapPin size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Address</span>
+                            <div className="header-info-value">{hospital.address}, {hospital.city}, {hospital.state}</div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <Phone size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Contact</span>
+                            <div className="header-info-value">{hospital.contactNumber}</div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <Mail size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Email</span>
+                            <div className="header-info-value">{hospital.email}</div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <Activity size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Type</span>
+                            <div className="header-info-value">{hospital.hospitalType}</div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <Shield size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Partner</span>
+                            <div className="header-info-value">{hospital.partnerName}</div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <Calendar size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Registered On</span>
+                            <div className="header-info-value">
+                                {new Date(hospital.registeredOn).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, {new Date(hospital.registeredOn).getFullYear()}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <FileText size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Subscription</span>
+                            <div className="header-info-value">{hospital.subscriptionMode}</div>
+                        </div>
+                    </div>
+                    <div className="header-info-item">
+                        <CreditCard size={16} className="header-info-icon" />
+                        <div>
+                            <span className="header-info-label">Payment</span>
+                            <div className="header-info-value">{hospital.paymentMode}</div>
                         </div>
                     </div>
                 </div>
@@ -174,17 +240,7 @@ const HospitalDetails: React.FC = () => {
                     </div>
                 )}
 
-                {/* General Information */}
-                <CollapsibleCard title="General Information" icon={<Building2 size={20} />} defaultOpen={true}>
-                    <div className="info-grid">
-                        <InfoItem icon={<Building2 size={16} />} label="Hospital Name" value={hospital.name} />
-                        <InfoItem icon={<MapPin size={16} />} label="Full Address" value={`${hospital.address}, ${hospital.city}, ${hospital.state}`} />
-                        <InfoItem icon={<Phone size={16} />} label="Contact" value={hospital.contactNumber} />
-                        <InfoItem icon={<Mail size={16} />} label="Email" value={hospital.email} />
-                        <InfoItem icon={<Activity size={16} />} label="Hospital Type" value={hospital.hospitalType} />
-                        <InfoItem icon={<Shield size={16} />} label="Partner" value={hospital.partnerName} />
-                    </div>
-                </CollapsibleCard>
+
 
                 {/* User Info */}
                 <CollapsibleCard title="User Info" icon={<Users size={20} />}>
@@ -284,15 +340,7 @@ const HospitalDetails: React.FC = () => {
                     </div>
                 </CollapsibleCard>
 
-                {/* Subscription */}
-                <CollapsibleCard title="Subscription" icon={<CreditCard size={20} />}>
-                    <div className="info-grid">
-                        <InfoItem icon={<Calendar size={16} />} label="Hospital Registered On" value={hospital.registeredOn} />
-                        <InfoItem icon={<FileText size={16} />} label="Subscription Mode" value={hospital.subscriptionMode} />
-                        <InfoItem icon={<CreditCard size={16} />} label="Payment Mode" value={hospital.paymentMode} />
-                        <InfoItem icon={<Activity size={16} />} label="Current Status" value={hospital.status} />
-                    </div>
-                </CollapsibleCard>
+
 
 
 
@@ -330,14 +378,6 @@ const CollapsibleCard: React.FC<{ title: string; icon: React.ReactNode; children
     );
 };
 
-const InfoItem: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-    <div className="info-item">
-        <div className="info-icon">{icon}</div>
-        <div>
-            <div className="info-label">{label}</div>
-            <div className="info-value">{value || 'N/A'}</div>
-        </div>
-    </div>
-);
+
 
 export default HospitalDetails;

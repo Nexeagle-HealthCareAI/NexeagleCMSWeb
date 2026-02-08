@@ -64,6 +64,47 @@
     /* Allow wrapping on small screens */
 }
 
+.header-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 1.5rem 0;
+}
+
+.header-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.header-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.header-info-icon {
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.header-info-label {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.header-info-value {
+    font-size: 14px;
+    color: #FFFFFF;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
 /* Content Layout */
 .details-content {
     display: flex;
