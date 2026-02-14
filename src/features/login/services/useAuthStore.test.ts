@@ -28,7 +28,7 @@ describe('useAuthStore', () => {
 
     it('should set loading state updates correctly during login', async () => {
         (authService.login as any).mockImplementation(() => new Promise(() => { })); // never resolves
-        const loginPromise = useAuthStore.getState().login('test@test.com', 'password');
+        useAuthStore.getState().login('test@test.com', 'password');
         expect(useAuthStore.getState().isLoading).toBe(true);
     });
 
