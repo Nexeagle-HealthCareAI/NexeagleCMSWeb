@@ -83,7 +83,8 @@
 }
 
 .header-info-icon {
-    color: rgba(255, 255, 255, 0.6);
+    color: #60a5fa;
+    /* Light blue for better visibility and aesthetics */
     margin-top: 3px;
     flex-shrink: 0;
 }
@@ -91,7 +92,8 @@
 .header-info-label {
     display: block;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
+    color: #e2e8f0;
+    /* Lighter slate for better contrast */
     margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -257,6 +259,11 @@
 .status-inactive {
     background: #F3F4F6;
     color: #6B7280;
+}
+
+.status-revoked {
+    background: #FEE2E2;
+    color: #991B1B;
 }
 
 /* Mobile Media Queries */

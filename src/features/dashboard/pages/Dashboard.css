@@ -5,9 +5,24 @@
     margin: 0 auto;
 }
 
+/* Fixed Layout Mode (for OnboardedHospitals) */
+.dashboard-container.fixed-layout {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0;
+    /* Remove bottom padding to fit flush */
+}
+
 /* Header Section */
 .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: var(--spacing-xl);
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
 }
 
 .dashboard-title {
@@ -20,6 +35,28 @@
 .dashboard-subtitle {
     color: var(--text-secondary);
     font-size: 14px;
+}
+
+.dashboard-datetime {
+    text-align: right;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-datetime .time {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.dashboard-datetime .date {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 /* Stats Grid */
@@ -39,6 +76,18 @@
     border: 1px solid var(--border);
 }
 
+/* Fixed layout adjustments for table card */
+.fixed-layout .table-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Important for firefox/flex nesting */
+    overflow: hidden;
+    margin-bottom: var(--spacing-lg);
+    /* Add some bottom margin */
+}
+
 /* Table Header Controls (Title + Search) */
 .table-header-controls {
     display: flex;
@@ -48,6 +97,7 @@
     flex-wrap: wrap;
     /* Allow wrapping on small screens */
     gap: var(--spacing-md);
+    flex-shrink: 0;
 }
 
 .table-title {
@@ -84,8 +134,17 @@
     /* Optional: visual boundary */
 }
 
+/* Fixed layout scrolling */
+.fixed-layout .table-responsive-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    /* Make vertical scrolling happen here */
+}
+
 .dashboard-table {
     width: 100%;
+    border-collapse: separate;
+    /* Required for sticky header border to work nicely sometimes, but collapse is usually fine. let's stick to collapse but handle border manually if needed. actually sticky works with collapse */
     border-collapse: collapse;
     font-size: var(--font-size-base);
     min-width: 1000px;
@@ -108,6 +167,15 @@
     cursor: pointer;
     white-space: nowrap;
     /* Prevent header wrapping */
+
+    /* Sticky Header */
+    position: sticky;
+    top: 0;
+    background: #F9FAFB;
+    /* Match header row bg */
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--border);
+    /* Adds a bottom border effect that scrolls */
 }
 
 .table-row {
@@ -151,6 +219,8 @@
     border-top: 1px solid var(--border);
     flex-wrap: wrap;
     gap: var(--spacing-md);
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .pagination-info {
@@ -194,6 +264,12 @@
         padding: var(--spacing-md);
     }
 
+    .dashboard-container.fixed-layout {
+        height: auto;
+        /* On mobile, usually better to let it scroll */
+        overflow: visible;
+    }
+
     .table-card {
         padding: var(--spacing-md);
     }
@@ -217,4 +293,130 @@
     /* Optional: Hide less important columns on mobile if not scrolling 
        But with overflow-x: auto, hiding is not strictly necessary unless desired.
     */
+}
+
+/* Analytics Section */
+.analytics-section {
+    margin: 2rem 0;
+}
+
+.analytics-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    background: #1e293b;
+    /* Dark slate */
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.analytics-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.time-range-selector {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px;
+    border-radius: 8px;
+    gap: 4px;
+}
+
+.time-range-btn {
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: capitalize;
+    transition: all 0.2s;
+}
+
+.time-range-btn:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.time-range-btn.active {
+    background: #FFFFFF;
+    color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.chart-card {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.chart-area {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+}
+
+@media (max-width: 768px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .dashboard-datetime {
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .time-range-selector {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .time-range-btn {
+        flex: 1;
+        text-align: center;
+    }
 }

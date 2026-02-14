@@ -1,199 +1,193 @@
 import React from 'react';
-import { Users, Building2, Stethoscope } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { mockHospitals } from '../services/hospitalService';
-import type { Hospital } from '../services/hospitalService';
+import { Users, Building2, Stethoscope, UserPlus } from 'lucide-react';
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer
+} from 'recharts';
+// import { useNavigate } from 'react-router-dom'; // navigating internally in dashboard removed
+import { getDashboardStats } from '../services/hospitalService';
+import type { DashboardStats } from '../services/hospitalService';
 import StatCard from '../components/StatCard';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
-    const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = React.useState('');
-    const [sortConfig, setSortConfig] = React.useState<{ key: keyof Hospital; direction: 'asc' | 'desc' } | null>(null);
+    // navigate is no longer used unless we add navigation back
+    // const navigate = useNavigate(); 
 
-    const [currentPage, setCurrentPage] = React.useState(1);
-    const itemsPerPage = 5;
+    // Removed table filtering/sorting/pagination state
 
-    const handleRowClick = (id: string) => {
-        navigate(`/hospital/${id}`);
-    };
+    const [dashboardStats, setDashboardStats] = React.useState<DashboardStats | null>(null);
+    const [timeRange, setTimeRange] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
 
-    const handleSort = (key: keyof Hospital) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
+    // Date and Time State
+    const [currentDateTime, setCurrentDateTime] = React.useState(new Date());
 
-    const processedHospitals = React.useMemo(() => {
-        let items = [...mockHospitals];
+    React.useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentDateTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
-        // Filter
-        if (searchTerm) {
-            const lowerTerm = searchTerm.toLowerCase();
-            items = items.filter(item =>
-                item.name.toLowerCase().includes(lowerTerm) ||
-                item.city.toLowerCase().includes(lowerTerm) ||
-                item.state.toLowerCase().includes(lowerTerm) ||
-                item.id.toLowerCase().includes(lowerTerm)
-            );
-        }
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            const stats = await getDashboardStats();
+            setDashboardStats(stats);
+        };
+        fetchStats();
+    }, []);
 
-        // Sort
-        if (sortConfig) {
-            items.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
-                    return sortConfig.direction === 'asc' ? -1 : 1;
-                }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
-                    return sortConfig.direction === 'asc' ? 1 : -1;
-                }
-                return 0;
-            });
-        }
-
-        return items;
-    }, [searchTerm, sortConfig]);
-
-    const paginatedHospitals = React.useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        return processedHospitals.slice(startIndex, startIndex + itemsPerPage);
-    }, [processedHospitals, currentPage]);
-
-    const totalPages = Math.ceil(processedHospitals.length / itemsPerPage);
-
-    const SortIcon = ({ columnKey }: { columnKey: keyof Hospital }) => {
-        if (sortConfig?.key !== columnKey) return <span className="sort-icon inactive">↕</span>;
-        return <span className="sort-icon active">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+    // Helper to format change string
+    const formatChange = (metric: { change: number; changeType: 'increase' | 'decrease' | 'nochange'; period: string }) => {
+        if (metric.changeType === 'nochange') return 'No change';
+        const prefix = metric.changeType === 'increase' ? '+' : '-';
+        return `${prefix}${metric.change} ${metric.period}`;
     };
 
     return (
         <div className="dashboard-container">
             <header className="dashboard-header">
-                <h1 className="dashboard-title">Dashboard Overview</h1>
-                <p className="dashboard-subtitle">Welcome back to the CMS.</p>
+                <div>
+                    <h1 className="dashboard-title">Dashboard Overview</h1>
+                    <p className="dashboard-subtitle">Welcome back to the CMS.</p>
+                </div>
+                <div className="dashboard-datetime">
+                    <div className="time">
+                        {currentDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <div className="date">
+                        {currentDateTime.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </div>
+                </div>
             </header>
 
             {/* Stats Grid */}
-            <div className="stats-grid">
-                <StatCard
-                    icon={<Building2 size={24} color="#FFF" />}
-                    title="Total Hospital OnBoarded"
-                    value="124"
-                    change="+5 this week"
-                    gradient="linear-gradient(135deg, #6366f1 0%, #4338ca 100%)"
-                />
-                <StatCard
-                    icon={<Stethoscope size={24} color="#FFF" />}
-                    title="Total Doctors Onboarded"
-                    value="3,450"
-                    change="+42 this week"
-                    gradient="linear-gradient(135deg, #10b981 0%, #059669 100%)"
-                />
-                <StatCard
-                    icon={<Users size={24} color="#FFF" />}
-                    title="Total Patients"
-                    value="45,231"
-                    change="+8.2%"
-                    gradient="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-                />
-            </div>
-
-            {/* Hospital List Table */}
-            <div className="table-card">
-                <div className="table-header-controls">
-                    <h2 className="table-title">Registered Hospitals</h2>
-                    <input
-                        type="text"
-                        placeholder="Search hospitals..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            setCurrentPage(1); // Reset to page 1 on search
-                        }}
-                        className="search-input"
+            {dashboardStats && (
+                <div className="stats-grid">
+                    <StatCard
+                        icon={<Building2 size={24} color="#FFF" />}
+                        title="Total Hospital OnBoarded"
+                        value={dashboardStats.totalHospitals.value.toLocaleString()}
+                        change={formatChange(dashboardStats.totalHospitals)}
+                        gradient="linear-gradient(135deg, #6366f1 0%, #4338ca 100%)"
+                    />
+                    <StatCard
+                        icon={<Stethoscope size={24} color="#FFF" />}
+                        title="Total Doctors Onboarded"
+                        value={dashboardStats.totalDoctors.value.toLocaleString()}
+                        change={formatChange(dashboardStats.totalDoctors)}
+                        gradient="linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                    />
+                    <StatCard
+                        icon={<Users size={24} color="#FFF" />}
+                        title="Total Patients"
+                        value={dashboardStats.totalPatients.value.toLocaleString()}
+                        change={formatChange(dashboardStats.totalPatients)}
+                        gradient="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+                    />
+                    <StatCard
+                        icon={<UserPlus size={24} color="#FFF" />}
+                        title="Total Users Onboarded"
+                        value={dashboardStats.totalUsers.value.toLocaleString()}
+                        change={formatChange(dashboardStats.totalUsers)}
+                        gradient="linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
                     />
                 </div>
-                <div className="table-responsive-wrapper">
-                    <table className="dashboard-table">
-                        <thead>
-                            <tr className="table-header-row">
-                                <th className="table-header-cell" onClick={() => handleSort('partnerName')}>Partner Name <SortIcon columnKey="partnerName" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('id')}>Hospital ID <SortIcon columnKey="id" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('name')}>Hospital Name <SortIcon columnKey="name" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('contactNumber')}>Contact Number <SortIcon columnKey="contactNumber" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('email')}>Email <SortIcon columnKey="email" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('address')}>Address <SortIcon columnKey="address" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('city')}>City <SortIcon columnKey="city" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('state')}>State <SortIcon columnKey="state" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('totalPatients')}>Total Patients <SortIcon columnKey="totalPatients" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('registeredOn')}>Registered On <SortIcon columnKey="registeredOn" /></th>
-                                <th className="table-header-cell" onClick={() => handleSort('status')}>Subscription Status <SortIcon columnKey="status" /></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedHospitals.map((hospital) => (
-                                <tr
-                                    key={hospital.id}
-                                    onClick={() => handleRowClick(hospital.id)}
-                                    className="table-row"
-                                >
-                                    <td className="table-cell">
-                                        <div style={{ fontWeight: 600, color: '#1e3a8a' }}>{hospital.partnerName}</div>
-                                    </td>
-                                    <td className="table-cell">{hospital.id}</td>
-                                    <td className="table-cell">
-                                        <div style={{ fontWeight: 600, color: '#1e3a8a' }}>{hospital.name}</div>
-                                    </td>
-                                    <td className="table-cell">{hospital.contactNumber}</td>
-                                    <td className="table-cell">{hospital.email}</td>
-                                    <td className="table-cell">{hospital.address}</td>
-                                    <td className="table-cell">{hospital.city}</td>
-                                    <td className="table-cell">{hospital.state}</td>
-                                    <td className="table-cell">{hospital.totalPatients.toLocaleString()}</td>
-                                    <td className="table-cell">{new Date(hospital.registeredOn).toLocaleDateString()}</td>
-                                    <td className="table-cell">
-                                        <span style={{
-                                            padding: '2px 8px',
-                                            borderRadius: '12px',
-                                            fontSize: '10px',
-                                            fontWeight: 600,
-                                            background: hospital.status === 'Active' ? '#D1FAE5' : '#FEF3C7',
-                                            color: hospital.status === 'Active' ? '#065F46' : '#92400E'
-                                        }}>
-                                            {hospital.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            )}
 
-                {/* Pagination Controls */}
-                <div className="pagination-container">
-                    <div className="pagination-info">
-                        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, processedHospitals.length)} of {processedHospitals.length} entries
+            {/* Analytics Section */}
+            {dashboardStats && (
+                <div className="analytics-section">
+                    <div className="analytics-header">
+                        <div className="analytics-title">
+                            <Building2 size={20} color="#FFFFFF" />
+                            Analytics Overview
+                        </div>
+                        <div className="time-range-selector">
+                            {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((range) => (
+                                <button
+                                    key={range}
+                                    onClick={() => setTimeRange(range)}
+                                    className={`time-range-btn ${timeRange === range ? 'active' : ''}`}
+                                >
+                                    {range}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <div className="pagination-controls">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="pagination-button"
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="pagination-button"
-                        >
-                            Next
-                        </button>
+
+                    <div className="analytics-grid">
+                        {/* Hospitals Chart */}
+                        <div className="chart-card">
+                            <h3 className="chart-title">Hospitals Onboarded ({timeRange})</h3>
+                            <div className="chart-area">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={dashboardStats.charts.hospitals[timeRange]}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <YAxis tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                        <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#6366f1' }} activeDot={{ r: 5 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Doctors Chart */}
+                        <div className="chart-card">
+                            <h3 className="chart-title">Doctors Onboarded ({timeRange})</h3>
+                            <div className="chart-area">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={dashboardStats.charts.doctors[timeRange]}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <YAxis tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                        <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#10b981' }} activeDot={{ r: 5 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Patients Chart */}
+                        <div className="chart-card">
+                            <h3 className="chart-title">Patients Onboarded ({timeRange})</h3>
+                            <div className="chart-area">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={dashboardStats.charts.patients[timeRange]}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <YAxis tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                        <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3, fill: '#f59e0b' }} activeDot={{ r: 5 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Users Chart */}
+                        <div className="chart-card">
+                            <h3 className="chart-title">Users Onboarded ({timeRange})</h3>
+                            <div className="chart-area">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={dashboardStats.charts.users[timeRange]}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <YAxis tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                        <Line type="monotone" dataKey="value" stroke="#ec4899" strokeWidth={2} dot={{ r: 3, fill: '#ec4899' }} activeDot={{ r: 5 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

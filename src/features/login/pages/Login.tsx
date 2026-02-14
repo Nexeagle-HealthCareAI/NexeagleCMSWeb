@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, Loader2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import './Login.css';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, isLoading, error } = useAuth();
+    const { login, isLoading, error } = useAuthStore();
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {

@@ -8,18 +8,57 @@ import {
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { mockHospitals } from '../services/hospitalService';
+import { getHospitalById, type Hospital } from '../services/hospitalService';
 import './HospitalDetails.css';
 
 const HospitalDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
-    const hospital = mockHospitals.find(h => h.id === id);
+    const [hospital, setHospital] = useState<Hospital | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    if (!hospital) {
-        return <div className="p-8 text-center text-red-600">Hospital not found</div>;
+    React.useEffect(() => {
+        const fetchHospital = async () => {
+            if (!id) return;
+            try {
+                setLoading(true);
+                const data = await getHospitalById(id);
+                setHospital(data);
+            } catch (err) {
+                setError('Failed to fetch hospital details');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHospital();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <h2 className="text-xl font-semibold text-gray-700">Loading Hospital Details...</h2>
+                    <p className="text-gray-500 text-sm mt-2">Please wait while we fetch the latest data.</p>
+                </div>
+            </div>
+        );
     }
+
+    if (error || !hospital) {
+        return <div className="p-8 text-center text-red-600">{error || 'Hospital not found'}</div>;
+    }
+
+    const getStatusClass = (status: string) => {
+        switch (status) {
+            case 'Active': return 'status-active';
+            case 'Revoked': return 'status-revoked';
+            default: return 'status-inactive';
+        }
+    };
 
     return (
         <div className="hospital-details-container">
@@ -43,7 +82,7 @@ const HospitalDetails: React.FC = () => {
                             <span>ID: {hospital.id}</span>
                             <span>•</span>
                             <span>{hospital.city}, {hospital.state}</span>
-                            <span className={`status-badge ${hospital.status === 'Active' ? 'status-active' : 'status-inactive'}`} style={{ marginLeft: '12px' }}>
+                            <span className={`status-badge ${getStatusClass(hospital.status)}`} style={{ marginLeft: '12px' }}>
                                 {hospital.status}
                             </span>
                         </div>
@@ -246,7 +285,7 @@ const HospitalDetails: React.FC = () => {
                 <CollapsibleCard title="User Info" icon={<Users size={20} />}>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                            Total User Count: <span style={{ color: 'var(--primary)', fontSize: '16px' }}>{hospital.users.length}</span>
+                            Total User Count: <span style={{ color: 'var(--primary)', fontSize: '16px' }}>{hospital.users?.length || 0}</span>
                         </div>
                     </div>
                     <div className="table-wrapper">
@@ -261,20 +300,20 @@ const HospitalDetails: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {hospital.users.map((user, idx) => (
+                                {hospital.users?.map((user, idx) => (
                                     <tr key={idx} className="table-tr">
                                         <td className="table-td">{user.name}</td>
                                         <td className="table-td">{user.role}</td>
                                         <td className="table-td">{user.contact}</td>
                                         <td className="table-td">{user.email}</td>
                                         <td className="table-td">
-                                            <span className={`status-badge ${user.status === 'Active' ? 'status-active' : 'status-inactive'}`}>
+                                            <span className={`status-badge ${getStatusClass(user.status)}`}>
                                                 {user.status}
                                             </span>
                                         </td>
                                     </tr>
                                 ))}
-                                {hospital.users.length === 0 && (
+                                {(!hospital.users || hospital.users.length === 0) && (
                                     <tr>
                                         <td colSpan={5} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No users found</td>
                                     </tr>
@@ -298,7 +337,7 @@ const HospitalDetails: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {hospital.doctors.map((doc, idx) => (
+                                {hospital.doctors?.map((doc, idx) => (
                                     <tr key={idx} className="table-tr">
                                         <td className="table-td">
                                             <div style={{ fontWeight: 600 }}>{doc.name}</div>
@@ -330,7 +369,7 @@ const HospitalDetails: React.FC = () => {
                                         </td>
                                     </tr>
                                 ))}
-                                {hospital.doctors.length === 0 && (
+                                {(!hospital.doctors || hospital.doctors.length === 0) && (
                                     <tr>
                                         <td colSpan={5} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No doctors found</td>
                                     </tr>

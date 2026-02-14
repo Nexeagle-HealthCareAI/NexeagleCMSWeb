@@ -1,6 +1,6 @@
-import React from 'react';
+import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity } from 'lucide-react';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -13,9 +13,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
   // On mobile, if open, we show full width. If closed, we hide (width 0 or transform).
   // On desktop, if open, full width. If closed, mini width.
   const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
+    logout();
     navigate('/login');
   };
 
@@ -58,9 +59,43 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                 title={collapsed && !isMobile ? "Dashboard" : ""}
                 onClick={isMobile ? toggle : undefined} // Close sidebar on nav click in mobile
+                end // Use end to only match exact path for dashboard home
               >
                 <LayoutDashboard size={22} />
                 {(!collapsed || isMobile) && <span>Dashboard</span>}
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/onboarded-hospitals"
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed && !isMobile ? "Onboarded Hospitals" : ""}
+                onClick={isMobile ? toggle : undefined}
+              >
+                <Building2 size={22} />
+                {(!collapsed || isMobile) && <span>Onboarded Hospitals</span>}
+              </NavLink>
+            </li>
+            <li>
+              <div className="nav-item disabled" title={collapsed && !isMobile ? "Partners (Coming Soon)" : ""}>
+                <Handshake size={22} />
+                {(!collapsed || isMobile) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <span>Partners</span>
+                    <span style={{ fontSize: '10px', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px' }}>Upcoming</span>
+                  </div>
+                )}
+              </div>
+            </li>
+            <li>
+              <NavLink
+                to="/application-health"
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed && !isMobile ? "Application Health" : ""}
+                onClick={isMobile ? toggle : undefined}
+              >
+                <Activity size={22} />
+                {(!collapsed || isMobile) && <span>Application Health</span>}
               </NavLink>
             </li>
             {/* Add more nav items here */}
@@ -68,10 +103,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="nav-item">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            title={collapsed && !isMobile ? "Settings" : ""}
+          >
             <Settings size={22} />
             {(!collapsed || isMobile) && <span>Settings</span>}
-          </button>
+          </NavLink>
           <button className="nav-item logout" onClick={handleLogout}>
             <LogOut size={22} />
             {(!collapsed || isMobile) && <span>Logout</span>}
