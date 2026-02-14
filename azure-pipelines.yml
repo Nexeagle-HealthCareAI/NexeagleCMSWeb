@@ -88,3 +88,5 @@ stages:
               api_location: '$(apiLocation)'
               output_location: '$(outputLocation)'
               skip_app_build: false
+            env:
+              VITE_API_URL: 'https://cms-api-prod-gvhnffdbefbcb9db.centralindia-01.azurewebsites.net/api/v1'
