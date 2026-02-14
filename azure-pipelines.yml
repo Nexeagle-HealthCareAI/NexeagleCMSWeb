@@ -1,0 +1,90 @@
+# ============================================
+#   CMS WEB (Vite/React) → Azure Static Web Apps
+#   - DEV deploy always (on main)
+#   - PROD deploy optional (toggle deployProd=true)
+#
+#   REQUIRED:
+#   Create Variable Groups:
+#     1) swa-cms-web-dev  -> SWA_TOKEN
+#     2) swa-cms-web-prod -> SWA_TOKEN
+#   (SWA_TOKEN = Static Web App deployment token)
+#
+#   OPTIONAL (recommended):
+#   Add manual approval on Environment "production"
+#   Pipelines → Environments → production → Approvals and checks
+# ============================================
+
+parameters:
+- name: deployProd
+  type: boolean
+  default: false
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Adjust if your web app is in a subfolder
+  appLocation: '.'      # e.g. 'cms-web'
+  apiLocation: ''       # keep empty (no Azure Functions API here)
+  outputLocation: 'dist' # Vite output folder
+
+stages:
+# ===================== DEV =====================
+- stage: Deploy_Dev
+  displayName: Deploy CMS Web (DEV)
+  variables:
+  - group: swa-cms-web-dev   # contains SWA_TOKEN
+  jobs:
+  - job: Dev
+    displayName: Deploy to cms-web-dev
+    steps:
+    - checkout: self
+
+    - task: AzureStaticWebApp@0
+      displayName: 'Deploy to Azure Static Web App (DEV)'
+      inputs:
+        azure_static_web_apps_api_token: $(SWA_TOKEN)
+        app_location: '$(appLocation)'
+        api_location: '$(apiLocation)'
+        output_location: '$(outputLocation)'
+        skip_app_build: false
+
+# ===================== PROD =====================
+- stage: Deploy_Prod
+  displayName: Deploy CMS Web (PROD)
+  dependsOn: Deploy_Dev
+  condition: >
+    and(
+      succeeded(),
+      eq('${{ parameters.deployProd }}','true')
+    )
+  variables:
+  - group: swa-cms-web-prod  # contains SWA_TOKEN
+  jobs:
+  - deployment: Prod
+    displayName: Deploy to cms-web-prod
+    environment: 'production'   # approvals/checks here
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: AzureStaticWebApp@0
+            displayName: 'Deploy to Azure Static Web App (PROD)'
+            inputs:
+              azure_static_web_apps_api_token: $(SWA_TOKEN)
+              app_location: '$(appLocation)'
+              api_location: '$(apiLocation)'
+              output_location: '$(outputLocation)'
+              skip_app_build: false
