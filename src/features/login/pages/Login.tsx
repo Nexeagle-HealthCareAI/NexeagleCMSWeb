@@ -42,7 +42,7 @@ const Login: React.FC = () => {
                         <Mail size={16} className="input-icon" />
                         <input
                             type="email"
-                            placeholder="admin@cms.com"
+                            placeholder="Email Address"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="login-input"
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
                         <Lock size={16} className="input-icon" />
                         <input
                             type="password"
-                            placeholder="admin"
+                            placeholder="Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="login-input"
@@ -71,9 +71,7 @@ const Login: React.FC = () => {
                     </button>
                 </form>
 
-                <div className="login-footer">
-                    Default: admin@cms.com / admin
-                </div>
+
             </div>
         </div>
     );
