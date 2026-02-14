@@ -296,6 +296,8 @@ const HospitalDetails: React.FC = () => {
                                     <th className="table-th">Role</th>
                                     <th className="table-th">Contact</th>
                                     <th className="table-th">Email</th>
+                                    <th className="table-th">Last Login</th>
+                                    <th className="table-th">Method</th>
                                     <th className="table-th">Status</th>
                                 </tr>
                             </thead>
@@ -307,6 +309,12 @@ const HospitalDetails: React.FC = () => {
                                         <td className="table-td">{user.contact}</td>
                                         <td className="table-td">{user.email}</td>
                                         <td className="table-td">
+                                            {user.lastLoginTime ? new Date(user.lastLoginTime).toLocaleString('en-GB', {
+                                                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                                            }) : '-'}
+                                        </td>
+                                        <td className="table-td">{user.loginMethod || '-'}</td>
+                                        <td className="table-td">
                                             <span className={`status-badge ${getStatusClass(user.status)}`}>
                                                 {user.status}
                                             </span>
@@ -315,7 +323,7 @@ const HospitalDetails: React.FC = () => {
                                 ))}
                                 {(!hospital.users || hospital.users.length === 0) && (
                                     <tr>
-                                        <td colSpan={5} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No users found</td>
+                                        <td colSpan={7} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No users found</td>
                                     </tr>
                                 )}
                             </tbody>

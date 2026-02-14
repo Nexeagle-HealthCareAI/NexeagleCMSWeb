@@ -7,6 +7,8 @@ export interface User {
     contact: string;
     email: string;
     status: string;
+    lastLoginTime?: string;
+    loginMethod?: string;
 }
 
 export interface Doctor {

@@ -20,8 +20,29 @@ describe('HospitalDetails Component', () => {
         city: 'Metropolis',
         state: 'NY',
         status: 'Active',
-        users: [],
-        doctors: [],
+        users: [
+            {
+                name: 'Test User',
+                role: 'Admin',
+                contact: '1234567890',
+                email: 'test@example.com',
+                status: 'Active',
+                lastLoginTime: '2026-01-03T09:35:38.681',
+                loginMethod: 'Password'
+            }
+        ],
+        doctors: [
+            {
+                name: 'Dr. House',
+                departments: ['Diagnostic'],
+                speciality: 'General',
+                registeredOn: '2020-01-01',
+                degree: 'MD',
+                registrationNumber: 'REG123',
+                appointments: { daily: 5, weekly: 30, monthly: 120, yearly: 1400 },
+                uniquePatients: { daily: 3, weekly: 20, monthly: 80, yearly: 900 }
+            }
+        ],
         stats: {
             uniquePatients: { daily: [], weekly: [], monthly: [], yearly: [] },
             appointments: { daily: [], weekly: [], monthly: [], yearly: [] }

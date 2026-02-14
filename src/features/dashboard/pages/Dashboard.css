@@ -8,6 +8,8 @@
 /* Fixed Layout Mode (for OnboardedHospitals) */
 .dashboard-container.fixed-layout {
     height: 100vh;
+    height: 100dvh;
+    /* Better mobile support */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -264,11 +266,8 @@
         padding: var(--spacing-md);
     }
 
-    .dashboard-container.fixed-layout {
-        height: auto;
-        /* On mobile, usually better to let it scroll */
-        overflow: visible;
-    }
+    /* Fixed layout override removed to maintain app-like experience on mobile */
+
 
     .table-card {
         padding: var(--spacing-md);
