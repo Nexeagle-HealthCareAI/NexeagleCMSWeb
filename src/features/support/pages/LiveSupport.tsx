@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { MessageSquare, Send, X, User, Clock, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Send, User, Clock, CheckCircle2 } from 'lucide-react';
 import './LiveSupport.css';
 
 const API_BASE_URL = 'http://localhost:5000'; // Update with actual API URL
