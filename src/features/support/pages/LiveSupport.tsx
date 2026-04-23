@@ -3,7 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import { MessageSquare, Send, User, Clock, CheckCircle2 } from 'lucide-react';
 import './LiveSupport.css';
 
-const API_BASE_URL = 'http://localhost:5000'; // Update with actual API URL
+const API_BASE_URL = 'https://cms-api-dev-enb6fqdeh7ahbbf5.centralindia-01.azurewebsites.net';
 
 interface Session {
     sessionId: string;
@@ -29,6 +29,7 @@ const LiveSupport: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+    const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const selectedSessionRef = useRef<Session | null>(null);
     const notificationSound = useRef<HTMLAudioElement | null>(null);
@@ -89,6 +90,7 @@ const LiveSupport: React.FC = () => {
             connection.start()
                 .then(() => {
                     console.log('Connected to ChatHub as Agent');
+                    setIsConnected(true);
                     connection.invoke('JoinAgentGroup');
 
                     connection.on('ActiveSessions', (activeSessions: Session[]) => {
@@ -133,8 +135,15 @@ const LiveSupport: React.FC = () => {
                             setMessages([]);
                         }
                     });
+
+                    connection.onreconnecting(() => setIsConnected(false));
+                    connection.onreconnected(() => setIsConnected(true));
+                    connection.onclose(() => setIsConnected(false));
                 })
-                .catch(err => console.error('SignalR Connection Error: ', err));
+                .catch(err => {
+                    console.error('SignalR Connection Error: ', err);
+                    setIsConnected(false);
+                });
         }
 
         return () => {
@@ -168,7 +177,7 @@ const LiveSupport: React.FC = () => {
     };
 
     const handleSendMessage = async () => {
-        if (newMessage.trim() && selectedSession && connection) {
+        if (newMessage.trim() && selectedSession && connection && isConnected) {
             try {
                 await connection.invoke('SendMessage', selectedSession.sessionId, newMessage, 'Agent', 'Agent_User');
                 setNewMessage('');
@@ -246,12 +255,13 @@ const LiveSupport: React.FC = () => {
                         <div className="chat-input-container">
                             <input 
                                 type="text" 
-                                placeholder="Type a response..." 
+                                placeholder={isConnected ? "Type a response..." : "Connecting to server..."} 
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                disabled={!isConnected}
                             />
-                            <button onClick={handleSendMessage} disabled={!newMessage.trim()}>
+                            <button onClick={handleSendMessage} disabled={!isConnected || !newMessage.trim()}>
                                 <Send size={20} />
                             </button>
                         </div>
