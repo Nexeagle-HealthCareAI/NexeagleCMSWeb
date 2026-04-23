@@ -1,6 +1,7 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare } from 'lucide-react';
+import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -14,6 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
   // On desktop, if open, full width. If closed, mini width.
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+  const { unreadCount, resetUnread } = useSupportStore();
 
   const handleLogout = () => {
     logout();
@@ -96,6 +98,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
               >
                 <Activity size={22} />
                 {(!collapsed || isMobile) && <span>Application Health</span>}
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/support"
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed && !isMobile ? "Live Support" : ""}
+                onClick={() => {
+                  resetUnread();
+                  if (isMobile) toggle();
+                }}
+              >
+                <div style={{ position: 'relative' }}>
+                  <MessageSquare size={22} />
+                  {unreadCount > 0 && (
+                    <span className="unread-badge">{unreadCount}</span>
+                  )}
+                </div>
+                {(!collapsed || isMobile) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <span>Live Support</span>
+                    <span style={{ fontSize: '10px', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px' }}>Live</span>
+                  </div>
+                )}
               </NavLink>
             </li>
             {/* Add more nav items here */}

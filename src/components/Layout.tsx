@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
+import { useSupportStore } from '../store/useSupportStore';
+import { Toaster } from 'sonner';
 import './Layout.css';
 
 const Layout: React.FC = () => {
@@ -25,12 +27,19 @@ const Layout: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const initSupport = useSupportStore(state => state.initConnection);
+
+    useEffect(() => {
+        initSupport('http://localhost:5000/chathub');
+    }, [initSupport]);
+
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
     };
 
     return (
         <div className="app-layout">
+            <Toaster position="top-right" richColors />
             <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar} isMobile={isMobile} />
 
             <div className="content-wrapper">
