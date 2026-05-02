@@ -3,7 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import { MessageSquare, Send, User, Clock, CheckCircle2 } from 'lucide-react';
 import './LiveSupport.css';
 
-const API_BASE_URL = 'https://cms-api-dev-enb6fqdeh7ahbbf5.centralindia-01.azurewebsites.net';
+const API_BASE_URL = 'http://localhost:5176'; // Using local backend for testing
 
 interface Session {
     sessionId: string;
@@ -125,7 +125,17 @@ const LiveSupport: React.FC = () => {
                     });
 
                     connection.on('SessionUpdate', (sessionId: string, lastMsg: Message) => {
-                        console.log('Session updated:', sessionId, lastMsg);
+                        if (lastMsg.senderType === 'Guest') {
+                            playNotificationSound();
+                            
+                            if (selectedSessionRef.current?.sessionId !== sessionId || document.hidden) {
+                                showBrowserNotification('New Message', lastMsg.messageText);
+                            }
+                        }
+
+                        if (selectedSessionRef.current?.sessionId === sessionId) {
+                            setMessages(prev => [...prev, lastMsg]);
+                        }
                     });
 
                     connection.on('SessionRemoved', (sessionId: string) => {
@@ -159,11 +169,8 @@ const LiveSupport: React.FC = () => {
 
     const handleSelectSession = async (session: Session) => {
         setSelectedSession(session);
-        // Joining the specific session group to receive its messages
+        // We do not send a dummy message anymore. We rely on the REST API to load history.
         if (connection) {
-            await connection.invoke('SendMessage', session.sessionId, '', 'System', 'Agent_Preview'); // Dummy to join group or handle history
-            // Actually, we should probably have a GetHistory method or similar.
-            // For now, let's assume we can fetch it via REST or add a Hub method.
             try {
                 const response = await fetch(`${API_BASE_URL}/api/chat/history/${session.sessionId}`);
                 if (response.ok) {
