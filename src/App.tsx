@@ -9,6 +9,7 @@ import OnboardedHospitals from './features/dashboard/pages/OnboardedHospitals';
 import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
+import SubscriptionsPage from './features/subscriptions/SubscriptionsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Simple Protected Route wrapper
@@ -42,6 +43,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
             <Route path="hospital/:id" element={<HospitalDetails />} />
+            <Route path="subscriptions" element={<SubscriptionsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="application-health" element={<ApplicationHealth />} />
             <Route path="support" element={<LiveSupport />} />

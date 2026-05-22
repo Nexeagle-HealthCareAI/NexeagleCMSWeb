@@ -1,0 +1,92 @@
+.subscriptions-page {
+    padding: 32px 48px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.subscriptions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.subscriptions-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.subscriptions-header p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.subscriptions-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.subscriptions-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.subscriptions-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.subscriptions-table th {
+    background-color: #f8fafc;
+    padding: 16px 24px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.subscriptions-table td {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+}
+
+.subscriptions-table tr:last-child td {
+    border-bottom: none;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.status-pending { background: #fef3c7; color: #d97706; }
+.status-approved { background: #dcfce7; color: #16a34a; }
+.status-rejected { background: #fee2e2; color: #dc2626; }
+
+.approve-btn {
+    background-color: #0f52ba;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.approve-btn:hover { background-color: #0d4296; }
+.approve-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }

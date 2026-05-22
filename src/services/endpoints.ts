@@ -13,5 +13,8 @@ export const API_ENDPOINTS = {
     DASHBOARD: {
         STATS: '/dashboard/stats',
     },
-    // USERS: { ... },
+    SUBSCRIPTIONS: {
+        GET_ALL_REQUESTS: '/subscriptions/admin/payment-requests',
+        APPROVE: '/subscriptions/approve-payment', // Usage: /subscriptions/approve-payment/:id
+    }
 };
