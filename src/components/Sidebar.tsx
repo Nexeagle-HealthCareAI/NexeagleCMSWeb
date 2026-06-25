@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard, Coins, Users } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
@@ -11,11 +11,12 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
-  // On mobile, if open, we show full width. If closed, we hide (width 0 or transform).
-  // On desktop, if open, full width. If closed, mini width.
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+  const permissions = useAuthStore((state) => state.permissions);
   const { unreadCount, resetUnread } = useSupportStore();
+
+  const can = (key: string) => permissions.includes(key);
 
   const handleLogout = () => {
     logout();
@@ -39,13 +40,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
           <div className="logo-container">
             {(!collapsed || isMobile) && <span className="logo-text">CMS</span>}
           </div>
-          {/* On desktop, show toggle arrow. On mobile, we might hide this or change behavior */}
           {!isMobile && (
             <button onClick={toggle} className="toggle-btn" aria-label="Toggle Sidebar">
               {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
           )}
-          {/* On mobile close button */}
           {isMobile && (
             <button onClick={toggle} className="toggle-btn" aria-label="Close Sidebar">
               <ChevronLeft size={20} />
@@ -55,29 +54,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
 
         <nav className="sidebar-nav">
           <ul>
-            <li>
-              <NavLink
-                to="/"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Dashboard" : ""}
-                onClick={isMobile ? toggle : undefined} // Close sidebar on nav click in mobile
-                end // Use end to only match exact path for dashboard home
-              >
-                <LayoutDashboard size={22} />
-                {(!collapsed || isMobile) && <span>Dashboard</span>}
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/onboarded-hospitals"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Onboarded Hospitals" : ""}
-                onClick={isMobile ? toggle : undefined}
-              >
-                <Building2 size={22} />
-                {(!collapsed || isMobile) && <span>Onboarded Hospitals</span>}
-              </NavLink>
-            </li>
+            {can('dashboard.view') && (
+              <li>
+                <NavLink
+                  to="/"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Dashboard" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                  end
+                >
+                  <LayoutDashboard size={22} />
+                  {(!collapsed || isMobile) && <span>Dashboard</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('onboarded-hospitals.view') && (
+              <li>
+                <NavLink
+                  to="/onboarded-hospitals"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Onboarded Hospitals" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Building2 size={22} />
+                  {(!collapsed || isMobile) && <span>Onboarded Hospitals</span>}
+                </NavLink>
+              </li>
+            )}
             <li>
               <div className="nav-item disabled" title={collapsed && !isMobile ? "Partners (Coming Soon)" : ""}>
                 <Handshake size={22} />
@@ -89,65 +92,98 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 )}
               </div>
             </li>
-            <li>
-              <NavLink
-                to="/subscriptions"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Subscriptions" : ""}
-                onClick={isMobile ? toggle : undefined}
-              >
-                <CreditCard size={22} />
-                {(!collapsed || isMobile) && <span>Subscriptions</span>}
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/application-health"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Application Health" : ""}
-                onClick={isMobile ? toggle : undefined}
-              >
-                <Activity size={22} />
-                {(!collapsed || isMobile) && <span>Application Health</span>}
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/support"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Live Support" : ""}
-                onClick={() => {
-                  resetUnread();
-                  if (isMobile) toggle();
-                }}
-              >
-                <div style={{ position: 'relative' }}>
-                  <MessageSquare size={22} />
-                  {unreadCount > 0 && (
-                    <span className="unread-badge">{unreadCount}</span>
-                  )}
-                </div>
-                {(!collapsed || isMobile) && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                    <span>Live Support</span>
-                    <span style={{ fontSize: '10px', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px' }}>Live</span>
+            {can('subscriptions.view') && (
+              <li>
+                <NavLink
+                  to="/subscriptions"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Subscriptions" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <CreditCard size={22} />
+                  {(!collapsed || isMobile) && <span>Subscriptions</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('application-health.view') && (
+              <li>
+                <NavLink
+                  to="/application-health"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Application Health" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Activity size={22} />
+                  {(!collapsed || isMobile) && <span>Application Health</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('radai-cost.view') && (
+              <li>
+                <NavLink
+                  to="/radai-cost"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "RadAI Cost" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Coins size={22} />
+                  {(!collapsed || isMobile) && <span>RadAI Cost</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('live-support.view') && (
+              <li>
+                <NavLink
+                  to="/support"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Live Support" : ""}
+                  onClick={() => {
+                    resetUnread();
+                    if (isMobile) toggle();
+                  }}
+                >
+                  <div style={{ position: 'relative' }}>
+                    <MessageSquare size={22} />
+                    {unreadCount > 0 && (
+                      <span className="unread-badge">{unreadCount}</span>
+                    )}
                   </div>
-                )}
-              </NavLink>
-            </li>
-            {/* Add more nav items here */}
+                  {(!collapsed || isMobile) && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <span>Live Support</span>
+                      <span style={{ fontSize: '10px', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px' }}>Live</span>
+                    </div>
+                  )}
+                </NavLink>
+              </li>
+            )}
+            {can('user-management.view') && (
+              <li>
+                <NavLink
+                  to="/users"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Users & Access" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Users size={22} />
+                  {(!collapsed || isMobile) && <span>Users &amp; Access</span>}
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
 
         <div className="sidebar-footer">
-          <NavLink
-            to="/settings"
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            title={collapsed && !isMobile ? "Settings" : ""}
-          >
-            <Settings size={22} />
-            {(!collapsed || isMobile) && <span>Settings</span>}
-          </NavLink>
+          {can('settings.view') && (
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              title={collapsed && !isMobile ? "Settings" : ""}
+            >
+              <Settings size={22} />
+              {(!collapsed || isMobile) && <span>Settings</span>}
+            </NavLink>
+          )}
           <button className="nav-item logout" onClick={handleLogout}>
             <LogOut size={22} />
             {(!collapsed || isMobile) && <span>Logout</span>}

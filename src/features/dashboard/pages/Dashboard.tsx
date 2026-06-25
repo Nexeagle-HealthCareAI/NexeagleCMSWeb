@@ -22,6 +22,7 @@ const Dashboard: React.FC = () => {
     // Removed table filtering/sorting/pagination state
 
     const [dashboardStats, setDashboardStats] = React.useState<DashboardStats | null>(null);
+    const [statsError, setStatsError] = React.useState<string | null>(null);
     const [timeRange, setTimeRange] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
 
     // Date and Time State
@@ -36,8 +37,12 @@ const Dashboard: React.FC = () => {
 
     React.useEffect(() => {
         const fetchStats = async () => {
-            const stats = await getDashboardStats();
-            setDashboardStats(stats);
+            try {
+                const stats = await getDashboardStats();
+                setDashboardStats(stats);
+            } catch {
+                setStatsError('Failed to load dashboard statistics.');
+            }
         };
         fetchStats();
     }, []);
@@ -67,6 +72,11 @@ const Dashboard: React.FC = () => {
             </header>
 
             {/* Stats Grid */}
+            {statsError && (
+                <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px' }}>
+                    {statsError}
+                </div>
+            )}
             {dashboardStats && (
                 <div className="stats-grid">
                     <StatCard

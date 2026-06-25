@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useSupportStore } from '../store/useSupportStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { Toaster } from 'sonner';
 import './Layout.css';
 
@@ -30,8 +31,13 @@ const Layout: React.FC = () => {
     const initSupport = useSupportStore(state => state.initConnection);
 
     useEffect(() => {
-        initSupport('http://localhost:5000/chathub');
+        initSupport();
     }, [initSupport]);
+
+    // Refresh the current user's permissions on app load so route/menu gating stays current.
+    useEffect(() => {
+        void useAuthStore.getState().fetchMe();
+    }, []);
 
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
