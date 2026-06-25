@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, KeyRound, Loader2, Lock, Mail, MessageSquare, Phone, RefreshCw, ShieldCheck, BarChart3, Users } from 'lucide-react';
+import { ArrowLeft, KeyRound, Loader2, Lock, Mail, MessageSquare, Phone, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
     requestOtp,
-    loginWithOtp,
     requestForgotPasswordOtp,
     resetPasswordWithOtp,
     type OtpRequestResponse,
