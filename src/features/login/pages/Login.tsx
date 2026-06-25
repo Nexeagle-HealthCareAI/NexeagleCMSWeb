@@ -229,16 +229,10 @@ const Login: React.FC = () => {
                     </div>
                     <p className="lp-brand-sub">Central Management System</p>
                     <p className="lp-tagline">
-                        One platform to onboard, monitor&nbsp;&amp;&nbsp;manage<br />
-                        every hospital in your network.
+                        Secure Access to the NexEagle Network
                     </p>
-                    <div className="lp-cards">
-                        <div className="lp-stat-card lp-card-delay-0"><BarChart3 size={18} /><div><span className="lp-stat-value">2,400+</span><span className="lp-stat-label">Appointments tracked</span></div></div>
-                        <div className="lp-stat-card lp-card-delay-1"><Users size={18} /><div><span className="lp-stat-value">380+</span><span className="lp-stat-label">Hospitals onboarded</span></div></div>
-                        <div className="lp-stat-card lp-card-delay-2"><ShieldCheck size={18} /><div><span className="lp-stat-value">99.9%</span><span className="lp-stat-label">Uptime SLA</span></div></div>
-                    </div>
                 </div>
-                <p className="lp-footer-text">© 2025 NexEagle · Powered by EasyHMS</p>
+                <p className="lp-footer-text">© 2025 NexEagle</p>
             </div>
 
             {/* ── RIGHT FORM PANEL ── */}

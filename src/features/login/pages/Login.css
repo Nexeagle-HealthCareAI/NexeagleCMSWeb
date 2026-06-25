@@ -25,14 +25,16 @@
     padding: 4rem 5rem;
     overflow: hidden;
 
-    /* Deep navy → indigo gradient that slowly shifts */
-    background: linear-gradient(135deg, #040d21 0%, #0b1f4a 45%, #0f2d6b 100%);
-    animation: lp-bg-shift 12s ease-in-out infinite alternate;
+    /* Premium dynamic fluid gradient */
+    background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #172554);
+    background-size: 400% 400%;
+    animation: lp-bg-shift 20s ease infinite;
 }
 
 @keyframes lp-bg-shift {
-    from { background: linear-gradient(135deg, #040d21 0%, #0b1f4a 45%, #0f2d6b 100%); }
-    to   { background: linear-gradient(145deg, #06122e 0%, #0d2456 40%, #14368a 100%); }
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ── Animated orbs ── */
@@ -233,9 +235,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8fafc;
+    background: #ffffff;
     padding: 3rem 2.5rem;
     position: relative;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.03);
+    z-index: 10;
 }
 
 /* Subtle top-right accent */
@@ -243,8 +247,8 @@
     content: '';
     position: absolute;
     top: 0; right: 0;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle at top right, rgba(59,130,246,0.08), transparent 70%);
+    width: 250px; height: 250px;
+    background: radial-gradient(circle at top right, rgba(99,102,241,0.06), transparent 70%);
     pointer-events: none;
 }
 
@@ -336,23 +340,25 @@
 
 .lp-input-wrap input {
     width: 100%;
-    padding: 11px 12px 11px 38px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
+    padding: 12px 14px 12px 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
     font-size: 13px;
     color: #0f172a;
-    background: #ffffff;
+    background: #f8fafc;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.lp-input-wrap input::placeholder { color: #cbd5e1; }
+.lp-input-wrap input::placeholder { color: #94a3b8; }
 .lp-input-wrap input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    background: #ffffff;
+    border-color: #6366f1;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.12), 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 .lp-input-wrap input:disabled {
     background: #f1f5f9;
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
 /* Submit button */
@@ -362,19 +368,19 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 12px;
-    margin-top: 0.4rem;
+    padding: 13px;
+    margin-top: 0.6rem;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 14px;
     font-weight: 700;
     color: #ffffff;
     cursor: pointer;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
 
-    background: linear-gradient(135deg, #1d4ed8, #4338ca);
-    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
-    transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
@@ -382,23 +388,25 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.3s;
 }
 .lp-submit:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(29, 78, 216, 0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.45);
+    filter: brightness(1.05);
 }
 .lp-submit:hover:not(:disabled)::after { opacity: 1; }
 .lp-submit:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(29, 78, 216, 0.3);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 }
 .lp-submit:disabled {
-    background: linear-gradient(135deg, #93c5fd, #a5b4fc);
+    background: #94a3b8;
     box-shadow: none;
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
 /* Spinner */
