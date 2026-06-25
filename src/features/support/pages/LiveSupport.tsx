@@ -1,203 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
-import * as signalR from '@microsoft/signalr';
+import React, { useEffect, useRef, useState } from 'react';
 import { MessageSquare, Send, User, Clock, CheckCircle2 } from 'lucide-react';
+import { useSupportStore } from '../../../store/useSupportStore';
 import './LiveSupport.css';
 
-const API_BASE_URL = 'http://localhost:5176'; // Using local backend for testing
-
-interface Session {
-    sessionId: string;
-    guestId: string;
-    guestName?: string;
-    guestEmail?: string;
-    status: string;
-    startedAt: string;
-}
-
-interface Message {
-    messageId: string;
-    sessionId: string;
-    senderType: string;
-    senderId?: string;
-    messageText: string;
-    sentAt: string;
-}
-
 const LiveSupport: React.FC = () => {
-    const [sessions, setSessions] = useState<Session[]>([]);
-    const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-    const [messages, setMessages] = useState<Message[]>([]);
+    // All realtime state lives in the shared support store (single SignalR connection,
+    // initialized in Layout). This page is just a view + actions over it.
+    const sessions = useSupportStore(s => s.sessions);
+    const messages = useSupportStore(s => s.messages);
+    const activeSession = useSupportStore(s => s.activeSession);
+    const connected = useSupportStore(s => s.connected);
+    const selectSession = useSupportStore(s => s.selectSession);
+    const sendMessage = useSupportStore(s => s.sendMessage);
+    const closeSession = useSupportStore(s => s.closeSession);
+
     const [newMessage, setNewMessage] = useState('');
-    const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const selectedSessionRef = useRef<Session | null>(null);
-    const notificationSound = useRef<HTMLAudioElement | null>(null);
 
-    // Update ref whenever state changes
     useEffect(() => {
-        selectedSessionRef.current = selectedSession;
-    }, [selectedSession]);
-
-    // Initialize notification sound
-    useEffect(() => {
-        notificationSound.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
-        
-        // Request notification permission
-        if (Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-    }, []);
-
-    const playNotificationSound = () => {
-        if (notificationSound.current) {
-            notificationSound.current.play().catch(e => console.error("Error playing sound:", e));
-        }
-    };
-
-    const showBrowserNotification = (title: string, body: string) => {
-        if (Notification.permission === 'granted') {
-            new Notification(title, {
-                body,
-                icon: '/vite.svg' // You can use a specific chat icon here
-            });
-        }
-    };
-
-    const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
     }, [messages]);
 
-    useEffect(() => {
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl(`${API_BASE_URL}/chathub`)
-            .withAutomaticReconnect()
-            .build();
-
-        setConnection(newConnection);
-
-        return () => {
-            newConnection.stop();
-        };
-    }, []);
-
-    useEffect(() => {
-        if (connection) {
-            connection.start()
-                .then(() => {
-                    console.log('Connected to ChatHub as Agent');
-                    setIsConnected(true);
-                    connection.invoke('JoinAgentGroup');
-
-                    connection.on('ActiveSessions', (activeSessions: Session[]) => {
-                        setSessions(activeSessions);
-                    });
-
-                    connection.on('NewSession', (session: Session) => {
-                        setSessions(prev => {
-                            if (prev.find(s => s.sessionId === session.sessionId)) return prev;
-                            return [session, ...prev];
-                        });
-                        
-                        // Notify agent of new session
-                        playNotificationSound();
-                        showBrowserNotification('New Support Session', `A new guest is waiting for support.`);
-                    });
-
-                    connection.on('ReceiveMessage', (msg: Message) => {
-                        // Check if message is from Guest
-                        if (msg.senderType === 'Guest') {
-                            playNotificationSound();
-                            
-                            // Show notification if session not selected or window not focused
-                            if (selectedSessionRef.current?.sessionId !== msg.sessionId || document.hidden) {
-                                showBrowserNotification('New Message', msg.messageText);
-                            }
-                        }
-
-                        if (selectedSessionRef.current?.sessionId === msg.sessionId) {
-                            setMessages(prev => [...prev, msg]);
-                        }
-                    });
-
-                    connection.on('SessionUpdate', (sessionId: string, lastMsg: Message) => {
-                        if (lastMsg.senderType === 'Guest') {
-                            playNotificationSound();
-                            
-                            if (selectedSessionRef.current?.sessionId !== sessionId || document.hidden) {
-                                showBrowserNotification('New Message', lastMsg.messageText);
-                            }
-                        }
-
-                        if (selectedSessionRef.current?.sessionId === sessionId) {
-                            setMessages(prev => [...prev, lastMsg]);
-                        }
-                    });
-
-                    connection.on('SessionRemoved', (sessionId: string) => {
-                        setSessions(prev => prev.filter(s => s.sessionId !== sessionId));
-                        if (selectedSessionRef.current?.sessionId === sessionId) {
-                            setSelectedSession(null);
-                            setMessages([]);
-                        }
-                    });
-
-                    connection.onreconnecting(() => setIsConnected(false));
-                    connection.onreconnected(() => setIsConnected(true));
-                    connection.onclose(() => setIsConnected(false));
-                })
-                .catch(err => {
-                    console.error('SignalR Connection Error: ', err);
-                    setIsConnected(false);
-                });
-        }
-
-        return () => {
-            if (connection) {
-                connection.off('ActiveSessions');
-                connection.off('NewSession');
-                connection.off('ReceiveMessage');
-                connection.off('SessionUpdate');
-                connection.off('SessionRemoved');
-            }
-        };
-    }, [connection]);
-
-    const handleSelectSession = async (session: Session) => {
-        setSelectedSession(session);
-        // We do not send a dummy message anymore. We rely on the REST API to load history.
-        if (connection) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/chat/history/${session.sessionId}`);
-                if (response.ok) {
-                    const history = await response.json();
-                    setMessages(history);
-                }
-            } catch (e) {
-                console.error("Failed to fetch history", e);
-            }
-        }
-    };
-
     const handleSendMessage = async () => {
-        if (newMessage.trim() && selectedSession && connection && isConnected) {
-            try {
-                await connection.invoke('SendMessage', selectedSession.sessionId, newMessage, 'Agent', 'Agent_User');
-                setNewMessage('');
-            } catch (e) {
-                console.error("Error sending message", e);
-            }
-        }
-    };
-
-    const handleCloseSession = async (sessionId: string) => {
-        if (connection) {
-            await connection.invoke('CloseSession', sessionId);
-        }
+        const text = newMessage.trim();
+        if (!text) return;
+        setNewMessage('');
+        await sendMessage(text);
     };
 
     return (
@@ -212,10 +40,10 @@ const LiveSupport: React.FC = () => {
                         <div className="empty-state">No active sessions</div>
                     ) : (
                         sessions.map(session => (
-                            <div 
-                                key={session.sessionId} 
-                                className={`session-item ${selectedSession?.sessionId === session.sessionId ? 'selected' : ''}`}
-                                onClick={() => handleSelectSession(session)}
+                            <div
+                                key={session.sessionId}
+                                className={`session-item ${activeSession?.sessionId === session.sessionId ? 'selected' : ''}`}
+                                onClick={() => selectSession(session)}
                             >
                                 <div className="session-icon">
                                     <User size={20} />
@@ -234,21 +62,21 @@ const LiveSupport: React.FC = () => {
             </div>
 
             <div className="chat-area">
-                {selectedSession ? (
+                {activeSession ? (
                     <>
                         <div className="chat-header">
                             <div className="guest-details">
-                                <h3>Chat with {selectedSession.guestId.substring(0, 8)}</h3>
-                                <p>Session ID: {selectedSession.sessionId}</p>
+                                <h3>Chat with {activeSession.guestId.substring(0, 8)}</h3>
+                                <p>Session ID: {activeSession.sessionId}</p>
                             </div>
-                            <button className="close-session-btn" onClick={() => handleCloseSession(selectedSession.sessionId)}>
+                            <button className="close-session-btn" onClick={() => closeSession(activeSession.sessionId)}>
                                 <CheckCircle2 size={18} />
                                 Close Session
                             </button>
                         </div>
                         <div className="messages-container">
-                            {messages.map((msg, index) => (
-                                <div key={index} className={`message-wrapper ${msg.senderType === 'Agent' ? 'agent' : 'guest'}`}>
+                            {messages.map((msg) => (
+                                <div key={msg.messageId} className={`message-wrapper ${msg.senderType === 'Agent' ? 'agent' : 'guest'}`}>
                                     <div className="message-bubble">
                                         <p>{msg.messageText}</p>
                                         <span className="timestamp">
@@ -260,15 +88,15 @@ const LiveSupport: React.FC = () => {
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="chat-input-container">
-                            <input 
-                                type="text" 
-                                placeholder={isConnected ? "Type a response..." : "Connecting to server..."} 
+                            <input
+                                type="text"
+                                placeholder={connected ? "Type a response..." : "Connecting to server..."}
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                disabled={!isConnected}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                disabled={!connected}
                             />
-                            <button onClick={handleSendMessage} disabled={!isConnected || !newMessage.trim()}>
+                            <button onClick={handleSendMessage} disabled={!connected || !newMessage.trim()}>
                                 <Send size={20} />
                             </button>
                         </div>

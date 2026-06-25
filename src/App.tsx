@@ -4,17 +4,22 @@ import { useAuthStore } from './store/useAuthStore';
 import Layout from './components/Layout';
 import Dashboard from './features/dashboard/pages/Dashboard';
 import Login from './features/login/pages/Login';
+import ChangePassword from './features/login/pages/ChangePassword';
 import HospitalDetails from './features/dashboard/pages/HospitalDetails';
 import OnboardedHospitals from './features/dashboard/pages/OnboardedHospitals';
 import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
 import SubscriptionsPage from './features/subscriptions/SubscriptionsPage';
+import RadAiCost from './features/ai-cost/pages/RadAiCost';
+import UsersAccess from './features/admin/pages/UsersAccess';
+import RequirePermission from './components/RequirePermission';
+import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Simple Protected Route wrapper
-const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+// Auth gate: requires login, and forces a password change when flagged.
+const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { children: React.ReactElement; allowWhilePasswordChange?: boolean }) => {
+  const { isAuthenticated, isLoading, mustChangePassword } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -24,29 +29,62 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
     );
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (mustChangePassword && !allowWhilePasswordChange) return <Navigate to="/change-password" replace />;
+  return children;
 };
 
 function App() {
+  const { isAuthenticated, token, silentRefresh } = useAuthStore();
+  const [booting, setBooting] = React.useState(true);
+
+  React.useEffect(() => {
+    // Access token lives in memory only. On page reload the persisted store still
+    // knows the user was authenticated but the token is gone. Try a silent refresh
+    // using the HttpOnly refresh cookie before rendering any protected routes.
+    if (isAuthenticated && !token) {
+      silentRefresh().finally(() => setBooting(false));
+    } else {
+      setBooting(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (booting) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/change-password" element={
+            <ProtectedRoute allowWhilePasswordChange>
+              <ChangePassword />
+            </ProtectedRoute>
+          } />
 
-          {/* Protected Routes */}
+          {/* Protected app shell */}
           <Route path="/" element={
             <ProtectedRoute>
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<Dashboard />} />
-            <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
-            <Route path="hospital/:id" element={<HospitalDetails />} />
-            <Route path="subscriptions" element={<SubscriptionsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="application-health" element={<ApplicationHealth />} />
-            <Route path="support" element={<LiveSupport />} />
+            <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
+            <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
+            <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
+            <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionsPage /></RequirePermission>} />
+            <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
+            <Route path="application-health" element={<RequirePermission perm="application-health.view"><ApplicationHealth /></RequirePermission>} />
+            <Route path="radai-cost" element={<RequirePermission perm="radai-cost.view"><RadAiCost /></RequirePermission>} />
+            <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport /></RequirePermission>} />
+            <Route path="users" element={<RequirePermission perm="user-management.view"><UsersAccess /></RequirePermission>} />
+            <Route path="no-access" element={<NoAccess />} />
           </Route>
         </Routes>
       </ErrorBoundary>
