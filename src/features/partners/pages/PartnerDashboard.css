@@ -53,6 +53,26 @@
   66% { transform: translate(-20px, 20px) scale(0.9); }
 }
 
+/* Top Navbar */
+.pd-top-nav {
+  position: relative;
+  z-index: 20;
+  max-width: 1100px;
+  margin: 0 auto 32px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+}
+
+.pd-nav-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: -0.5px;
+}
+
 .pd-content {
   position: relative;
   z-index: 10;

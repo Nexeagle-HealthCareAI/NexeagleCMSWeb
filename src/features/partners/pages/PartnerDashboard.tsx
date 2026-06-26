@@ -93,21 +93,25 @@ const PartnerDashboard: React.FC = () => {
       <div className="pd-bg-orb pd-orb-2"></div>
       <div className="pd-bg-orb pd-orb-3"></div>
 
+      {/* Top Navbar */}
+      <nav className="pd-top-nav glass-card">
+        <div className="pd-brand-logo">
+          <div className="pd-brand-icon">
+            <Handshake size={24} />
+          </div>
+          <span className="pd-brand-text">NexEagle</span>
+        </div>
+        <h2 className="pd-nav-title">Partner Workspace</h2>
+        <div style={{ width: '100px' }}></div> {/* Spacer for center alignment */}
+      </nav>
+
       <div className="pd-content">
         
-        {/* Header */}
+        {/* Dashboard Header */}
         <header className="pd-header glass-card">
           <div className="pd-header-left">
-            <div className="pd-brand-logo">
-              <div className="pd-brand-icon">
-                <Handshake size={24} />
-              </div>
-              <span className="pd-brand-text">NexEagle</span>
-            </div>
-            <div style={{ marginTop: '16px' }}>
-              <h1 className="pd-title">Welcome back, {profile.name}!</h1>
-              <p className="pd-subtitle">Manage your onboarding pipeline and earnings.</p>
-            </div>
+            <h1 className="pd-title">Welcome back, {profile.name}!</h1>
+            <p className="pd-subtitle">Manage your onboarding pipeline and earnings.</p>
           </div>
 
           <div className="pd-header-right">
