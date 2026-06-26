@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
-import { Handshake, Building2, MapPin, User, Mail, Phone, Activity, Plus, Copy, LogOut } from 'lucide-react';
+import { Handshake, Building2, MapPin, User, Mail, Phone, Activity, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import './PartnerDashboard.css';
 

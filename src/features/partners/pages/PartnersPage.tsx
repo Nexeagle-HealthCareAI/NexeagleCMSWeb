@@ -66,8 +66,8 @@ const PartnersPage: React.FC = () => {
 
     if (sortField) {
       result.sort((a, b) => {
-        let valA = a[sortField];
-        let valB = b[sortField];
+        let valA: any = a[sortField] ?? '';
+        let valB: any = b[sortField] ?? '';
         if (typeof valA === 'string') valA = valA.toLowerCase();
         if (typeof valB === 'string') valB = valB.toLowerCase();
         
