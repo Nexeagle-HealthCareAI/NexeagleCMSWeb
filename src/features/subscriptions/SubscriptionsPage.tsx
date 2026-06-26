@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, Clock, XCircle, CreditCard, Building2 } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Building2 } from 'lucide-react';
 import { api } from '../../services/api';
-import { API_ENDPOINTS } from '../../services/endpoints';
 import './SubscriptionsPage.css';
 
 interface PaymentRequest {

@@ -11,6 +11,7 @@ import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
 import SubscriptionsPage from './features/subscriptions/SubscriptionsPage';
+import ManagePlansPage from './features/subscriptions/ManagePlansPage';
 import PartnersPage from './features/partners/pages/PartnersPage';
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import RadAiCost from './features/ai-cost/pages/RadAiCost';
