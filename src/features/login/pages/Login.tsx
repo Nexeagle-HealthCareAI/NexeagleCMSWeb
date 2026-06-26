@@ -215,19 +215,12 @@ const Login: React.FC = () => {
 
             {/* ── LEFT BANNER ── */}
             <div className="lp-banner">
-                <span className="lp-orb lp-orb-1" /><span className="lp-orb lp-orb-2" />
-                <span className="lp-orb lp-orb-3" /><span className="lp-orb lp-orb-4" />
-                <div className="lp-grid-overlay" />
-
                 <div className="lp-banner-content">
                     <div className="lp-logo-wrap">
-                        <div className="lp-logo-ring"><ShieldCheck size={32} strokeWidth={1.5} /></div>
+                        <div className="lp-logo-ring"><img src="/Logo.png" alt="NexEagle Logo" style={{ height: '50px', width: 'auto' }} /></div>
                     </div>
-                    <div className="lp-brand">
-                        <span className="lp-brand-main">NexEagle</span>
-                        <span className="lp-brand-dot" />
-                    </div>
-                    <p className="lp-brand-sub">Central Management System</p>
+                    <p className="lp-brand-main">NexEagle</p>
+                    <h1 className="lp-brand-sub">Central Management System</h1>
                     <p className="lp-tagline">
                         Secure Access to the NexEagle Network
                     </p>
@@ -240,7 +233,7 @@ const Login: React.FC = () => {
                 <div className="lp-form-wrap">
 
                     <div className="lp-mobile-logo">
-                        <ShieldCheck size={28} strokeWidth={1.5} /><span>NexEagle CMS</span>
+                        <img src="/Logo.png" alt="NexEagle Logo" style={{ height: '28px', width: 'auto' }} /><span>NexEagle CMS</span>
                     </div>
 
                     <div className="lp-form-header">
@@ -307,7 +300,7 @@ const Login: React.FC = () => {
                                         <button 
                                             type="button" 
                                             onClick={() => setShowPassword(!showPassword)} 
-                                            style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                                            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
                                             tabIndex={-1}
                                         >
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
