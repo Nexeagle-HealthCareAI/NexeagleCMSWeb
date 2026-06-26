@@ -17,6 +17,11 @@ const PartnerDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessTime, setAccessTime] = useState<string>('');
+
+  useEffect(() => {
+    setAccessTime(new Date().toLocaleString());
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -110,6 +115,9 @@ const PartnerDashboard: React.FC = () => {
           <div className="pd-header-left">
             <h1 className="pd-title">Welcome back, {profile.name}!</h1>
             <p className="pd-subtitle">Manage your onboarding pipeline and earnings.</p>
+            {accessTime && (
+              <p className="pd-access-time">Session Started: {accessTime}</p>
+            )}
           </div>
 
           <div className="pd-header-right">
