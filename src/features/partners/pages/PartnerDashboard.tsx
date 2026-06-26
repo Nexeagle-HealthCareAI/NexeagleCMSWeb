@@ -44,10 +44,6 @@ const PartnerDashboard: React.FC = () => {
     }
   };
 
-  const handleOnboardHospital = () => {
-    toast.info('Hospital onboarding portal coming soon!');
-  };
-
   if (!token) return <Navigate to="/login" replace />;
 
   if (loading) {
