@@ -4,6 +4,7 @@ import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import { Handshake, Building2, MapPin, User, Mail, Phone, Activity, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { copyToClipboard } from '../../../utils/clipboard';
 import './PartnerDashboard.css';
 
 interface DashboardStats {
@@ -36,9 +37,9 @@ const PartnerDashboard: React.FC = () => {
     fetchStats();
   }, [token]);
 
-  const copyPartnerCode = () => {
+  const copyPartnerCode = async () => {
     if (stats?.profile.partnerCode) {
-      navigator.clipboard.writeText(stats.profile.partnerCode);
+      await copyToClipboard(stats.profile.partnerCode);
       toast.success('Partner Code Copied!');
     }
   };

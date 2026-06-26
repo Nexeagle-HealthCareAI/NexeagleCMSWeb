@@ -3,6 +3,7 @@ import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import AddPartnerModal from '../components/AddPartnerModal';
 import { Plus, Handshake, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { copyToClipboard } from '../utils/clipboard';
 import './PartnersPage.css';
 
 const PartnersPage: React.FC = () => {
@@ -34,9 +35,9 @@ const PartnersPage: React.FC = () => {
     fetchPartners();
   }, []);
 
-  const handleCopyLink = (token: string) => {
+  const handleCopyLink = async (token: string) => {
     const link = `${window.location.origin}/partner-dashboard/${token}`;
-    navigator.clipboard.writeText(link);
+    await copyToClipboard(link);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
   };
@@ -173,7 +174,7 @@ const PartnersPage: React.FC = () => {
                         <div className="pt-flex-center">
                           <span className="pt-badge">{p.partnerCode}</span>
                           <button 
-                            onClick={() => { navigator.clipboard.writeText(p.partnerCode); }} 
+                            onClick={async () => { await copyToClipboard(p.partnerCode); }} 
                             title="Copy Code"
                             className="pt-icon-btn">
                             <Copy size={14} />
