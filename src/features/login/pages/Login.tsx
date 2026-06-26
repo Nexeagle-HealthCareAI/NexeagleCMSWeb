@@ -219,7 +219,7 @@ const Login: React.FC = () => {
                     <div className="lp-logo-wrap">
                         <div className="lp-logo-ring"><img src="/Logo.png" alt="NexEagle Logo" style={{ height: '50px', width: 'auto' }} /></div>
                     </div>
-                    <p className="lp-brand-main">NEXEAGLE</p>
+                    <p className="lp-brand-main">NexEagle</p>
                     <h1 className="lp-brand-sub">Central Management System</h1>
                     <p className="lp-tagline">
                         Secure Access to the NexEagle Network
