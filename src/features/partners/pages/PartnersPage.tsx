@@ -3,7 +3,7 @@ import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import AddPartnerModal from '../components/AddPartnerModal';
 import { Plus, Handshake, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
-import { copyToClipboard } from '../utils/clipboard';
+import { copyToClipboard } from '../../../utils/clipboard';
 import { toast } from 'sonner';
 import './PartnersPage.css';
 
