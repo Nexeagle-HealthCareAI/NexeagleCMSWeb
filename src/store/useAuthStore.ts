@@ -13,7 +13,7 @@ import {
 
 interface AuthState {
     user: User | null;
-    /** Access token – kept in memory only, never written to localStorage. */
+    /** Access token */
     token: string | null;
     permissions: string[];
     mustChangePassword: boolean;
@@ -135,9 +135,9 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'auth-storage',
-            // Only persist non-sensitive UI state. Access token lives in memory only.
             partialize: (state) => ({
                 user: state.user,
+                token: state.token,
                 permissions: state.permissions,
                 mustChangePassword: state.mustChangePassword,
                 isAuthenticated: state.isAuthenticated,

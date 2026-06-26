@@ -18,6 +18,7 @@ import UsersAccess from './features/admin/pages/UsersAccess';
 import RequirePermission from './components/RequirePermission';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
+import InactivityTracker from './components/InactivityTracker';
 
 // Auth gate: requires login, and forces a password change when flagged.
 const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { children: React.ReactElement; allowWhilePasswordChange?: boolean }) => {
@@ -62,6 +63,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <InactivityTracker />
       <ErrorBoundary>
         <Routes>
           <Route path="/partner-dashboard/:token" element={<PartnerDashboard />} />
