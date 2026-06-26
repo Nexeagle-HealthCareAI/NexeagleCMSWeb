@@ -215,19 +215,12 @@ const Login: React.FC = () => {
 
             {/* ── LEFT BANNER ── */}
             <div className="lp-banner">
-                <span className="lp-orb lp-orb-1" /><span className="lp-orb lp-orb-2" />
-                <span className="lp-orb lp-orb-3" /><span className="lp-orb lp-orb-4" />
-                <div className="lp-grid-overlay" />
-
                 <div className="lp-banner-content">
                     <div className="lp-logo-wrap">
-                        <div className="lp-logo-ring"><img src="/Logo.png" alt="NexEagle Logo" style={{ height: '40px', width: 'auto' }} /></div>
+                        <div className="lp-logo-ring"><img src="/Logo.png" alt="NexEagle Logo" style={{ height: '50px', width: 'auto' }} /></div>
                     </div>
-                    <div className="lp-brand">
-                        <span className="lp-brand-main">NexEagle</span>
-                        <span className="lp-brand-dot" />
-                    </div>
-                    <p className="lp-brand-sub">Central Management System</p>
+                    <p className="lp-brand-main">NEXEAGLE</p>
+                    <h1 className="lp-brand-sub">Central Management System</h1>
                     <p className="lp-tagline">
                         Secure Access to the NexEagle Network
                     </p>

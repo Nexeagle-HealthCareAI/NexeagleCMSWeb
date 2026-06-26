@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { partnerService } from '../services/partnerService';
 import type { CreatePartnerPayload } from '../services/partnerService';
 import { X, CheckCircle } from 'lucide-react';
