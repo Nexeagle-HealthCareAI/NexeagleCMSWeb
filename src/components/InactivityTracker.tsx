@@ -29,7 +29,7 @@ const InactivityTracker: React.FC = () => {
     events.forEach(e => window.addEventListener(e, handleActivity));
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
       events.forEach(e => window.removeEventListener(e, handleActivity));
     };
   }, [isAuthenticated, logout]);
