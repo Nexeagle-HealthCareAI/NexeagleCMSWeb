@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
+import { Handshake, Building2, Activity, Copy } from 'lucide-react';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
-import { Handshake, Building2, MapPin, User, Mail, Phone, Activity, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { copyToClipboard } from '../../../utils/clipboard';
 import './PartnerDashboard.css';
@@ -125,15 +125,6 @@ const PartnerDashboard: React.FC = () => {
           </div>
         </header>
 
-        {/* Action Bar */}
-        <div className="pd-action-bar">
-          <button className="pd-btn-primary" onClick={handleOnboardHospital}>
-            <Plus size={20} />
-            <span>Onboard New Hospital</span>
-            <div className="pd-btn-glow"></div>
-          </button>
-        </div>
-
         <div className="pd-grid">
           
           {/* Stats Card */}
@@ -153,45 +144,6 @@ const PartnerDashboard: React.FC = () => {
                 <div className="pd-progress-fill" style={{ width: totalHospitalsOnboarded > 0 ? '100%' : '5%' }}></div>
               </div>
               <span className="pd-stat-trend">Active Connections</span>
-            </div>
-          </div>
-
-          {/* Profile Card */}
-          <div className="pd-profile-card glass-card">
-            <h3 className="pd-card-title">
-              <User size={20} className="text-blue-400" /> 
-              Partner Profile
-            </h3>
-            
-            <div className="pd-profile-list">
-              <div className="pd-profile-item">
-                <span className="pd-profile-label">Name</span>
-                <span className="pd-profile-value">{profile.name}</span>
-              </div>
-              <div className="pd-profile-item">
-                <span className="pd-profile-label">Profession</span>
-                <span className="pd-profile-value">{profile.currentProfession}</span>
-              </div>
-              <div className="pd-profile-item">
-                <span className="pd-profile-label">Qualification</span>
-                <span className="pd-profile-value">{profile.highestQualification}</span>
-              </div>
-              {profile.email && (
-                <div className="pd-profile-item">
-                  <span className="pd-profile-label"><Mail size={16} /> Email</span>
-                  <span className="pd-profile-value">{profile.email}</span>
-                </div>
-              )}
-              {profile.phoneNumber && (
-                <div className="pd-profile-item">
-                  <span className="pd-profile-label"><Phone size={16} /> Phone</span>
-                  <span className="pd-profile-value">{profile.phoneNumber}</span>
-                </div>
-              )}
-              <div className="pd-profile-item">
-                <span className="pd-profile-label"><MapPin size={16} /> Location</span>
-                <span className="pd-profile-value">{profile.city}, {profile.state}</span>
-              </div>
             </div>
           </div>
           
