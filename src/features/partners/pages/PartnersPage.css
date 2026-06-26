@@ -1,0 +1,149 @@
+/* PartnersPage.css */
+
+.partners-table-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.partners-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 900px; /* ensures it scrolls gracefully instead of squishing */
+}
+
+.partners-table th {
+  background-color: #f8fafc;
+  padding: 16px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.partners-table th.sortable:hover {
+  background-color: #f1f5f9;
+}
+
+.partners-table td {
+  padding: 16px 24px;
+  font-size: 14px;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.partners-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.partners-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.partners-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Sub-text styles in cells */
+.pt-title {
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.pt-subtitle {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.pt-badge {
+  font-family: 'SF Mono', Consolas, monospace;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+}
+
+.pt-icon-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pt-icon-btn:hover {
+  background: #e2e8f0;
+  color: #3b82f6;
+}
+
+/* Flex alignments */
+.pt-flex-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pt-flex-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Premium Add Partner Button */
+.pt-add-btn {
+  position: relative;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.5);
+}
+
+.pt-add-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 25px -6px rgba(37, 99, 235, 0.6);
+}
+
+.pt-add-btn-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-20deg);
+  animation: pt-shine 3s infinite;
+}
+
+@keyframes pt-shine {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}

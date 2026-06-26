@@ -17,6 +17,7 @@ export interface Partner {
   partnerCode: string;
   dashboardToken: string;
   createdAt: string;
+  lastLoginAt?: string;
 }
 
 export interface CreatePartnerPayload {
@@ -43,6 +44,11 @@ export const partnerService = {
   create: async (payload: CreatePartnerPayload) => {
     const response = await api.post('/partners', payload);
     return response.data.data as Partner;
+  },
+
+  delete: async (partnerId: string) => {
+    const response = await api.delete(`/partners/${partnerId}`);
+    return response.data;
   },
 
   getDashboardStats: async (token: string) => {

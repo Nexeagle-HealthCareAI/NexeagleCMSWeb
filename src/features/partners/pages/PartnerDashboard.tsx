@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
+import { Building2, Activity, Copy } from 'lucide-react';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
-import { Handshake, Building2, MapPin, User, Mail, Phone, Activity } from 'lucide-react';
-import '../../dashboard/pages/Dashboard.css'; // Reuse dashboard styles
+import { toast } from 'sonner';
+import { copyToClipboard } from '../../../utils/clipboard';
+import './PartnerDashboard.css';
 
 interface DashboardStats {
   profile: Partner;
@@ -15,6 +17,11 @@ const PartnerDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessTime, setAccessTime] = useState<string>('');
+
+  useEffect(() => {
+    setAccessTime(new Date().toLocaleString());
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -35,23 +42,48 @@ const PartnerDashboard: React.FC = () => {
     fetchStats();
   }, [token]);
 
+  const copyPartnerCode = async () => {
+    if (stats?.profile.partnerCode) {
+      await copyToClipboard(stats.profile.partnerCode);
+      toast.success('Partner Code Copied!');
+    }
+  };
+
   if (!token) return <Navigate to="/login" replace />;
 
   if (loading) {
     return (
-      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-        <div className="text-xl text-primary font-semibold">Loading Dashboard...</div>
+      <div className="pd-loading-container">
+        <div className="pd-bg-orb pd-orb-1"></div>
+        <div className="pd-bg-orb pd-orb-2"></div>
+        <div className="pd-bg-orb pd-orb-3"></div>
+        
+        <div className="pd-loading-content glass-card">
+          <div className="pd-loading-logo">
+            <img src="/Logo.png" alt="NexEagle Logo" className="pd-brand-image-large" />
+            <div className="pd-logo-glow"></div>
+          </div>
+          <h2 className="pd-loading-title">Welcome to Your Workspace</h2>
+          <p className="pd-loading-subtitle">
+            Empowering healthcare, together.<br/>
+            We are proud to have you in the NexEagle network.
+          </p>
+          <div className="pd-spinner-modern">
+            <div className="pd-spinner-ring"></div>
+            <div className="pd-spinner-dot"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error || !stats) {
     return (
-      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-        <div className="card text-center p-8 max-w-md w-full">
-          <Activity size={48} className="text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-          <p className="text-gray-600">{error}</p>
+      <div className="pd-loading-container">
+        <div className="pd-error-card glass-card">
+          <Activity size={48} className="text-red-400 mx-auto mb-4" />
+          <h2>Access Denied</h2>
+          <p>{error}</p>
         </div>
       </div>
     );
@@ -60,75 +92,64 @@ const PartnerDashboard: React.FC = () => {
   const { profile, totalHospitalsOnboarded } = stats;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '24px' }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="pd-container">
+      {/* Background Orbs */}
+      <div className="pd-bg-orb pd-orb-1"></div>
+      <div className="pd-bg-orb pd-orb-2"></div>
+      <div className="pd-bg-orb pd-orb-3"></div>
+
+      {/* Top Navbar */}
+      <nav className="pd-top-nav glass-card">
+        <div className="pd-brand-logo">
+          <img src="/Logo.png" alt="NexEagle Logo" className="pd-brand-image" />
+          <span className="pd-brand-text">NexEagle</span>
+        </div>
+        <h2 className="pd-nav-title">Partner Workspace</h2>
+        <div style={{ width: '100px' }}></div> {/* Spacer for center alignment */}
+      </nav>
+
+      <div className="pd-content">
         
-        {/* Header */}
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: '#1e40af', color: 'white', padding: '12px', borderRadius: '12px' }}>
-              <Handshake size={28} />
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '24px', color: '#0f172a' }}>NexEagle Partner Dashboard</h1>
-              <p style={{ margin: 0, color: '#64748b' }}>Welcome back, {profile.name}</p>
-            </div>
+        {/* Dashboard Header */}
+        <header className="pd-header glass-card">
+          <div className="pd-header-left">
+            <h1 className="pd-title">Welcome back, {profile.name}!</h1>
+            <p className="pd-subtitle">Manage your onboarding pipeline and earnings.</p>
+            {accessTime && (
+              <p className="pd-access-time">Session Started: {accessTime}</p>
+            )}
           </div>
-          <div style={{ background: 'white', padding: '12px 24px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Partner Code</div>
-            <div style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 700, color: '#1e40af', letterSpacing: '2px' }}>{profile.partnerCode}</div>
+
+          <div className="pd-header-right">
+            <div className="pd-code-box" onClick={copyPartnerCode}>
+              <span className="pd-code-label">Your Partner Code</span>
+              <div className="pd-code-value">
+                {profile.partnerCode}
+                <Copy size={16} className="pd-copy-icon" />
+              </div>
+            </div>
           </div>
         </header>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+        <div className="pd-grid">
           
           {/* Stats Card */}
-          <div className="card stat-card" style={{ background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)', color: 'white' }}>
-            <div className="stat-header">
-              <span className="stat-title" style={{ color: '#e0e7ff' }}>Hospitals Onboarded</span>
-              <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+          <div className="pd-stat-card glass-card">
+            <div className="pd-stat-header">
+              <span className="pd-stat-title">Network Impact</span>
+              <div className="pd-stat-icon">
                 <Building2 size={24} />
               </div>
             </div>
-            <div className="stat-value" style={{ color: 'white' }}>{totalHospitalsOnboarded}</div>
-            <div className="stat-trend" style={{ color: '#bae6fd' }}>Total active connections</div>
-          </div>
-
-          {/* Profile Card */}
-          <div className="card">
-            <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <User size={18} className="text-primary" /> Profile Details
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                <span style={{ color: '#64748b' }}>Name</span>
-                <span style={{ fontWeight: 500 }}>{profile.name}</span>
+            <div className="pd-stat-body">
+              <div className="pd-stat-value">{totalHospitalsOnboarded}</div>
+              <div className="pd-stat-label">Hospitals Onboarded</div>
+            </div>
+            <div className="pd-stat-footer">
+              <div className="pd-progress-bar">
+                <div className="pd-progress-fill" style={{ width: totalHospitalsOnboarded > 0 ? '100%' : '5%' }}></div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                <span style={{ color: '#64748b' }}>Profession</span>
-                <span style={{ fontWeight: 500 }}>{profile.currentProfession}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                <span style={{ color: '#64748b' }}>Qualification</span>
-                <span style={{ fontWeight: 500 }}>{profile.highestQualification}</span>
-              </div>
-              {profile.email && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}><Mail size={14} /> Email</span>
-                  <span style={{ fontWeight: 500 }}>{profile.email}</span>
-                </div>
-              )}
-              {profile.phoneNumber && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={14} /> Phone</span>
-                  <span style={{ fontWeight: 500 }}>{profile.phoneNumber}</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} /> Location</span>
-                <span style={{ fontWeight: 500 }}>{profile.city}, {profile.state}</span>
-              </div>
+              <span className="pd-stat-trend">Active Connections</span>
             </div>
           </div>
           
