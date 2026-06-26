@@ -3,7 +3,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import { Handshake, Building2, MapPin, User, Mail, Phone, Activity } from 'lucide-react';
-import '../../dashboard/dashboard.css'; // Reuse dashboard styles
+import '../../dashboard/pages/Dashboard.css'; // Reuse dashboard styles
 
 interface DashboardStats {
   profile: Partner;
