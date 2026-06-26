@@ -7,14 +7,14 @@ const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 const InactivityTracker: React.FC = () => {
   const logout = useAuthStore(state => state.logout);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const resetTimer = () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => {
         logout();
         toast.error('Session expired due to inactivity (15 minutes).');
       }, INACTIVITY_TIMEOUT);
