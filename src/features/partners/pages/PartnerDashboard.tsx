@@ -102,12 +102,15 @@ const PartnerDashboard: React.FC = () => {
         {/* Header */}
         <header className="pd-header glass-card">
           <div className="pd-header-left">
-            <div className="pd-brand-icon">
-              <Handshake size={32} />
+            <div className="pd-brand-logo">
+              <div className="pd-brand-icon">
+                <Handshake size={24} />
+              </div>
+              <span className="pd-brand-text">NexEagle</span>
             </div>
-            <div>
-              <h1 className="pd-title">Partner Workspace</h1>
-              <p className="pd-subtitle">Welcome back, <span className="text-blue-300 font-semibold">{profile.name}</span></p>
+            <div style={{ marginTop: '16px' }}>
+              <h1 className="pd-title">Welcome back, {profile.name}!</h1>
+              <p className="pd-subtitle">Manage your onboarding pipeline and earnings.</p>
             </div>
           </div>
 
