@@ -11,6 +11,8 @@ import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
 import SubscriptionsPage from './features/subscriptions/SubscriptionsPage';
+import PartnersPage from './features/partners/pages/PartnersPage';
+import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import RadAiCost from './features/ai-cost/pages/RadAiCost';
 import UsersAccess from './features/admin/pages/UsersAccess';
 import RequirePermission from './components/RequirePermission';
@@ -62,12 +64,32 @@ function App() {
     <BrowserRouter>
       <ErrorBoundary>
         <Routes>
+          <Route path="/partner-dashboard/:token" element={<PartnerDashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/change-password" element={
             <ProtectedRoute allowWhilePasswordChange>
               <ChangePassword />
             </ProtectedRoute>
           } />
+          <Route path="/onboarded-hospitals" element={
+            <ProtectedRoute>
+              {/* <RequirePermission permission="onboarded-hospitals.view"> */}
+                <Layout>
+                  <OnboardedHospitals />
+                </Layout>
+              {/* </RequirePermission> */}
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/partners" element={
+            <ProtectedRoute>
+              <Layout>
+                <PartnersPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/users-access" element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
 
           {/* Protected app shell */}
           <Route path="/" element={
