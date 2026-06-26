@@ -3,6 +3,7 @@ import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import AddPartnerModal from '../components/AddPartnerModal';
 import { Plus, Handshake, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import './PartnersPage.css';
 
 const PartnersPage: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -135,23 +136,23 @@ const PartnersPage: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="table-responsive">
-              <table className="table">
+            <div className="partners-table-wrapper">
+              <table className="partners-table">
                 <thead>
                   <tr>
-                    <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <th onClick={() => handleSort('name')} className="sortable">
                       Partner Name <SortIcon field="name" />
                     </th>
-                    <th onClick={() => handleSort('partnerCode')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <th onClick={() => handleSort('partnerCode')} className="sortable">
                       Partner Code <SortIcon field="partnerCode" />
                     </th>
-                    <th onClick={() => handleSort('email')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <th onClick={() => handleSort('email')} className="sortable">
                       Contact Info <SortIcon field="email" />
                     </th>
-                    <th onClick={() => handleSort('city')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <th onClick={() => handleSort('city')} className="sortable">
                       Location <SortIcon field="city" />
                     </th>
-                    <th onClick={() => handleSort('currentProfession')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <th onClick={() => handleSort('currentProfession')} className="sortable">
                       Profession <SortIcon field="currentProfession" />
                     </th>
                     <th style={{ textAlign: 'right' }}>Dashboard Link</th>
@@ -163,38 +164,38 @@ const PartnersPage: React.FC = () => {
                   ) : currentPartners.map(p => (
                     <tr key={p.partnerId}>
                       <td>
-                        <div style={{ fontWeight: 600, color: '#1e3a8a' }}>{p.name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>{p.sex}, {p.age} yrs</div>
+                        <div className="pt-title">{p.name}</div>
+                        <div className="pt-subtitle">{p.sex}, {p.age} yrs</div>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>{p.partnerCode}</span>
+                        <div className="pt-flex-center">
+                          <span className="pt-badge">{p.partnerCode}</span>
                           <button 
                             onClick={() => { navigator.clipboard.writeText(p.partnerCode); }} 
                             title="Copy Code"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                            className="pt-icon-btn">
                             <Copy size={14} />
                           </button>
                         </div>
                       </td>
                       <td>
-                        {p.email ? <div>{p.email}</div> : <span className="text-gray-400 text-xs">No email</span>}
-                        {p.phoneNumber && <div style={{ fontSize: '12px', color: '#64748b' }}>{p.phoneNumber}</div>}
+                        {p.email ? <div className="pt-title" style={{ fontSize: '13px' }}>{p.email}</div> : <span className="pt-subtitle">No email</span>}
+                        {p.phoneNumber && <div className="pt-subtitle">{p.phoneNumber}</div>}
                       </td>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div className="pt-flex-center">
                           <MapPin size={14} className="text-gray-400" />
-                          <span>{p.city}, {p.state}</span>
+                          <span className="pt-title" style={{ fontSize: '13px', margin: 0 }}>{p.city}, {p.state}</span>
                         </div>
                       </td>
                       <td>
-                        <div>{p.currentProfession}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>{p.highestQualification}</div>
+                        <div className="pt-title" style={{ fontSize: '13px', margin: 0 }}>{p.currentProfession}</div>
+                        <div className="pt-subtitle">{p.highestQualification}</div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <button 
                           className="btn-secondary" 
-                          style={{ padding: '6px 12px', fontSize: '13px' }}
+                          style={{ padding: '6px 12px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                           onClick={() => handleCopyLink(p.dashboardToken)}
                         >
                           {copiedToken === p.dashboardToken ? (
