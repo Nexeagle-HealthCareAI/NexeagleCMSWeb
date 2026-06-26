@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { Handshake, Building2, Activity, Copy } from 'lucide-react';
+import { Building2, Activity, Copy } from 'lucide-react';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import { toast } from 'sonner';
