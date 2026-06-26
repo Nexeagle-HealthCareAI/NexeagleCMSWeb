@@ -55,7 +55,7 @@ const PartnerDashboard: React.FC = () => {
         
         <div className="pd-loading-content glass-card">
           <div className="pd-loading-logo">
-            <span className="pd-logo-text">NexEagle</span>
+            <img src="/Logo.png" alt="NexEagle Logo" className="pd-brand-image-large" />
             <div className="pd-logo-glow"></div>
           </div>
           <h2 className="pd-loading-title">Welcome to Your Workspace</h2>
@@ -96,9 +96,7 @@ const PartnerDashboard: React.FC = () => {
       {/* Top Navbar */}
       <nav className="pd-top-nav glass-card">
         <div className="pd-brand-logo">
-          <div className="pd-brand-icon">
-            <Handshake size={24} />
-          </div>
+          <img src="/Logo.png" alt="NexEagle Logo" className="pd-brand-image" />
           <span className="pd-brand-text">NexEagle</span>
         </div>
         <h2 className="pd-nav-title">Partner Workspace</h2>

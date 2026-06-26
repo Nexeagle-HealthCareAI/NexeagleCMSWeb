@@ -123,16 +123,10 @@
   gap: 12px;
 }
 
-.pd-brand-icon {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  color: white;
-  width: 48px;
+.pd-brand-image {
   height: 48px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);
+  width: auto;
+  object-fit: contain;
 }
 
 .pd-brand-text {
@@ -373,6 +367,20 @@
 .pd-loading-logo {
   position: relative;
   margin-bottom: 24px;
+}
+
+.pd-brand-image-large {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+  animation: logo-fade-in 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes logo-fade-in {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .pd-logo-text {
