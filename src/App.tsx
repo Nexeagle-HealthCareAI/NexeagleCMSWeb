@@ -71,23 +71,6 @@ function App() {
               <ChangePassword />
             </ProtectedRoute>
           } />
-          <Route path="/onboarded-hospitals" element={
-            <ProtectedRoute>
-              {/* <RequirePermission permission="onboarded-hospitals.view"> */}
-                <Layout>
-                  <OnboardedHospitals />
-                </Layout>
-              {/* </RequirePermission> */}
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/partners" element={
-            <ProtectedRoute>
-              <Layout>
-                <PartnersPage />
-              </Layout>
-            </ProtectedRoute>
-          } />
 
           <Route path="/users-access" element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
 
@@ -98,7 +81,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
-            <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
+            <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
+            <Route path="partners" element={<PartnersPage />} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionsPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />

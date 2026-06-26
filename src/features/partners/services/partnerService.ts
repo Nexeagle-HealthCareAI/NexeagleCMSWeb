@@ -1,4 +1,4 @@
-import api from '../../../services/api';
+import { api } from '../../../services/api';
 
 export interface Partner {
   partnerId: string;
@@ -14,6 +14,7 @@ export interface Partner {
   pincode: string;
   email: string | null;
   phoneNumber: string | null;
+  partnerCode: string;
   dashboardToken: string;
   createdAt: string;
 }

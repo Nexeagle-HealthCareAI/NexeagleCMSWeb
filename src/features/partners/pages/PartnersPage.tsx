@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { partnerService, Partner } from '../services/partnerService';
+import { partnerService } from '../services/partnerService';
+import type { Partner } from '../services/partnerService';
 import AddPartnerModal from '../components/AddPartnerModal';
-import { Plus, Link as LinkIcon, Handshake, Users, MapPin, Copy, Check } from 'lucide-react';
+import { Plus, Handshake, Users, MapPin, Copy, Check } from 'lucide-react';
 
 const PartnersPage: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -59,6 +60,7 @@ const PartnersPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>Partner Name</th>
+                  <th>Partner Code</th>
                   <th>Contact Info</th>
                   <th>Location</th>
                   <th>Profession</th>
@@ -71,6 +73,17 @@ const PartnersPage: React.FC = () => {
                     <td>
                       <div style={{ fontWeight: 600, color: '#1e3a8a' }}>{p.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748b' }}>{p.sex}, {p.age} yrs</div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>{p.partnerCode}</span>
+                        <button 
+                          onClick={() => { navigator.clipboard.writeText(p.partnerCode); }} 
+                          title="Copy Code"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                          <Copy size={14} />
+                        </button>
+                      </div>
                     </td>
                     <td>
                       {p.email ? <div>{p.email}</div> : <span className="text-gray-400 text-xs">No email</span>}

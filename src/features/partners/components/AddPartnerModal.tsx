@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { CreatePartnerPayload, partnerService } from '../services/partnerService';
+import { partnerService } from '../services/partnerService';
+import type { CreatePartnerPayload } from '../services/partnerService';
 import { X } from 'lucide-react';
 
 interface AddPartnerModalProps {

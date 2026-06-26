@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { partnerService, Partner } from '../services/partnerService';
+import { partnerService } from '../services/partnerService';
+import type { Partner } from '../services/partnerService';
 import { Handshake, Building2, MapPin, User, Mail, Phone, Activity } from 'lucide-react';
 import '../../dashboard/dashboard.css'; // Reuse dashboard styles
 
@@ -63,13 +64,19 @@ const PartnerDashboard: React.FC = () => {
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         
         {/* Header */}
-        <header style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <div style={{ background: '#1e40af', color: 'white', padding: '12px', borderRadius: '12px' }}>
-            <Handshake size={28} />
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: '#1e40af', color: 'white', padding: '12px', borderRadius: '12px' }}>
+              <Handshake size={28} />
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '24px', color: '#0f172a' }}>NexEagle Partner Dashboard</h1>
+              <p style={{ margin: 0, color: '#64748b' }}>Welcome back, {profile.name}</p>
+            </div>
           </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '24px', color: '#0f172a' }}>NexEagle Partner Dashboard</h1>
-            <p style={{ margin: 0, color: '#64748b' }}>Welcome back, {profile.name}</p>
+          <div style={{ background: 'white', padding: '12px 24px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Partner Code</div>
+            <div style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 700, color: '#1e40af', letterSpacing: '2px' }}>{profile.partnerCode}</div>
           </div>
         </header>
 
