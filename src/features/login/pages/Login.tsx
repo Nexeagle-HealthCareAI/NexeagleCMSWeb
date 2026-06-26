@@ -221,7 +221,7 @@ const Login: React.FC = () => {
 
                 <div className="lp-banner-content">
                     <div className="lp-logo-wrap">
-                        <div className="lp-logo-ring"><ShieldCheck size={32} strokeWidth={1.5} /></div>
+                        <div className="lp-logo-ring"><img src="/Logo.png" alt="NexEagle Logo" style={{ height: '40px', width: 'auto' }} /></div>
                     </div>
                     <div className="lp-brand">
                         <span className="lp-brand-main">NexEagle</span>
@@ -240,7 +240,7 @@ const Login: React.FC = () => {
                 <div className="lp-form-wrap">
 
                     <div className="lp-mobile-logo">
-                        <ShieldCheck size={28} strokeWidth={1.5} /><span>NexEagle CMS</span>
+                        <img src="/Logo.png" alt="NexEagle Logo" style={{ height: '28px', width: 'auto' }} /><span>NexEagle CMS</span>
                     </div>
 
                     <div className="lp-form-header">
@@ -307,7 +307,7 @@ const Login: React.FC = () => {
                                         <button 
                                             type="button" 
                                             onClick={() => setShowPassword(!showPassword)} 
-                                            style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                                            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
                                             tabIndex={-1}
                                         >
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

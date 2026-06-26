@@ -38,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
       <aside className={`sidebar ${collapsed ? 'collapsed' : 'expanded'} ${isMobile ? 'mobile' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-container">
+            <img src="/Logo.png" alt="NexEagle Logo" style={{ height: '32px', width: 'auto', marginRight: (!collapsed || isMobile) ? '12px' : '0' }} />
             {(!collapsed || isMobile) && <span className="logo-text">CMS</span>}
           </div>
           {!isMobile && (
