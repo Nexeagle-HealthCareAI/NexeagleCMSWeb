@@ -53,8 +53,25 @@ const PartnerDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="pd-loading-container">
-        <div className="pd-spinner"></div>
-        <div className="pd-loading-text">Loading Workspace...</div>
+        <div className="pd-bg-orb pd-orb-1"></div>
+        <div className="pd-bg-orb pd-orb-2"></div>
+        <div className="pd-bg-orb pd-orb-3"></div>
+        
+        <div className="pd-loading-content glass-card">
+          <div className="pd-loading-logo">
+            <span className="pd-logo-text">NexEagle</span>
+            <div className="pd-logo-glow"></div>
+          </div>
+          <h2 className="pd-loading-title">Welcome to Your Workspace</h2>
+          <p className="pd-loading-subtitle">
+            Empowering healthcare, together.<br/>
+            We are proud to have you in the NexEagle network.
+          </p>
+          <div className="pd-spinner-modern">
+            <div className="pd-spinner-ring"></div>
+            <div className="pd-spinner-dot"></div>
+          </div>
+        </div>
       </div>
     );
   }
