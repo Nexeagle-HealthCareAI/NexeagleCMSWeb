@@ -105,8 +105,10 @@ const PartnersPage: React.FC = () => {
           <h1 className="page-title"><Handshake size={28} className="text-primary" style={{ display: 'inline', marginRight: '10px' }} /> Partner Network</h1>
           <p className="page-subtitle">Manage onboarded partners and their dashboards.</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowAddModal(true)}>
-          <Plus size={18} /> Add Partner
+        <button className="pt-add-btn" onClick={() => setShowAddModal(true)}>
+          <Plus size={18} /> 
+          <span>Add Partner</span>
+          <div className="pt-add-btn-glow"></div>
         </button>
       </div>
 
