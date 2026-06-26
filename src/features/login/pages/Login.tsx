@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, KeyRound, Loader2, Lock, Mail, MessageSquare, Phone, RefreshCw, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, KeyRound, Loader2, Lock, Mail, MessageSquare, Phone, RefreshCw, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
     requestOtp,
@@ -78,6 +78,7 @@ const Login: React.FC = () => {
 
     // password mode
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     // otp mode
     const [otpStep, setOtpStep] = useState<OtpStep>('request');
@@ -294,14 +295,23 @@ const Login: React.FC = () => {
                                     <div className="lp-input-wrap">
                                         <Lock size={15} className="lp-input-icon" />
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             placeholder="••••••••"
                                             value={password}
                                             onChange={e => setPassword(e.target.value)}
                                             disabled={isLoading}
                                             autoComplete="current-password"
                                             required
+                                            style={{ paddingRight: '40px' }}
                                         />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowPassword(!showPassword)} 
+                                            style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                                            tabIndex={-1}
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
                                     </div>
                                 </label>
                                 <button type="submit" className="lp-submit" disabled={isLoading}>

@@ -82,15 +82,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
               </li>
             )}
             <li>
-              <div className="nav-item disabled" title={collapsed && !isMobile ? "Partners (Coming Soon)" : ""}>
+              <NavLink
+                to="/partners"
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed && !isMobile ? "Partner Network" : ""}
+                onClick={isMobile ? toggle : undefined}
+              >
                 <Handshake size={22} />
-                {(!collapsed || isMobile) && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                    <span>Partners</span>
-                    <span style={{ fontSize: '10px', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px' }}>Upcoming</span>
-                  </div>
-                )}
-              </div>
+                {(!collapsed || isMobile) && <span>Partner Network</span>}
+              </NavLink>
             </li>
             {can('subscriptions.view') && (
               <li>

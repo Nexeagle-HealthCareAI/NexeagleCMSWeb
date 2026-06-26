@@ -11,6 +11,8 @@ import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
 import SubscriptionsPage from './features/subscriptions/SubscriptionsPage';
+import PartnersPage from './features/partners/pages/PartnersPage';
+import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import RadAiCost from './features/ai-cost/pages/RadAiCost';
 import UsersAccess from './features/admin/pages/UsersAccess';
 import RequirePermission from './components/RequirePermission';
@@ -62,12 +64,15 @@ function App() {
     <BrowserRouter>
       <ErrorBoundary>
         <Routes>
+          <Route path="/partner-dashboard/:token" element={<PartnerDashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/change-password" element={
             <ProtectedRoute allowWhilePasswordChange>
               <ChangePassword />
             </ProtectedRoute>
           } />
+
+          <Route path="/users-access" element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
 
           {/* Protected app shell */}
           <Route path="/" element={
@@ -76,7 +81,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
-            <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
+            <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
+            <Route path="partners" element={<PartnersPage />} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionsPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />

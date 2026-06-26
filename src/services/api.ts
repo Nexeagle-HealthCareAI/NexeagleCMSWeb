@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from './endpoints';
 if (!import.meta.env.VITE_API_URL) {
     console.warn('[api] VITE_API_URL is not set – falling back to hard-coded dev URL.');
 }
-const API_URL = import.meta.env.VITE_API_URL || 'https://cms-api-dev-enb6fqdeh7ahbbf5.centralindia-01.azurewebsites.net/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://151.185.47.77/api/v1';
 
 // SignalR hub lives at <origin>/chathub (outside the /api/v1 prefix), derived from the
 // same configured API URL so it works across dev/prod instead of a hardcoded localhost.
