@@ -179,12 +179,15 @@ const PartnersPage: React.FC = () => {
                     <th onClick={() => handleSort('currentProfession')} className="sortable">
                       Profession <SortIcon field="currentProfession" />
                     </th>
+                    <th onClick={() => handleSort('lastLoginAt')} className="sortable">
+                      Last Login <SortIcon field="lastLoginAt" />
+                    </th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentPartners.length === 0 ? (
-                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No partners found matching your search.</td></tr>
+                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No partners found matching your search.</td></tr>
                   ) : currentPartners.map(p => (
                     <tr key={p.partnerId}>
                       <td>
@@ -215,6 +218,13 @@ const PartnersPage: React.FC = () => {
                       <td>
                         <div className="pt-title" style={{ fontSize: '13px', margin: 0 }}>{p.currentProfession}</div>
                         <div className="pt-subtitle">{p.highestQualification}</div>
+                      </td>
+                      <td>
+                        <div className="pt-title" style={{ fontSize: '13px', margin: 0, color: p.lastLoginAt ? '#16a34a' : '#94a3b8' }}>
+                          {p.lastLoginAt 
+                            ? new Date(p.lastLoginAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : 'Never logged in'}
+                        </div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>

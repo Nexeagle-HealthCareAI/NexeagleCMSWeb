@@ -17,6 +17,7 @@ export interface Partner {
   partnerCode: string;
   dashboardToken: string;
   createdAt: string;
+  lastLoginAt?: string;
 }
 
 export interface CreatePartnerPayload {
