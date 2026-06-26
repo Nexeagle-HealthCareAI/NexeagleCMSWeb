@@ -116,7 +116,7 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({ onClose, onSuccess })
           <>
             {error && <div className="alert error" style={{ margin: '16px 32px' }}>{error}</div>}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
               <div className="drawer-body">
                 <div className="drawer-grid">
                   <div className="drawer-form-group full-width">
