@@ -45,6 +45,11 @@ export const partnerService = {
     return response.data.data as Partner;
   },
 
+  delete: async (partnerId: string) => {
+    const response = await api.delete(`/partners/${partnerId}`);
+    return response.data;
+  },
+
   getDashboardStats: async (token: string) => {
     const response = await api.get(`/partners/dashboard/${token}`);
     return response.data.data;

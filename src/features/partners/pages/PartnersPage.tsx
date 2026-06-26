@@ -2,8 +2,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import AddPartnerModal from '../components/AddPartnerModal';
-import { Plus, Handshake, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Handshake, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { copyToClipboard } from '../utils/clipboard';
+import { toast } from 'sonner';
 import './PartnersPage.css';
 
 const PartnersPage: React.FC = () => {
@@ -11,6 +12,10 @@ const PartnersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+  const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Sorting, searching, and pagination state
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +45,22 @@ const PartnersPage: React.FC = () => {
     await copyToClipboard(link);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
+  };
+
+  const handleDelete = async () => {
+    if (!partnerToDelete || deleteConfirmText !== partnerToDelete.name) return;
+    setIsDeleting(true);
+    try {
+      await partnerService.delete(partnerToDelete.partnerId);
+      toast.success('Partner deleted successfully');
+      setPartners(prev => prev.filter(p => p.partnerId !== partnerToDelete.partnerId));
+      setPartnerToDelete(null);
+      setDeleteConfirmText('');
+    } catch (err) {
+      toast.error('Failed to delete partner');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSort = (field: keyof Partner) => {
@@ -158,7 +179,7 @@ const PartnersPage: React.FC = () => {
                     <th onClick={() => handleSort('currentProfession')} className="sortable">
                       Profession <SortIcon field="currentProfession" />
                     </th>
-                    <th style={{ textAlign: 'right' }}>Dashboard Link</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -196,17 +217,30 @@ const PartnersPage: React.FC = () => {
                         <div className="pt-subtitle">{p.highestQualification}</div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <button 
-                          className="btn-secondary" 
-                          style={{ padding: '6px 12px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                          onClick={() => handleCopyLink(p.dashboardToken)}
-                        >
-                          {copiedToken === p.dashboardToken ? (
-                            <><Check size={14} className="text-green-600" /> Copied</>
-                          ) : (
-                            <><Copy size={14} /> Copy Link</>
-                          )}
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                          <button 
+                            className="btn-secondary" 
+                            style={{ padding: '6px 12px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            onClick={() => handleCopyLink(p.dashboardToken)}
+                          >
+                            {copiedToken === p.dashboardToken ? (
+                              <><Check size={14} className="text-green-600" /> Copied</>
+                            ) : (
+                              <><Copy size={14} /> Link</>
+                            )}
+                          </button>
+                          <button
+                            className="pt-icon-btn"
+                            style={{ color: '#ef4444', padding: '6px' }}
+                            title="Delete Partner"
+                            onClick={() => {
+                              setPartnerToDelete(p);
+                              setDeleteConfirmText('');
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -268,6 +302,61 @@ const PartnersPage: React.FC = () => {
             fetchPartners();
           }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {partnerToDelete && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%' }}>
+                  <AlertTriangle size={20} />
+                </div>
+                <h2 className="modal-title" style={{ margin: 0, color: '#0f172a' }}>Delete Partner</h2>
+              </div>
+              <button className="modal-close" onClick={() => setPartnerToDelete(null)}>&times;</button>
+            </div>
+            
+            <div className="modal-body" style={{ marginTop: '16px' }}>
+              <p style={{ color: '#475569', fontSize: '14px', marginBottom: '16px' }}>
+                You are about to permanently delete <strong>{partnerToDelete.name}</strong>. This action cannot be undone and will revoke all access.
+              </p>
+              
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
+                  Please type <strong>{partnerToDelete.name}</strong> to confirm.
+                </label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={partnerToDelete.name}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button 
+                className="btn-secondary" 
+                onClick={() => setPartnerToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ background: '#ef4444', opacity: deleteConfirmText === partnerToDelete.name ? 1 : 0.5 }}
+                disabled={deleteConfirmText !== partnerToDelete.name || isDeleting}
+                onClick={handleDelete}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Partner'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
