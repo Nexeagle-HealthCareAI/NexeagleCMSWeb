@@ -86,6 +86,7 @@ function App() {
             <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
             <Route path="partners" element={<PartnersPage />} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
+            <Route path="manage-plans" element={<RequirePermission perm="subscriptions.view"><ManagePlansPage /></RequirePermission>} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionsPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
             <Route path="application-health" element={<RequirePermission perm="application-health.view"><ApplicationHealth /></RequirePermission>} />
