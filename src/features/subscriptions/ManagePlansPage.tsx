@@ -37,7 +37,8 @@ const ManagePlansPage: React.FC = () => {
     const handleSave = async (plan: SubscriptionPlan) => {
         try {
             if (isCreating) {
-                await api.post('/SubscriptionPlans', plan);
+                const { planId, ...payload } = plan;
+                await api.post('/SubscriptionPlans', payload);
             } else {
                 await api.put(`/SubscriptionPlans/${plan.planId}`, plan);
             }
