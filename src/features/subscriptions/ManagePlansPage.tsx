@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Edit2, Plus, Save, X } from 'lucide-react';
+import { Edit2, Plus, Save, X, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
 import './ManagePlansPage.css';
 
@@ -9,6 +9,7 @@ interface SubscriptionPlan {
     basePrice: number;
     discountPrice: number;
     billingCycle: string;
+    applicationName: string;
     isActive: boolean;
 }
 
@@ -17,6 +18,7 @@ const ManagePlansPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [activeTab, setActiveTab] = useState<'1Rad' | 'EasyHMS'>('1Rad');
 
     const fetchPlans = async () => {
         try {
@@ -51,6 +53,18 @@ const ManagePlansPage: React.FC = () => {
         }
     };
 
+    const handleDelete = async (planId: string) => {
+        if (!window.confirm("Are you sure you want to delete this plan?")) return;
+
+        try {
+            await api.delete(`/SubscriptionPlans/${planId}`);
+            alert("Plan deleted successfully!");
+            await fetchPlans();
+        } catch (error: any) {
+            alert(error.response?.data || "Error deleting plan.");
+        }
+    };
+
     return (
         <div className="manage-plans-page">
             <div className="manage-plans-header">
@@ -62,10 +76,25 @@ const ManagePlansPage: React.FC = () => {
                     className="add-plan-btn"
                     onClick={() => {
                         setIsCreating(true);
-                        setEditingPlan({ planId: '', name: '', basePrice: 2500, discountPrice: 1099, billingCycle: 'Monthly', isActive: true });
+                        setEditingPlan({ planId: '', name: '', basePrice: 2500, discountPrice: 1099, billingCycle: 'Monthly', applicationName: activeTab, isActive: true });
                     }}
                 >
                     <Plus size={16} /> New Plan
+                </button>
+            </div>
+
+            <div className="application-tabs">
+                <button 
+                    className={`tab-btn ${activeTab === '1Rad' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('1Rad')}
+                >
+                    1Rad Plans
+                </button>
+                <button 
+                    className={`tab-btn ${activeTab === 'EasyHMS' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('EasyHMS')}
+                >
+                    EasyHMS Plans
                 </button>
             </div>
 
@@ -76,6 +105,13 @@ const ManagePlansPage: React.FC = () => {
                         <div>
                             <label>Plan Name</label>
                             <input type="text" value={editingPlan.name} onChange={e => setEditingPlan({...editingPlan, name: e.target.value})} />
+                        </div>
+                        <div>
+                            <label>Application</label>
+                            <select value={editingPlan.applicationName || '1Rad'} onChange={e => setEditingPlan({...editingPlan, applicationName: e.target.value})}>
+                                <option value="1Rad">1Rad</option>
+                                <option value="EasyHMS">EasyHMS</option>
+                            </select>
                         </div>
                         <div>
                             <label>Billing Cycle</label>
@@ -107,11 +143,14 @@ const ManagePlansPage: React.FC = () => {
             )}
 
             <div className="plans-grid">
-                {loading ? <p>Loading...</p> : plans.map(plan => (
+                {loading ? <p>Loading...</p> : plans.filter(p => (p.applicationName || '1Rad') === activeTab).map(plan => (
                     <div key={plan.planId} className={`plan-card ${!plan.isActive ? 'inactive' : ''}`}>
                         <div className="plan-card-header">
                             <h3>{plan.name}</h3>
-                            <button className="icon-btn" onClick={() => { setEditingPlan(plan); setIsCreating(false); }}><Edit2 size={16}/></button>
+                            <div style={{display: 'flex', gap: '8px'}}>
+                                <button className="icon-btn" onClick={() => { setEditingPlan(plan); setIsCreating(false); }}><Edit2 size={16}/></button>
+                                <button className="icon-btn delete-btn" onClick={() => handleDelete(plan.planId)} style={{color: '#ef4444'}}><Trash2 size={16}/></button>
+                            </div>
                         </div>
                         <div className="plan-card-body">
                             <div className="price-row">

@@ -9,6 +9,7 @@ interface PaymentRequest {
     hospitalName: string;
     planId: string;
     planName: string;
+    applicationName: string;
     status: string;
     trialStartDate: string | null;
     trialEndDate: string | null;
@@ -19,6 +20,7 @@ const SubscriptionsPage: React.FC = () => {
     const [requests, setRequests] = useState<PaymentRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [approvingId, setApprovingId] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'1Rad' | 'EasyHMS'>('1Rad');
 
     const fetchRequests = async () => {
         try {
@@ -73,6 +75,21 @@ const SubscriptionsPage: React.FC = () => {
                 </div>
             </div>
 
+            <div className="application-tabs" style={{marginBottom: '20px'}}>
+                <button 
+                    className={`tab-btn ${activeTab === '1Rad' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('1Rad')}
+                >
+                    1Rad Approvals
+                </button>
+                <button 
+                    className={`tab-btn ${activeTab === 'EasyHMS' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('EasyHMS')}
+                >
+                    EasyHMS Approvals
+                </button>
+            </div>
+
             <div className="subscriptions-card">
                 <div className="subscriptions-table-container">
                     <table className="subscriptions-table">
@@ -88,10 +105,10 @@ const SubscriptionsPage: React.FC = () => {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan={5} style={{textAlign: 'center', padding: '40px'}}>Loading...</td></tr>
-                            ) : requests.length === 0 ? (
-                                <tr><td colSpan={5} style={{textAlign: 'center', padding: '40px'}}>No pending subscriptions found.</td></tr>
+                            ) : requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).length === 0 ? (
+                                <tr><td colSpan={5} style={{textAlign: 'center', padding: '40px'}}>No pending subscriptions found for {activeTab}.</td></tr>
                             ) : (
-                                requests.map((req) => (
+                                requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).map((req) => (
                                     <tr key={req.hospitalSubscriptionId}>
                                         <td>
                                             <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
