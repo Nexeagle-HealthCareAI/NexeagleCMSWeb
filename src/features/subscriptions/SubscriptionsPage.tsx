@@ -90,29 +90,39 @@ const SubscriptionsPage: React.FC = () => {
                 </button>
             </div>
 
-            <div className="subscriptions-card">
-                <div className="subscriptions-table-container">
-                    <table className="subscriptions-table">
-                        <thead>
-                            <tr>
-                                <th>Hospital</th>
-                                <th>Plan Details</th>
-                                <th>Status</th>
-                                <th>Trial End Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan={5} style={{textAlign: 'center', padding: '40px'}}>Loading...</td></tr>
-                            ) : requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).length === 0 ? (
-                                <tr><td colSpan={5} style={{textAlign: 'center', padding: '40px'}}>No pending subscriptions found for {activeTab}.</td></tr>
-                            ) : (
-                                requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).map((req) => (
+            {loading ? (
+                <div className="subscriptions-card" style={{padding: '40px', textAlign: 'center', color: '#64748b', fontWeight: 600}}>
+                    Loading pending approvals...
+                </div>
+            ) : requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).length === 0 ? (
+                <div className="empty-state-container">
+                    <div className="empty-state-icon-wrapper">
+                        <CheckCircle size={40} />
+                    </div>
+                    <div className="empty-state-title">All Caught Up!</div>
+                    <div className="empty-state-description">
+                        There are currently no pending subscription approvals for {activeTab} manual payments.
+                    </div>
+                </div>
+            ) : (
+                <div className="subscriptions-card">
+                    <div className="subscriptions-table-container">
+                        <table className="subscriptions-table">
+                            <thead>
+                                <tr>
+                                    <th>Hospital</th>
+                                    <th>Plan Details</th>
+                                    <th>Status</th>
+                                    <th>Trial End Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).map((req) => (
                                     <tr key={req.hospitalSubscriptionId}>
                                         <td>
                                             <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                                                <div style={{background: '#f1f5f9', padding: '8px', borderRadius: '8px', color: '#0f52ba'}}>
+                                                <div style={{background: '#f1f5f9', padding: '8px', borderRadius: '8px', color: '#4F46E5'}}>
                                                     <Building2 size={20} />
                                                 </div>
                                                 <div>
@@ -122,7 +132,7 @@ const SubscriptionsPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td>
-                                            <div style={{fontWeight: 600, color: '#0f52ba'}}>{req.planName || 'Unknown Plan'}</div>
+                                            <div style={{fontWeight: 600, color: '#4F46E5'}}>{req.planName || 'Unknown Plan'}</div>
                                         </td>
                                         <td>
                                             <div className={`status-badge status-${req.status.toLowerCase()}`} style={{display: 'flex', alignItems: 'center'}}>
@@ -147,12 +157,12 @@ const SubscriptionsPage: React.FC = () => {
                                             )}
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

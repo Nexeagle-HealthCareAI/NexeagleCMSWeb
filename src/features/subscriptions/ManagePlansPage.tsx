@@ -167,7 +167,9 @@ const ManagePlansPage: React.FC = () => {
                             </div>
                             <div className="price-row">
                                 <span className="label">Status:</span>
-                                <span className="value">{plan.isActive ? 'Active' : 'Inactive'}</span>
+                                <span className={`status-pill ${plan.isActive ? 'active' : 'inactive'}`}>
+                                    {plan.isActive ? 'Active' : 'Inactive'}
+                                </span>
                             </div>
                         </div>
                     </div>
