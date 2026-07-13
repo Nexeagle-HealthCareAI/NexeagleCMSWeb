@@ -335,3 +335,15 @@
     background-color: #f3f4f6;
     color: #4b5563;
 }
+
+/* Module toggles in the plan editor */
+.modules-row { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.modules-label { font-size: 13px; font-weight: 600; color: #374151; }
+.modules-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.module-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+    border: 1px solid #e5e7eb; border-radius: 999px; font-size: 13px; font-weight: 600;
+    color: #4b5563; cursor: pointer; user-select: none; background: #fff;
+}
+.module-chip.on { background: #eef2ff; border-color: #c7d2fe; color: #4338ca; }
+.module-chip input { accent-color: #4f46e5; }

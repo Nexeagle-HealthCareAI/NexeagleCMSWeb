@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard, Coins, Users } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard, Coins, Users, Calculator } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
@@ -129,6 +129,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 >
                   <Building2 size={22} />
                   {(!collapsed || isMobile) && <span>Hospital Subscriptions</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('subscriptions.view') && (
+              <li>
+                <NavLink
+                  to="/plan-calculator"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Plan Calculator" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Calculator size={22} />
+                  {(!collapsed || isMobile) && <span>Plan Calculator</span>}
                 </NavLink>
               </li>
             )}

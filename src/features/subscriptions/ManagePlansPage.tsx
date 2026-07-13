@@ -11,7 +11,23 @@ interface SubscriptionPlan {
     billingCycle: string;
     applicationName: string;
     isActive: boolean;
+    maxDoctors: number;
+    maxBeds: number;
+    moduleIPD: boolean;
+    moduleOPD: boolean;
+    moduleBilling: boolean;
+    moduleLab: boolean;
+    moduleRAD: boolean;
+    isCustom?: boolean;
 }
+
+const MODULES: { key: string; field: keyof SubscriptionPlan }[] = [
+    { key: 'IPD', field: 'moduleIPD' },
+    { key: 'OPD', field: 'moduleOPD' },
+    { key: 'Billing', field: 'moduleBilling' },
+    { key: 'Lab', field: 'moduleLab' },
+    { key: 'RAD', field: 'moduleRAD' },
+];
 
 const ManagePlansPage: React.FC = () => {
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -61,7 +77,8 @@ const ManagePlansPage: React.FC = () => {
             alert("Plan deleted successfully!");
             await fetchPlans();
         } catch (error: any) {
-            alert(error.response?.data || "Error deleting plan.");
+            // 409 → plan is mapped to hospitals; show the friendly message.
+            alert(error.response?.data?.message || error.response?.data || "Error deleting plan.");
         }
     };
 
@@ -76,7 +93,7 @@ const ManagePlansPage: React.FC = () => {
                     className="add-plan-btn"
                     onClick={() => {
                         setIsCreating(true);
-                        setEditingPlan({ planId: '', name: '', basePrice: 2500, discountPrice: 1099, billingCycle: 'Monthly', applicationName: activeTab, isActive: true });
+                        setEditingPlan({ planId: '', name: '', basePrice: 2500, discountPrice: 1099, billingCycle: 'Monthly', applicationName: activeTab, isActive: true, maxDoctors: 2, maxBeds: 50, moduleIPD: false, moduleOPD: false, moduleBilling: false, moduleLab: false, moduleRAD: false });
                     }}
                 >
                     <Plus size={16} /> New Plan
@@ -128,11 +145,30 @@ const ManagePlansPage: React.FC = () => {
                             <label>Discount Price (₹)</label>
                             <input type="number" value={editingPlan.discountPrice} onChange={e => setEditingPlan({...editingPlan, discountPrice: parseFloat(e.target.value)})} />
                         </div>
+                        <div>
+                            <label>Max Doctors</label>
+                            <input type="number" min={0} value={editingPlan.maxDoctors} onChange={e => setEditingPlan({...editingPlan, maxDoctors: parseInt(e.target.value) || 0})} />
+                        </div>
+                        <div>
+                            <label>Max Beds</label>
+                            <input type="number" min={0} value={editingPlan.maxBeds} onChange={e => setEditingPlan({...editingPlan, maxBeds: parseInt(e.target.value) || 0})} />
+                        </div>
                         <div style={{display: 'flex', alignItems: 'flex-end', paddingBottom: '10px'}}>
                             <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
                                 <input type="checkbox" checked={editingPlan.isActive} onChange={e => setEditingPlan({...editingPlan, isActive: e.target.checked})} />
                                 Is Active
                             </label>
+                        </div>
+                    </div>
+                    <div className="modules-row">
+                        <label className="modules-label">Included modules</label>
+                        <div className="modules-checks">
+                            {MODULES.map(m => (
+                                <label key={m.key} className={`module-chip ${editingPlan[m.field] ? 'on' : ''}`}>
+                                    <input type="checkbox" checked={!!editingPlan[m.field]} onChange={e => setEditingPlan({...editingPlan, [m.field]: e.target.checked})} />
+                                    {m.key}
+                                </label>
+                            ))}
                         </div>
                     </div>
                     <div className="form-actions">
@@ -160,6 +196,14 @@ const ManagePlansPage: React.FC = () => {
                             <div className="price-row">
                                 <span className="label">Discounted:</span>
                                 <span className="value highlight">₹{plan.discountPrice}</span>
+                            </div>
+                            <div className="price-row">
+                                <span className="label">Capacity:</span>
+                                <span className="value">{plan.maxDoctors} doctors · {plan.maxBeds} beds</span>
+                            </div>
+                            <div className="price-row">
+                                <span className="label">Modules:</span>
+                                <span className="value">{MODULES.filter(m => plan[m.field]).map(m => m.key).join(', ') || '—'}</span>
                             </div>
                             <div className="price-row">
                                 <span className="label">Cycle:</span>
