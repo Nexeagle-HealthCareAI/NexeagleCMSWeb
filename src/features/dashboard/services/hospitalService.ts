@@ -52,6 +52,17 @@ export interface HospitalStats {
     };
 }
 
+export interface HospitalPaymentHistoryItem {
+    planName: string;
+    amount: number;
+    reference: string;
+    paymentMode: string | null;
+    status: string; // PendingApproval, Approved, Rejected
+    submittedAt: string;
+    reviewedAt: string | null;
+    rejectionReason: string | null;
+}
+
 export interface Hospital {
     id: string;
     name: string;
@@ -64,9 +75,18 @@ export interface Hospital {
     partnerName: string;
     totalPatients: number;
     registeredOn: string;
-    subscriptionMode?: string; // Optional in API response
-    paymentMode?: string; // Optional in API response
     status: string;
+    // Subscription summary (list + detail)
+    subscriptionPlanName?: string | null;
+    subscriptionStatus?: string | null; // Trial, Active, Expired, Blocked, Rejected, Pending, PendingApproval
+    subscriptionDaysRemaining?: number | null;
+    subscriptionIsEnterprise?: boolean;
+    // Detail-only
+    trialStartDate?: string | null;
+    trialEndDate?: string | null;
+    subscriptionStartDate?: string | null;
+    subscriptionEndDate?: string | null;
+    paymentHistory?: HospitalPaymentHistoryItem[];
     users?: User[]; // Optional in API response
     doctors?: Doctor[]; // Optional in API response
     stats?: HospitalStats;
@@ -82,10 +102,16 @@ export interface HospitalsResponse {
     };
 }
 
-export const getHospitals = async (page: number = 1, limit: number = 10): Promise<HospitalsResponse> => {
+export const getHospitals = async (
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    sortBy?: string,
+    sortDir?: 'asc' | 'desc'
+): Promise<HospitalsResponse> => {
     try {
         const response = await api.get<HospitalsResponse>(API_ENDPOINTS.HOSPITALS.GET_ALL, {
-            params: { page, limit }
+            params: { page, limit, search: search || undefined, sortBy: sortBy || undefined, sortDir: sortDir || undefined }
         });
         return response.data;
     } catch (error) {
