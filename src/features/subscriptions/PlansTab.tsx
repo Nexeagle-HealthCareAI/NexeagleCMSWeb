@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Edit2, Plus, Save, X, Trash2 } from 'lucide-react';
+import { Edit2, Plus, Save, X, Trash2, Sparkles, IndianRupee, Users, BedDouble, ListChecks, Wand2 } from 'lucide-react';
 import { api } from '../../services/api';
 import './ManagePlansPage.css';
+
+type VariantCycle = 'Quarterly' | 'Half-Yearly' | 'Yearly';
+const VARIANT_CYCLES: VariantCycle[] = ['Quarterly', 'Half-Yearly', 'Yearly'];
+const VARIANT_MULTIPLIER: Record<VariantCycle, number> = { Quarterly: 3, 'Half-Yearly': 6, Yearly: 12 };
+const DEFAULT_VARIANT_DISCOUNT: Record<VariantCycle, number> = { Quarterly: 5, 'Half-Yearly': 10, Yearly: 15 };
 
 // Dedicated EasyHMS plan catalog (dbo.EasyHmsSubscriptionPlans via CMSAPI's
 // EasyHmsSubscriptionPlansController) — kept separate from 1Rad's own plan management, since
@@ -41,6 +46,10 @@ export const PlansTab: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editingPlan, setEditingPlan] = useState<EasyHmsSubscriptionPlan | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [generatingFor, setGeneratingFor] = useState<EasyHmsSubscriptionPlan | null>(null);
+    const [variantDiscounts, setVariantDiscounts] = useState<Record<VariantCycle, number>>(DEFAULT_VARIANT_DISCOUNT);
+    const [generating, setGenerating] = useState(false);
 
     const fetchPlans = async () => {
         try {
@@ -65,8 +74,15 @@ export const PlansTab: React.FC = () => {
         fetchPlans();
     }, []);
 
+    const closeDrawer = () => {
+        if (saving) return;
+        setEditingPlan(null);
+        setIsCreating(false);
+    };
+
     const handleSave = async (plan: EasyHmsSubscriptionPlan) => {
         try {
+            setSaving(true);
             // Backend stores Features as a raw JSON string, not an array.
             const payload = { ...plan, features: JSON.stringify(plan.features ?? []) };
             if (isCreating) {
@@ -75,12 +91,13 @@ export const PlansTab: React.FC = () => {
             } else {
                 await api.put(`/EasyHmsSubscriptionPlans/${plan.planId}`, payload);
             }
-            alert("Plan saved successfully!");
             setEditingPlan(null);
             setIsCreating(false);
             await fetchPlans();
         } catch (error: any) {
             alert(error.response?.data || "Error saving plan.");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -89,10 +106,60 @@ export const PlansTab: React.FC = () => {
 
         try {
             await api.delete(`/EasyHmsSubscriptionPlans/${planId}`);
-            alert("Plan deleted successfully!");
             await fetchPlans();
         } catch (error: any) {
             alert(error.response?.data || "Error deleting plan.");
+        }
+    };
+
+    const savingsPercent = editingPlan && !editingPlan.isEnterprise && editingPlan.discountPrice < editingPlan.basePrice && editingPlan.basePrice > 0
+        ? Math.round(((editingPlan.basePrice - editingPlan.discountPrice) / editingPlan.basePrice) * 100)
+        : null;
+
+    const openGenerateVariants = (plan: EasyHmsSubscriptionPlan) => {
+        setVariantDiscounts(DEFAULT_VARIANT_DISCOUNT);
+        setGeneratingFor(plan);
+    };
+
+    const closeGenerateVariants = () => {
+        if (generating) return;
+        setGeneratingFor(null);
+    };
+
+    const variantExists = (plan: EasyHmsSubscriptionPlan, cycle: VariantCycle) =>
+        plans.some(p => p.name === plan.name && p.billingCycle === cycle);
+
+    const computeVariantPrice = (amount: number, cycle: VariantCycle, discountPercent: number) =>
+        Math.round(amount * VARIANT_MULTIPLIER[cycle] * (1 - discountPercent / 100));
+
+    const handleGenerateVariants = async () => {
+        if (!generatingFor) return;
+        const toCreate = VARIANT_CYCLES.filter(cycle => !variantExists(generatingFor, cycle));
+        if (toCreate.length === 0) {
+            alert('Quarterly, Half-Yearly and Yearly versions of this plan already exist.');
+            return;
+        }
+
+        try {
+            setGenerating(true);
+            for (const cycle of toCreate) {
+                const discount = variantDiscounts[cycle];
+                const { planId, ...rest } = generatingFor;
+                const payload = {
+                    ...rest,
+                    basePrice: Math.round(generatingFor.basePrice * VARIANT_MULTIPLIER[cycle]),
+                    discountPrice: computeVariantPrice(generatingFor.discountPrice, cycle, discount),
+                    billingCycle: cycle,
+                    features: JSON.stringify(generatingFor.features ?? []),
+                };
+                await api.post('/EasyHmsSubscriptionPlans', payload);
+            }
+            setGeneratingFor(null);
+            await fetchPlans();
+        } catch (error: any) {
+            alert(error.response?.data || 'Error generating plan variants.');
+        } finally {
+            setGenerating(false);
         }
     };
 
@@ -113,95 +180,15 @@ export const PlansTab: React.FC = () => {
                 </button>
             </div>
 
-            {editingPlan && (
-                <div className="plan-editor-card">
-                    <h3>{isCreating ? 'Create New Plan' : 'Edit Plan'}</h3>
-                    <div className="form-grid">
-                        <div>
-                            <label>Plan Name</label>
-                            <input type="text" value={editingPlan.name} onChange={e => setEditingPlan({...editingPlan, name: e.target.value})} />
-                        </div>
-                        <div>
-                            <label>Billing Cycle</label>
-                            <select value={editingPlan.billingCycle} onChange={e => setEditingPlan({...editingPlan, billingCycle: e.target.value})}>
-                                <option>Monthly</option>
-                                <option>Quarterly</option>
-                                <option>Yearly</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Base Price (₹)</label>
-                            <input type="number" value={editingPlan.basePrice} onChange={e => setEditingPlan({...editingPlan, basePrice: parseFloat(e.target.value)})} />
-                        </div>
-                        <div>
-                            <label>Discount Price (₹)</label>
-                            <input type="number" value={editingPlan.discountPrice} onChange={e => setEditingPlan({...editingPlan, discountPrice: parseFloat(e.target.value)})} />
-                        </div>
-                        <div>
-                            <label>Max Doctors (blank = unlimited)</label>
-                            <input
-                                type="number" min={0}
-                                value={editingPlan.maxDoctors ?? ''}
-                                disabled={editingPlan.isEnterprise}
-                                onChange={e => setEditingPlan({...editingPlan, maxDoctors: e.target.value === '' ? null : parseInt(e.target.value, 10)})}
-                            />
-                        </div>
-                        <div>
-                            <label>Max Beds (blank = unlimited)</label>
-                            <input
-                                type="number" min={0}
-                                value={editingPlan.maxBeds ?? ''}
-                                disabled={editingPlan.isEnterprise}
-                                onChange={e => setEditingPlan({...editingPlan, maxBeds: e.target.value === '' ? null : parseInt(e.target.value, 10)})}
-                            />
-                        </div>
-                        <div style={{display: 'flex', alignItems: 'flex-end', paddingBottom: '10px'}}>
-                            <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
-                                <input type="checkbox" checked={editingPlan.isActive} onChange={e => setEditingPlan({...editingPlan, isActive: e.target.checked})} />
-                                Is Active
-                            </label>
-                        </div>
-                        <div style={{display: 'flex', alignItems: 'flex-end', paddingBottom: '10px'}}>
-                            <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
-                                <input
-                                    type="checkbox"
-                                    checked={editingPlan.isEnterprise}
-                                    onChange={e => setEditingPlan({
-                                        ...editingPlan,
-                                        isEnterprise: e.target.checked,
-                                        // Enterprise has no fixed limits/price on the tile — clear them so a stale
-                                        // number never accidentally applies once the flag is toggled on.
-                                        maxDoctors: e.target.checked ? null : editingPlan.maxDoctors,
-                                        maxBeds: e.target.checked ? null : editingPlan.maxBeds,
-                                    })}
-                                />
-                                Enterprise (no fixed price — shows "Contact Us")
-                            </label>
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label>Features (one per line — shown as the tile's checklist)</label>
-                            <textarea
-                                rows={6}
-                                style={{ width: '100%', fontFamily: 'inherit', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                                value={editingPlan.features.join('\n')}
-                                onChange={e => setEditingPlan({...editingPlan, features: e.target.value.split('\n')})}
-                                onBlur={e => setEditingPlan({...editingPlan, features: e.target.value.split('\n').map(f => f.trim()).filter(Boolean)})}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-actions">
-                        <button className="cancel-btn" onClick={() => { setEditingPlan(null); setIsCreating(false); }}><X size={16}/> Cancel</button>
-                        <button className="save-btn" onClick={() => handleSave(editingPlan)}><Save size={16}/> Save</button>
-                    </div>
-                </div>
-            )}
-
             <div className="plans-grid">
                 {loading ? <p>Loading...</p> : plans.map(plan => (
                     <div key={plan.planId} className={`plan-card ${!plan.isActive ? 'inactive' : ''}`}>
                         <div className="plan-card-header">
                             <h3>{plan.name}</h3>
                             <div style={{display: 'flex', gap: '8px'}}>
+                                {plan.billingCycle === 'Monthly' && !plan.isEnterprise && (
+                                    <button className="icon-btn" title="Generate Quarterly / Half-Yearly / Yearly" onClick={() => openGenerateVariants(plan)}><Wand2 size={16}/></button>
+                                )}
                                 <button className="icon-btn" onClick={() => { setEditingPlan(plan); setIsCreating(false); }}><Edit2 size={16}/></button>
                                 <button className="icon-btn delete-btn" onClick={() => handleDelete(plan.planId)} style={{color: '#ef4444'}}><Trash2 size={16}/></button>
                             </div>
@@ -249,6 +236,186 @@ export const PlansTab: React.FC = () => {
                     </div>
                 ))}
             </div>
+
+            {editingPlan && (
+                <div className="plan-drawer-overlay" onClick={closeDrawer}>
+                    <div className="plan-drawer" onClick={e => e.stopPropagation()}>
+                        <div className="plan-drawer-header">
+                            <div className="plan-drawer-header-icon">
+                                {isCreating ? <Plus size={20} /> : <Edit2 size={20} />}
+                            </div>
+                            <div className="plan-drawer-header-text">
+                                <h3>{isCreating ? 'Create New Plan' : 'Edit Plan'}</h3>
+                                <p>Changes go live on the EasyHMS subscription page immediately.</p>
+                            </div>
+                            <button className="plan-drawer-close" onClick={closeDrawer} disabled={saving}>
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="plan-drawer-body">
+                            <div className="plan-drawer-section">
+                                <div className="plan-drawer-section-title">Basic Details</div>
+                                <div className="form-grid">
+                                    <div>
+                                        <label>Plan Name</label>
+                                        <input type="text" value={editingPlan.name} onChange={e => setEditingPlan({...editingPlan, name: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label>Billing Cycle</label>
+                                        <select value={editingPlan.billingCycle} onChange={e => setEditingPlan({...editingPlan, billingCycle: e.target.value})}>
+                                            <option>Monthly</option>
+                                            <option>Quarterly</option>
+                                            <option>Half-Yearly</option>
+                                            <option>Yearly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="plan-drawer-section">
+                                <div className="plan-drawer-section-title"><IndianRupee size={14} /> Pricing</div>
+                                <div className="form-grid">
+                                    <div>
+                                        <label>Base Price (₹)</label>
+                                        <input type="number" value={editingPlan.basePrice} onChange={e => setEditingPlan({...editingPlan, basePrice: parseFloat(e.target.value)})} />
+                                    </div>
+                                    <div>
+                                        <label>Discount Price (₹)</label>
+                                        <input type="number" value={editingPlan.discountPrice} onChange={e => setEditingPlan({...editingPlan, discountPrice: parseFloat(e.target.value)})} />
+                                    </div>
+                                </div>
+                                {savingsPercent !== null && savingsPercent > 0 && (
+                                    <div className="plan-drawer-savings-badge">
+                                        <Sparkles size={12} /> {savingsPercent}% off base price
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="plan-drawer-section">
+                                <div className="plan-drawer-section-title"><Users size={14} /> Capacity Limits</div>
+                                <div className="form-grid">
+                                    <div>
+                                        <label><Users size={12} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />Max Doctors (blank = unlimited)</label>
+                                        <input
+                                            type="number" min={0}
+                                            value={editingPlan.maxDoctors ?? ''}
+                                            disabled={editingPlan.isEnterprise}
+                                            onChange={e => setEditingPlan({...editingPlan, maxDoctors: e.target.value === '' ? null : parseInt(e.target.value, 10)})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label><BedDouble size={12} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />Max Beds (blank = unlimited)</label>
+                                        <input
+                                            type="number" min={0}
+                                            value={editingPlan.maxBeds ?? ''}
+                                            disabled={editingPlan.isEnterprise}
+                                            onChange={e => setEditingPlan({...editingPlan, maxBeds: e.target.value === '' ? null : parseInt(e.target.value, 10)})}
+                                        />
+                                    </div>
+                                </div>
+                                <label className="plan-drawer-toggle-row">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingPlan.isEnterprise}
+                                        onChange={e => setEditingPlan({
+                                            ...editingPlan,
+                                            isEnterprise: e.target.checked,
+                                            // Enterprise has no fixed limits/price on the tile — clear them so a stale
+                                            // number never accidentally applies once the flag is toggled on.
+                                            maxDoctors: e.target.checked ? null : editingPlan.maxDoctors,
+                                            maxBeds: e.target.checked ? null : editingPlan.maxBeds,
+                                        })}
+                                    />
+                                    <div>
+                                        <div className="plan-drawer-toggle-title">Enterprise Plan</div>
+                                        <div className="plan-drawer-toggle-subtitle">No fixed price or limits — tile shows "Contact Us"</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="plan-drawer-section">
+                                <div className="plan-drawer-section-title"><ListChecks size={14} /> Features</div>
+                                <textarea
+                                    rows={6}
+                                    className="plan-drawer-textarea"
+                                    placeholder={"One feature per line, e.g.\nAppointment Scheduling\nBilling & Invoicing\n24x7 Support"}
+                                    value={editingPlan.features.join('\n')}
+                                    onChange={e => setEditingPlan({...editingPlan, features: e.target.value.split('\n')})}
+                                    onBlur={e => setEditingPlan({...editingPlan, features: e.target.value.split('\n').map(f => f.trim()).filter(Boolean)})}
+                                />
+                            </div>
+
+                            <label className="plan-drawer-toggle-row">
+                                <input type="checkbox" checked={editingPlan.isActive} onChange={e => setEditingPlan({...editingPlan, isActive: e.target.checked})} />
+                                <div>
+                                    <div className="plan-drawer-toggle-title">Active</div>
+                                    <div className="plan-drawer-toggle-subtitle">Inactive plans are hidden from the subscription page</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div className="plan-drawer-footer">
+                            <button className="cancel-btn" onClick={closeDrawer} disabled={saving}><X size={16}/> Cancel</button>
+                            <button className="save-btn" onClick={() => handleSave(editingPlan)} disabled={saving}>
+                                <Save size={16}/> {saving ? 'Saving…' : 'Save Plan'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {generatingFor && (
+                <div className="variants-modal-overlay" onClick={closeGenerateVariants}>
+                    <div className="variants-modal" onClick={e => e.stopPropagation()}>
+                        <div className="plan-drawer-header" style={{ borderRadius: '16px 16px 0 0' }}>
+                            <div className="plan-drawer-header-icon"><Wand2 size={20} /></div>
+                            <div className="plan-drawer-header-text">
+                                <h3>Generate Billing Cycle Variants</h3>
+                                <p>Creates Quarterly, Half-Yearly &amp; Yearly versions of "{generatingFor.name}" from its Monthly price (₹{generatingFor.discountPrice}/mo).</p>
+                            </div>
+                            <button className="plan-drawer-close" onClick={closeGenerateVariants} disabled={generating}>
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="variants-modal-body">
+                            {VARIANT_CYCLES.map(cycle => {
+                                const exists = variantExists(generatingFor, cycle);
+                                const price = computeVariantPrice(generatingFor.discountPrice, cycle, variantDiscounts[cycle]);
+                                return (
+                                    <div key={cycle} className="variant-row">
+                                        <div className="variant-row-top">
+                                            <span className="variant-row-cycle">{cycle}</span>
+                                            {exists ? (
+                                                <span className="variant-row-exists">Already exists — will be skipped</span>
+                                            ) : (
+                                                <span className="variant-row-price">₹{price.toLocaleString('en-IN')}</span>
+                                            )}
+                                        </div>
+                                        <div className="variant-discount-input">
+                                            <input
+                                                type="number" min={0} max={90}
+                                                value={variantDiscounts[cycle]}
+                                                disabled={exists}
+                                                onChange={e => setVariantDiscounts({ ...variantDiscounts, [cycle]: Number(e.target.value) })}
+                                            />
+                                            <span>% extra off, on top of the Monthly discount</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="plan-drawer-footer">
+                            <button className="cancel-btn" onClick={closeGenerateVariants} disabled={generating}><X size={16}/> Cancel</button>
+                            <button className="save-btn" onClick={handleGenerateVariants} disabled={generating}>
+                                <Wand2 size={16}/> {generating ? 'Generating…' : 'Generate Plans'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
