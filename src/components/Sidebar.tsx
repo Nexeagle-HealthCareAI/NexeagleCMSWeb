@@ -98,24 +98,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 <NavLink
                   to="/subscriptions"
                   className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Verify Payments" : ""}
+                  title={collapsed && !isMobile ? "Manage Subscription" : ""}
                   onClick={isMobile ? toggle : undefined}
                 >
                   <CreditCard size={22} />
-                  {(!collapsed || isMobile) && <span>Verify Payments</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('subscriptions.view') && (
-              <li>
-                <NavLink
-                  to="/manage-plans"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Manage Plans" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Coins size={22} />
-                  {(!collapsed || isMobile) && <span>Manage Plans</span>}
+                  {(!collapsed || isMobile) && <span>Manage Subscription</span>}
                 </NavLink>
               </li>
             )}

@@ -3,13 +3,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, MapPin, Phone, Mail, Building2, ChevronDown, ChevronUp,
     Users, Stethoscope, CreditCard, Calendar, Activity, GraduationCap,
-    FileText, Shield, TrendingUp
+    FileText, Shield, TrendingUp, Receipt
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { getHospitalById, type Hospital } from '../services/hospitalService';
 import './HospitalDetails.css';
+
+const statusStyles: Record<string, string> = {
+    Trial: 'sub-badge-trial',
+    Active: 'sub-badge-active',
+    Approved: 'sub-badge-active',
+    Expired: 'sub-badge-danger',
+    Blocked: 'sub-badge-danger',
+    Rejected: 'sub-badge-danger',
+    Pending: 'sub-badge-pending',
+    PendingApproval: 'sub-badge-pending',
+};
 
 const HospitalDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -63,11 +74,11 @@ const HospitalDetails: React.FC = () => {
     return (
         <div className="hospital-details-container">
             <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/onboarded-hospitals')}
                 className="back-button"
             >
                 <ArrowLeft size={16} />
-                Back to Dashboard
+                Back to Onboarded Hospitals
             </button>
 
             {/* Header Section */}
@@ -140,14 +151,23 @@ const HospitalDetails: React.FC = () => {
                         <FileText size={16} className="header-info-icon" />
                         <div>
                             <span className="header-info-label">Subscription</span>
-                            <div className="header-info-value">{hospital.subscriptionMode}</div>
+                            <div className="header-info-value">
+                                {hospital.subscriptionIsEnterprise ? 'Enterprise' : (hospital.subscriptionPlanName || 'No Plan Selected')}
+                                {hospital.subscriptionStatus && (
+                                    <span className={`sub-badge ${statusStyles[hospital.subscriptionStatus] || 'sub-badge-neutral'}`} style={{ marginLeft: '8px', verticalAlign: 'middle' }}>
+                                        {hospital.subscriptionStatus}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="header-info-item">
                         <CreditCard size={16} className="header-info-icon" />
                         <div>
-                            <span className="header-info-label">Payment</span>
-                            <div className="header-info-value">{hospital.paymentMode}</div>
+                            <span className="header-info-label">Days Remaining</span>
+                            <div className="header-info-value">
+                                {hospital.subscriptionDaysRemaining != null ? `${hospital.subscriptionDaysRemaining} days` : '—'}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -387,6 +407,97 @@ const HospitalDetails: React.FC = () => {
                     </div>
                 </CollapsibleCard>
 
+                {/* Subscription & Payments */}
+                <CollapsibleCard title="Subscription & Payments" icon={<Receipt size={20} />} defaultOpen>
+                    <div className="info-grid" style={{ marginBottom: '1.5rem' }}>
+                        <div className="info-item">
+                            <FileText size={16} className="info-icon" />
+                            <div>
+                                <div className="info-label">Plan</div>
+                                <div className="info-value">
+                                    {hospital.subscriptionIsEnterprise ? 'Enterprise' : (hospital.subscriptionPlanName || 'No Plan Selected')}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="info-item">
+                            <Activity size={16} className="info-icon" />
+                            <div>
+                                <div className="info-label">Status</div>
+                                <div className="info-value">
+                                    {hospital.subscriptionStatus ? (
+                                        <span className={`sub-badge ${statusStyles[hospital.subscriptionStatus] || 'sub-badge-neutral'}`}>
+                                            {hospital.subscriptionStatus}
+                                        </span>
+                                    ) : '—'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="info-item">
+                            <Calendar size={16} className="info-icon" />
+                            <div>
+                                <div className="info-label">Trial Started</div>
+                                <div className="info-value">
+                                    {hospital.trialStartDate ? new Date(hospital.trialStartDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="info-item">
+                            <Calendar size={16} className="info-icon" />
+                            <div>
+                                <div className="info-label">{hospital.subscriptionStatus === 'Active' ? 'Subscription Ends' : 'Trial Ends'}</div>
+                                <div className="info-value">
+                                    {(hospital.subscriptionEndDate || hospital.trialEndDate)
+                                        ? new Date((hospital.subscriptionEndDate || hospital.trialEndDate)!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                        : '—'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                        Payment History
+                    </div>
+                    <div className="table-wrapper">
+                        <table className="details-table">
+                            <thead>
+                                <tr className="table-head-row">
+                                    <th className="table-th">Plan</th>
+                                    <th className="table-th">Amount</th>
+                                    <th className="table-th">Mode</th>
+                                    <th className="table-th">Reference</th>
+                                    <th className="table-th">Submitted</th>
+                                    <th className="table-th">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {hospital.paymentHistory?.map((payment, idx) => (
+                                    <tr key={idx} className="table-tr">
+                                        <td className="table-td">{payment.planName}</td>
+                                        <td className="table-td">₹{payment.amount}</td>
+                                        <td className="table-td">{payment.paymentMode || '—'}</td>
+                                        <td className="table-td" style={{ fontFamily: 'monospace', fontSize: '12px' }}>{payment.reference}</td>
+                                        <td className="table-td">
+                                            {new Date(payment.submittedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </td>
+                                        <td className="table-td">
+                                            <span className={`sub-badge ${statusStyles[payment.status] || 'sub-badge-neutral'}`}>
+                                                {payment.status}
+                                            </span>
+                                            {payment.status === 'Rejected' && payment.rejectionReason && (
+                                                <div style={{ fontSize: '11px', color: '#991B1B', marginTop: '4px', maxWidth: '220px' }}>{payment.rejectionReason}</div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {(!hospital.paymentHistory || hospital.paymentHistory.length === 0) && (
+                                    <tr>
+                                        <td colSpan={6} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No payments submitted yet</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </CollapsibleCard>
 
 
 

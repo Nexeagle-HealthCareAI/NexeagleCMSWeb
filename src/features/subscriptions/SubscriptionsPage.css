@@ -110,10 +110,68 @@
     box-shadow: 0 8px 24px rgba(29, 78, 216, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.approve-btn:disabled { 
-    background: #94a3b8; 
+.approve-btn:disabled {
+    background: #94a3b8;
     box-shadow: none;
-    cursor: not-allowed; 
+    cursor: not-allowed;
     transform: none;
+}
+
+.reject-btn {
+    background: white;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reject-btn:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: #dc2626;
+}
+
+.reject-btn:disabled {
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+
+.reject-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.reject-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3);
+}
+
+.reject-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.reject-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
 }
 

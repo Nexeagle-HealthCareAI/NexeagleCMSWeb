@@ -36,7 +36,7 @@ const EMPTY_PLAN: EasyHmsSubscriptionPlan = {
     isActive: true, features: [], maxDoctors: null, maxBeds: null, isEnterprise: false,
 };
 
-const ManagePlansPage: React.FC = () => {
+export const PlansTab: React.FC = () => {
     const [plans, setPlans] = useState<EasyHmsSubscriptionPlan[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingPlan, setEditingPlan] = useState<EasyHmsSubscriptionPlan | null>(null);
@@ -97,10 +97,9 @@ const ManagePlansPage: React.FC = () => {
     };
 
     return (
-        <div className="manage-plans-page">
+        <div>
             <div className="manage-plans-header">
                 <div>
-                    <h1>Manage EasyHMS Subscription Plans</h1>
                     <p>Configure pricing, doctor/bed limits, and features — changes appear on the EasyHMS subscription page immediately.</p>
                 </div>
                 <button
@@ -126,6 +125,7 @@ const ManagePlansPage: React.FC = () => {
                             <label>Billing Cycle</label>
                             <select value={editingPlan.billingCycle} onChange={e => setEditingPlan({...editingPlan, billingCycle: e.target.value})}>
                                 <option>Monthly</option>
+                                <option>Quarterly</option>
                                 <option>Yearly</option>
                             </select>
                         </div>
@@ -253,4 +253,4 @@ const ManagePlansPage: React.FC = () => {
     );
 };
 
-export default ManagePlansPage;
+export default PlansTab;
