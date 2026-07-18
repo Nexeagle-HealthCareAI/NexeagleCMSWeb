@@ -125,6 +125,7 @@ export const PlansTab: React.FC = () => {
                             <label>Billing Cycle</label>
                             <select value={editingPlan.billingCycle} onChange={e => setEditingPlan({...editingPlan, billingCycle: e.target.value})}>
                                 <option>Monthly</option>
+                                <option>Quarterly</option>
                                 <option>Yearly</option>
                             </select>
                         </div>
