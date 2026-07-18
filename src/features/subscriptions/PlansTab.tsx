@@ -8,6 +8,9 @@ const VARIANT_CYCLES: VariantCycle[] = ['Quarterly', 'Half-Yearly', 'Yearly'];
 const VARIANT_MULTIPLIER: Record<VariantCycle, number> = { Quarterly: 3, 'Half-Yearly': 6, Yearly: 12 };
 const DEFAULT_VARIANT_DISCOUNT: Record<VariantCycle, number> = { Quarterly: 5, 'Half-Yearly': 10, Yearly: 15 };
 
+type BillingCycleTab = 'Monthly' | VariantCycle;
+const BILLING_CYCLE_TABS: BillingCycleTab[] = ['Monthly', 'Quarterly', 'Half-Yearly', 'Yearly'];
+
 // Dedicated EasyHMS plan catalog (dbo.EasyHmsSubscriptionPlans via CMSAPI's
 // EasyHmsSubscriptionPlansController) — kept separate from 1Rad's own plan management, since
 // doctor/bed limits and the Enterprise tier are EasyHMS-specific concepts.
@@ -44,6 +47,7 @@ const EMPTY_PLAN: EasyHmsSubscriptionPlan = {
 export const PlansTab: React.FC = () => {
     const [plans, setPlans] = useState<EasyHmsSubscriptionPlan[]>([]);
     const [loading, setLoading] = useState(true);
+    const [cycleTab, setCycleTab] = useState<BillingCycleTab>('Monthly');
     const [editingPlan, setEditingPlan] = useState<EasyHmsSubscriptionPlan | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -126,6 +130,8 @@ export const PlansTab: React.FC = () => {
         setGeneratingFor(null);
     };
 
+    const plansInTab = plans.filter(p => p.billingCycle === cycleTab);
+
     const variantExists = (plan: EasyHmsSubscriptionPlan, cycle: VariantCycle) =>
         plans.some(p => p.name === plan.name && p.billingCycle === cycle);
 
@@ -173,15 +179,43 @@ export const PlansTab: React.FC = () => {
                     className="add-plan-btn"
                     onClick={() => {
                         setIsCreating(true);
-                        setEditingPlan({ ...EMPTY_PLAN });
+                        setEditingPlan({ ...EMPTY_PLAN, billingCycle: cycleTab });
                     }}
                 >
                     <Plus size={16} /> New Plan
                 </button>
             </div>
 
+            <div className="application-tabs">
+                {BILLING_CYCLE_TABS.map(cycle => {
+                    const count = plans.filter(p => p.billingCycle === cycle).length;
+                    return (
+                        <button
+                            key={cycle}
+                            className={`tab-btn ${cycleTab === cycle ? 'active' : ''}`}
+                            onClick={() => setCycleTab(cycle)}
+                        >
+                            {cycle} {count > 0 && `(${count})`}
+                        </button>
+                    );
+                })}
+            </div>
+
             <div className="plans-grid">
-                {loading ? <p>Loading...</p> : plans.map(plan => (
+                {loading ? <p>Loading...</p> : plansInTab.length === 0 ? (
+                    <div className="plans-empty-state">
+                        <p>No {cycleTab} plans yet.</p>
+                        <button
+                            className="add-plan-btn"
+                            onClick={() => {
+                                setIsCreating(true);
+                                setEditingPlan({ ...EMPTY_PLAN, billingCycle: cycleTab });
+                            }}
+                        >
+                            <Plus size={16} /> New {cycleTab} Plan
+                        </button>
+                    </div>
+                ) : plansInTab.map(plan => (
                     <div key={plan.planId} className={`plan-card ${!plan.isActive ? 'inactive' : ''}`}>
                         <div className="plan-card-header">
                             <h3>{plan.name}</h3>
