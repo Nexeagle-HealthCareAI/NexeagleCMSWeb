@@ -1,0 +1,53 @@
+.subscription-mgmt-page {
+    padding: 32px 48px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.subscription-mgmt-header {
+    margin-bottom: 24px;
+}
+
+.subscription-mgmt-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.subscription-mgmt-header p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.subscription-mgmt-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+}
+
+.subscription-mgmt-tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s;
+    position: relative;
+    top: 2px;
+}
+
+.subscription-mgmt-tab-btn:hover {
+    background: rgba(241, 245, 249, 0.8);
+    color: #334155;
+}
+
+.subscription-mgmt-tab-btn.active {
+    color: #1d4ed8;
+    border-bottom: 2px solid #1d4ed8;
+}
