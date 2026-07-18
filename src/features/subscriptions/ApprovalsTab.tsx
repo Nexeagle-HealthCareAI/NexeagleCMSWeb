@@ -18,6 +18,9 @@ interface PaymentRequest {
     paymentReference: string | null;
     paymentMode: string | null;
     paymentDate: string | null;
+    isProratedSwitch: boolean;
+    previousPlanName: string | null;
+    proratedCreditAmount: number | null;
 }
 
 interface ApprovalHistoryEntry {
@@ -30,10 +33,13 @@ interface ApprovalHistoryEntry {
     amount: number;
     reference: string;
     paymentMode: string | null;
-    status: string; // PendingApproval, Approved, Rejected
+    status: string; // PendingApproval, Approved, Rejected, Superseded
     submittedAt: string;
     reviewedAt: string | null;
     rejectionReason: string | null;
+    isProratedSwitch: boolean;
+    previousPlanName: string | null;
+    proratedCreditAmount: number | null;
 }
 
 // Both products' approval requests are shown together — this badge is the only thing that tells
@@ -210,6 +216,11 @@ export const ApprovalsTab: React.FC = () => {
                                             </td>
                                             <td>
                                                 <div style={{fontWeight: 600, color: '#0f52ba'}}>{req.planName || 'Unknown Plan'}</div>
+                                                {req.isProratedSwitch && (
+                                                    <div style={{fontSize: 11, color: '#7c3aed', fontWeight: 700, marginTop: 4}}>
+                                                        Switch from {req.previousPlanName} &middot; credit ₹{req.proratedCreditAmount?.toLocaleString('en-IN')}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td>
                                                 {req.paymentAmount != null ? (
@@ -301,6 +312,11 @@ export const ApprovalsTab: React.FC = () => {
                                             </td>
                                             <td>
                                                 <div style={{fontWeight: 600, color: '#0f52ba'}}>{entry.planName}</div>
+                                                {entry.isProratedSwitch && (
+                                                    <div style={{fontSize: 11, color: '#7c3aed', fontWeight: 700, marginTop: 4}}>
+                                                        Switch from {entry.previousPlanName} &middot; credit ₹{entry.proratedCreditAmount?.toLocaleString('en-IN')}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td>
                                                 <div style={{fontWeight: 700}}>
