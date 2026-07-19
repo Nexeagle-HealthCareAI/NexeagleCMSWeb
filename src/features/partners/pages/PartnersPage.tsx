@@ -160,7 +160,8 @@ const PartnersPage: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="partners-table-wrapper">
+            {/* Desktop View: Table */}
+            <div className="partners-table-wrapper partners-desktop-table">
               <table className="partners-table">
                 <thead>
                   <tr>
@@ -198,7 +199,7 @@ const PartnersPage: React.FC = () => {
                         <div className="pt-flex-center">
                           <span className="pt-badge">{p.partnerCode}</span>
                           <button 
-                            onClick={async () => { await copyToClipboard(p.partnerCode); }} 
+                            onClick={async () => { await copyToClipboard(p.partnerCode); toast.success('Partner code copied!'); }} 
                             title="Copy Code"
                             className="pt-icon-btn">
                             <Copy size={14} />
@@ -256,6 +257,79 @@ const PartnersPage: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile View: Cards (Android Compatible) */}
+            <div className="partners-mobile-cards">
+              {currentPartners.length === 0 ? (
+                <div className="partners-empty-mobile">No partners found matching your search.</div>
+              ) : currentPartners.map(p => (
+                <div key={p.partnerId} className="partner-mobile-card">
+                  <div className="partner-card-header">
+                    <div className="partner-avatar">
+                      {p.name[0].toUpperCase()}
+                    </div>
+                    <div className="partner-meta">
+                      <h4 className="partner-name">{p.name}</h4>
+                      <p className="partner-sub">{p.sex}, {p.age} yrs · {p.currentProfession}</p>
+                    </div>
+                    <button
+                      className="partner-delete-btn"
+                      onClick={() => {
+                        setPartnerToDelete(p);
+                        setDeleteConfirmText('');
+                      }}
+                      title="Delete Partner"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <div className="partner-card-details">
+                    <div className="detail-row">
+                      <span className="label">Partner Code</span>
+                      <span className="value">
+                        <span className="code-badge">{p.partnerCode}</span>
+                        <button 
+                          onClick={async () => { await copyToClipboard(p.partnerCode); toast.success('Partner code copied!'); }}
+                          className="copy-mini-btn"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Contact Info</span>
+                      <span className="value">{p.email || 'No email'} {p.phoneNumber ? `(${p.phoneNumber})` : ''}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Location</span>
+                      <span className="value">{p.city}, {p.state}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Last Login</span>
+                      <span className="value" style={{ color: p.lastLoginAt ? '#16a34a' : '#94a3b8' }}>
+                        {p.lastLoginAt 
+                          ? new Date(p.lastLoginAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })
+                          : 'Never logged in'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="partner-card-actions">
+                    <button 
+                      className="partner-link-btn"
+                      onClick={() => handleCopyLink(p.dashboardToken)}
+                    >
+                      {copiedToken === p.dashboardToken ? (
+                        <><Check size={14} className="text-green-600" /> Copied Dashboard Link</>
+                      ) : (
+                        <><Copy size={14} /> Copy Dashboard Link</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Pagination Controls */}

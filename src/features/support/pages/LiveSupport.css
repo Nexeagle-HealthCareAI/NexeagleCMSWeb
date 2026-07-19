@@ -266,3 +266,67 @@
     color: #94a3b8;
     font-size: 0.875rem;
 }
+
+/* Mobile-responsive styles for Live Support Chat */
+@media (max-width: 768px) {
+    .live-support-container {
+        height: calc(100vh - 132px); /* Clearance for top mobile header and bottom navigation bar */
+    }
+
+    .support-sidebar {
+        width: 100%;
+        border-right: none;
+    }
+
+    .chat-area {
+        width: 100%;
+    }
+
+    /* Tabbed navigation logic via modifier classes */
+    .live-support-container.mobile:not(.chat-open) .support-sidebar {
+        display: flex !important;
+    }
+
+    .live-support-container.mobile:not(.chat-open) .chat-area {
+        display: none !important;
+    }
+
+    .live-support-container.mobile.chat-open .support-sidebar {
+        display: none !important;
+    }
+
+    .live-support-container.mobile.chat-open .chat-area {
+        display: flex !important;
+    }
+
+    .mobile-chat-back-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #475569;
+        padding: 6px;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+
+    .mobile-chat-back-btn:active {
+        background-color: #f1f5f9;
+    }
+
+    .chat-header {
+        padding: 12px 16px;
+    }
+
+    .messages-container {
+        padding: 16px;
+    }
+
+    .chat-input-container {
+        padding: 12px 16px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+}

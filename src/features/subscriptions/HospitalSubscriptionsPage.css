@@ -1,0 +1,240 @@
+.hsub-page { padding: 24px; max-width: 1200px; }
+
+.hsub-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+.hsub-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: #0f172a; }
+.hsub-header p { margin: 0; color: #64748b; font-size: 14px; }
+
+.hsub-refresh {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
+    border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer;
+    font-weight: 600; color: #334155; white-space: nowrap;
+}
+.hsub-refresh:hover { background: #f8fafc; }
+.hsub-refresh:disabled { opacity: .6; cursor: default; }
+.spin { animation: hsub-spin 1s linear infinite; }
+@keyframes hsub-spin { to { transform: rotate(360deg); } }
+
+.hsub-banner {
+    background: #fef3c7; border: 1px solid #fcd34d; color: #92400e;
+    padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 16px;
+}
+
+.hsub-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; }
+@media (max-width: 800px) { .hsub-cards { grid-template-columns: repeat(2, 1fr); } }
+.hsub-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px;
+    border-left: 4px solid #94a3b8;
+}
+.hsub-card-value { font-size: 26px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; }
+.hsub-card-label { font-size: 13px; color: #64748b; font-weight: 600; margin-top: 2px; }
+.hsub-card.active { border-left-color: #16a34a; }
+.hsub-card.trial { border-left-color: #2563eb; }
+.hsub-card.pending { border-left-color: #d97706; }
+.hsub-card.expired { border-left-color: #dc2626; }
+.hsub-card.total { border-left-color: #6366f1; }
+
+.hsub-filters { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.hsub-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+.hsub-filters select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #fff; min-width: 140px; color: #0f172a; }
+
+.hsub-tablewrap { overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; }
+.hsub-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.hsub-table th, .hsub-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+.hsub-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #64748b; font-weight: 700; background: #f8fafc; }
+.hsub-table tbody tr:last-child td { border-bottom: none; }
+.hsub-empty { text-align: center; color: #64748b; padding: 32px; font-weight: 600; }
+.hsub-muted { color: #94a3b8; }
+
+.hsub-hospital { display: flex; align-items: center; gap: 10px; }
+.hsub-avatar { background: #eef2ff; color: #4f46e5; padding: 8px; border-radius: 8px; display: inline-flex; }
+.hsub-hospital-name { font-weight: 700; color: #0f172a; }
+.hsub-hospital-id { font-size: 12px; color: #94a3b8; font-family: monospace; }
+
+.hsub-platform { font-size: 12px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 3px 9px; border-radius: 999px; }
+
+.hsub-pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: capitalize; }
+.hsub-pill.active { background: #dcfce7; color: #15803d; }
+.hsub-pill.trial { background: #dbeafe; color: #1d4ed8; }
+.hsub-pill.pending { background: #fef3c7; color: #b45309; }
+.hsub-pill.expired { background: #fee2e2; color: #b91c1c; }
+.hsub-pill.blocked { background: #e2e8f0; color: #475569; }
+
+.hsub-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.hsub-btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 7px;
+    font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+}
+.hsub-btn:disabled { opacity: .55; cursor: default; }
+.hsub-btn.primary { background: #4f46e5; color: #fff; }
+.hsub-btn.primary:hover:not(:disabled) { background: #4338ca; }
+.hsub-btn.danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.hsub-btn.danger:hover:not(:disabled) { background: #fee2e2; }
+.hsub-btn.ghost { background: #fff; color: #334155; border-color: #e2e8f0; }
+.hsub-btn.ghost:hover:not(:disabled) { background: #f8fafc; }
+
+.hsub-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+.hsub-modal { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,.2); }
+.hsub-modal h3 { margin: 0 0 2px; font-size: 18px; color: #0f172a; }
+.hsub-modal-sub { margin: 0 0 18px; color: #64748b; font-size: 13px; }
+.hsub-field { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 14px; }
+.hsub-field select, .hsub-field input { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #0f172a; }
+.hsub-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+/* Mobile-first layout for hospital subscriptions */
+.hsub-mobile-cards {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.hsub-desktop-table {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .hsub-page {
+        padding: var(--spacing-md);
+        padding-bottom: 100px; /* Clearance for bottom navigation */
+    }
+
+    .hsub-desktop-table {
+        display: none !important;
+    }
+
+    .hsub-mobile-cards {
+        display: flex !important;
+    }
+
+    .hsub-mobile-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .hsub-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    .hospital-avatar-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background-color: #EEF2FF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hospital-meta {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hospital-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .hospital-id {
+        margin: 0;
+        font-size: 11px;
+        color: #64748b;
+        font-family: monospace;
+    }
+
+    .platform-tag {
+        font-size: 10px;
+        font-weight: 700;
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .hsub-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px dashed #e2e8f0;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .detail-row .label {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .detail-row .value {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .plan-val {
+        color: #4F46E5 !important;
+    }
+
+    .hsub-card-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
+    .hsub-mobile-action-btn {
+        flex: 1;
+        min-width: calc(50% - 4px); /* 2 columns of buttons */
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        transition: transform 0.2s ease;
+    }
+
+    .hsub-mobile-action-btn:active {
+        transform: scale(0.98);
+    }
+
+    .hsub-mobile-action-btn.primary {
+        background-color: #4f46e5;
+        color: white;
+    }
+
+    .hsub-mobile-action-btn.danger {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .hsub-mobile-action-btn.secondary {
+        background-color: white;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+}

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Mail, Building2 } from 'lucide-react';
 import { getHospitals, type Hospital } from '../services/hospitalService';
 import './Dashboard.css';
 
@@ -126,8 +125,8 @@ const OnboardedHospitals: React.FC = () => {
                     <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>
                 ) : (
                     <>
-                        {/* Desktop / tablet: table */}
-                        <div className="table-responsive-wrapper hospitals-table-desktop">
+                        {/* Desktop View: Table */}
+                        <div className="table-responsive-wrapper hospitals-desktop-table">
                             <table className="dashboard-table">
                                 <thead>
                                     <tr className="table-header-row">
@@ -190,46 +189,46 @@ const OnboardedHospitals: React.FC = () => {
                             </table>
                         </div>
 
-                        {/* Mobile: card list */}
-                        <div className="hospitals-cards-mobile">
-                            {hospitals.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>No hospitals found.</div>
-                            ) : hospitals.map((hospital) => (
-                                <div key={hospital.id} className="hospital-card" onClick={() => handleRowClick(hospital.id)}>
-                                    <div className="hospital-card-header">
-                                        <div className="hospital-card-icon"><Building2 size={18} /></div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div className="hospital-card-name">{hospital.name}</div>
-                                            <span style={{
-                                                padding: '1px 8px',
-                                                borderRadius: '12px',
-                                                fontSize: '10px',
-                                                fontWeight: 600,
-                                                background: hospital.status === 'Active' ? '#D1FAE5' : '#FEF3C7',
-                                                color: hospital.status === 'Active' ? '#065F46' : '#92400E'
-                                            }}>
-                                                {hospital.status}
-                                            </span>
+                        {/* Mobile View: Cards (Android Compatible) */}
+                        <div className="hospitals-mobile-cards">
+                            {hospitals.map((hospital) => (
+                                <div 
+                                    key={hospital.id} 
+                                    className="hospital-mobile-card" 
+                                    onClick={() => handleRowClick(hospital.id)}
+                                >
+                                    <div className="hospital-mobile-card-header">
+                                        <div className="hospital-avatar-wrapper">
+                                            <span className="hospital-avatar">{hospital.name[0].toUpperCase()}</span>
                                         </div>
+                                        <div className="hospital-meta">
+                                            <h3 className="hospital-name">{hospital.name}</h3>
+                                            <p className="hospital-id">ID: {hospital.id.split('-')[0]}...</p>
+                                        </div>
+                                        <span className={`hospital-status-badge ${hospital.status.toLowerCase()}`}>
+                                            {hospital.status}
+                                        </span>
                                     </div>
-
-                                    <div className="hospital-card-row">
-                                        <Phone size={13} className="hospital-card-row-icon" /> {hospital.contactNumber}
-                                    </div>
-                                    <div className="hospital-card-row">
-                                        <Mail size={13} className="hospital-card-row-icon" /> {hospital.email}
-                                    </div>
-                                    <div className="hospital-card-row">
-                                        <MapPin size={13} className="hospital-card-row-icon" />
-                                        {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
-                                    </div>
-
-                                    <div className="hospital-card-footer">
-                                        <SubscriptionCell hospital={hospital} />
-                                        <div className="hospital-card-patients">{hospital.totalPatients?.toLocaleString() || 0} patients</div>
+                                    
+                                    <div className="hospital-mobile-card-details">
+                                        <div className="detail-item">
+                                            <span className="detail-label">City/State</span>
+                                            <span className="detail-value">{hospital.city}, {hospital.state}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Total Patients</span>
+                                            <span className="detail-value">{hospital.totalPatients?.toLocaleString() || 0}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Partner</span>
+                                            <span className="detail-value">{hospital.partnerName || '-'}</span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
+                            {hospitals.length === 0 && (
+                                <div className="hospitals-empty-mobile">No hospitals found.</div>
+                            )}
                         </div>
 
                         {/* Pagination Controls */}
