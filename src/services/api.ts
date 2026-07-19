@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 if (!import.meta.env.VITE_API_URL) {
     console.warn('[api] VITE_API_URL is not set – falling back to hard-coded dev URL.');
 }
-const API_URL = import.meta.env.VITE_API_URL || 'http://151.185.47.77/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://151.185.45.77:5002/api/v1';
 
 // SignalR hub lives at <origin>/chathub (outside the /api/v1 prefix), derived from the
 // same configured API URL so it works across dev/prod instead of a hardcoded localhost.

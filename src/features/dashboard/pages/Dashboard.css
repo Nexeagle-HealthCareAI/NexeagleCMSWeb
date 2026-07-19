@@ -260,6 +260,130 @@
     border-color: #D1D5DB;
 }
 
+/* Subscription cell (Onboarded Hospitals table + card view) */
+.sub-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sub-cell-plan {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.sub-cell-empty {
+    color: #9CA3AF;
+    font-size: 13px;
+}
+
+.sub-cell-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sub-cell-days {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.sub-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.sub-badge-trial { background: #DBEAFE; color: #1D4ED8; }
+.sub-badge-active { background: #D1FAE5; color: #065F46; }
+.sub-badge-danger { background: #FEE2E2; color: #991B1B; }
+.sub-badge-pending { background: #FEF3C7; color: #92400E; }
+.sub-badge-neutral { background: #F3F4F6; color: #6B7280; }
+
+/* Onboarded Hospitals: table (desktop/tablet) vs card list (mobile) toggle */
+.hospitals-cards-mobile {
+    display: none;
+}
+
+/* Hospital Card (mobile) */
+.hospital-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.hospital-card:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary);
+}
+
+.hospital-card + .hospital-card {
+    margin-top: 12px;
+}
+
+.hospital-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.hospital-card-icon {
+    background: #EFF6FF;
+    color: var(--primary);
+    padding: 8px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.hospital-card-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e3a8a;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.hospital-card-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 4px 0;
+}
+
+.hospital-card-row-icon {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.hospital-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    gap: 8px;
+}
+
+.hospital-card-patients {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .dashboard-container {
@@ -281,6 +405,14 @@
     .search-input {
         width: 100%;
         /* Full width search on mobile */
+    }
+
+    .hospitals-table-desktop {
+        display: none;
+    }
+
+    .hospitals-cards-mobile {
+        display: block;
     }
 
     .pagination-container {
