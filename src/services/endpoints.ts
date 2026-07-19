@@ -34,6 +34,14 @@ export const API_ENDPOINTS = {
         GET_ALL_REQUESTS: '/subscriptions/admin/payment-requests',
         APPROVE: '/subscriptions/approve-payment', // Usage: /subscriptions/approve-payment/:id
     },
+    HOSPITAL_SUBSCRIPTIONS: {
+        LIST: '/hospital-subscriptions',              // ?platform=EasyHMS|1Rad|All&status=
+        SUMMARY: '/hospital-subscriptions/summary',
+        // Actions: /hospital-subscriptions/:platform/:hospitalId/(status|trial|validity|plan)
+    },
+    PLANS: {
+        LIST: '/SubscriptionPlans',                   // ?application=EasyHMS|1Rad|All
+    },
     ASSIST: {
         USAGE: '/assist/usage',                       // RadAI token usage & savings
     },

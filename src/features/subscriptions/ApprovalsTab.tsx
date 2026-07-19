@@ -179,7 +179,8 @@ export const ApprovalsTab: React.FC = () => {
 
             {viewMode === 'pending' ? (
                 <div className="subscriptions-card">
-                    <div className="subscriptions-table-container">
+                    {/* Desktop View: Table */}
+                    <div className="subscriptions-table-container subscriptions-desktop-table">
                         <table className="subscriptions-table">
                             <thead>
                                 <tr>
@@ -276,10 +277,84 @@ export const ApprovalsTab: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Mobile View: Cards */}
+                    <div className="subscriptions-mobile-cards">
+                        {loading ? (
+                            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</div>
+                        ) : requests.length === 0 ? (
+                            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No pending payment approvals.</div>
+                        ) : (
+                            requests.map((req) => (
+                                <div key={req.hospitalSubscriptionId} className="subscription-mobile-card">
+                                    <div className="subscription-card-header">
+                                        <div className="hospital-avatar-wrapper">
+                                            <Building2 size={18} color="#0f52ba" />
+                                        </div>
+                                        <div className="hospital-meta">
+                                            <h4 className="hospital-name">{req.hospitalName}</h4>
+                                            <p className="hospital-id">ID: {req.hospitalId.split('-')[0]}... · <span className="product-tag">{req.applicationName || 'EasyHMS'}</span></p>
+                                        </div>
+                                        <span className={`status-badge status-${req.status.toLowerCase()}`}>
+                                            {req.status}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="subscription-card-details">
+                                        <div className="detail-row">
+                                            <span className="label">Plan Details</span>
+                                            <span className="value plan-name-val">{req.planName || 'Unknown Plan'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="label">Trial End Date</span>
+                                            <span className="value">
+                                                {req.trialEndDate ? new Date(req.trialEndDate).toLocaleDateString('en-IN', {
+                                                    year: 'numeric', month: 'short', day: 'numeric'
+                                                }) : 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="detail-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', borderTop: '1px dashed var(--border)', paddingTop: '8px', marginTop: '4px' }}>
+                                            <span className="label">Payment Submitted:</span>
+                                            <span className="value" style={{ width: '100%', textAlign: 'left', marginTop: '2px' }}>
+                                                {req.paymentAmount != null ? (
+                                                    <>
+                                                        <strong style={{ fontSize: '13px', color: '#0f172a' }}>₹{req.paymentAmount}</strong>
+                                                        {req.paymentMode && <span style={{ color: '#64748b' }}> ({req.paymentMode})</span>}
+                                                        <div style={{fontSize: '11px', color: '#64748b', fontFamily: 'monospace', marginTop: '2px'}}>{req.paymentReference}</div>
+                                                    </>
+                                                ) : '—'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {req.status !== 'Active' && (
+                                        <div className="subscription-card-actions" style={{ display: 'flex', gap: '8px' }}>
+                                            <button 
+                                                className="mobile-approve-btn"
+                                                onClick={() => handleApprove(req.hospitalId)}
+                                                disabled={approvingId === req.hospitalId}
+                                                style={{ flex: 1 }}
+                                            >
+                                                {approvingId === req.hospitalId ? 'Approving...' : 'Approve & Activate'}
+                                            </button>
+                                            <button 
+                                                className="reject-btn"
+                                                onClick={() => { setRejectingRequest(req); setRejectionReason(''); }}
+                                                style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '12px' }}
+                                            >
+                                                Reject
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
             ) : (
                 <div className="subscriptions-card">
-                    <div className="subscriptions-table-container">
+                    {/* Desktop View: Table */}
+                    <div className="subscriptions-table-container subscriptions-desktop-table">
                         <table className="subscriptions-table">
                             <thead>
                                 <tr>
@@ -345,6 +420,59 @@ export const ApprovalsTab: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View: Cards */}
+                    <div className="subscriptions-mobile-cards">
+                        {loadingHistory ? (
+                            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</div>
+                        ) : history.length === 0 ? (
+                            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No approval history yet.</div>
+                        ) : (
+                            history.map((entry) => (
+                                <div key={entry.paymentId} className="subscription-mobile-card">
+                                    <div className="subscription-card-header">
+                                        <div className="hospital-avatar-wrapper">
+                                            <Building2 size={18} color="#0f52ba" />
+                                        </div>
+                                        <div className="hospital-meta">
+                                            <h4 className="hospital-name">{entry.hospitalName}</h4>
+                                            <p className="hospital-id">Product: <span className="product-tag">{entry.applicationName || 'EasyHMS'}</span></p>
+                                        </div>
+                                        <span className={`status-badge status-${entry.status.toLowerCase()}`}>
+                                            {entry.status}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="subscription-card-details">
+                                        <div className="detail-row">
+                                            <span className="label">Plan Name</span>
+                                            <span className="value plan-name-val">{entry.planName}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="label">Amount Paid</span>
+                                            <span className="value">
+                                                <strong>₹{entry.amount}</strong>
+                                                {entry.paymentMode && <span> &middot; {entry.paymentMode}</span>}
+                                            </span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="label">Reference ID</span>
+                                            <span className="value" style={{fontFamily: 'monospace', fontSize: '11px'}}>{entry.reference}</span>
+                                        </div>
+                                        {entry.status === 'Rejected' && entry.rejectionReason && (
+                                            <div className="rejection-reason-block" style={{marginTop: '6px', padding: '8px', background: '#fef2f2', borderRadius: '8px', borderLeft: '3px solid #dc2626', fontSize: '11px', color: '#dc2626', width: '100%'}}>
+                                                <strong>Rejection Reason:</strong> {entry.rejectionReason}
+                                            </div>
+                                        )}
+                                        <div className="detail-row" style={{marginTop: '8px', fontSize: '10px', color: '#94a3b8', borderTop: '1px solid #f1f5f9', paddingTop: '6px'}}>
+                                            <span>Reviewed:</span>
+                                            <span>{entry.reviewedAt ? new Date(entry.reviewedAt).toLocaleString('en-IN', {dateStyle: 'medium', timeStyle: 'short'}) : '—'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             )}

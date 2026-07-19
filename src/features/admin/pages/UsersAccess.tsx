@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Users, ShieldCheck, Plus, RotateCcw, Save, Trash2, X } from 'lucide-react';
 import '../../dashboard/pages/Dashboard.css';
+import './UsersAccess.css';
 import {
     adminService,
     type PermissionDto,
@@ -206,26 +207,57 @@ const UsersAccess: React.FC = () => {
                         </div>
                     )}
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead><tr><th style={th}>Name</th><th style={th}>Email</th><th style={th}>Roles</th><th style={th}>Status</th><th style={th}></th></tr></thead>
-                        <tbody>
-                            {users.map((u) => (
-                                <tr key={u.userId}>
-                                    <td style={td}>{u.fullName}</td>
-                                    <td style={td}>{u.email}</td>
-                                    <td style={td}>{u.roles.join(', ') || <span style={{ color: '#94a3b8' }}>none</span>}</td>
-                                    <td style={td}>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: u.isActive ? '#166534' : '#991b1b' }}>{u.isActive ? 'Active' : 'Disabled'}</span>
-                                    </td>
-                                    <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                                        <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => openEdit(u.userId)}>Edit access</button>{' '}
-                                        <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>{' '}
-                                        <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => resetPw(u)}><RotateCcw size={13} /></button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {/* Desktop View: Table */}
+                    <div className="ua-desktop-table">
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead><tr><th style={th}>Name</th><th style={th}>Email</th><th style={th}>Roles</th><th style={th}>Status</th><th style={th}></th></tr></thead>
+                            <tbody>
+                                {users.map((u) => (
+                                    <tr key={u.userId}>
+                                        <td style={td}>{u.fullName}</td>
+                                        <td style={td}>{u.email}</td>
+                                        <td style={td}>{u.roles.join(', ') || <span style={{ color: '#94a3b8' }}>none</span>}</td>
+                                        <td style={td}>
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: u.isActive ? '#166534' : '#991b1b' }}>{u.isActive ? 'Active' : 'Disabled'}</span>
+                                        </td>
+                                        <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                                            <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => openEdit(u.userId)}>Edit access</button>{' '}
+                                            <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>{' '}
+                                            <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => resetPw(u)}><RotateCcw size={13} /></button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile View: Cards */}
+                    <div className="ua-mobile-cards">
+                        {users.map((u) => (
+                            <div key={u.userId} className="ua-mobile-card">
+                                <div className="ua-card-header">
+                                    <div className="ua-avatar">
+                                        {u.fullName[0].toUpperCase()}
+                                    </div>
+                                    <div className="ua-meta">
+                                        <h4 className="ua-name">{u.fullName}</h4>
+                                        <p className="ua-email-sub">{u.email}</p>
+                                    </div>
+                                    <span className="ua-status-pill" style={{ color: u.isActive ? '#166534' : '#991b1b', background: u.isActive ? '#dcfce7' : '#fee2e2', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                                        {u.isActive ? 'Active' : 'Disabled'}
+                                    </span>
+                                </div>
+                                <div className="ua-card-details">
+                                    <p><strong>Roles:</strong> {u.roles.join(', ') || <span style={{ color: '#94a3b8' }}>none</span>}</p>
+                                </div>
+                                <div className="ua-card-actions">
+                                    <button className="ua-action-btn secondary" onClick={() => openEdit(u.userId)}>Edit access</button>
+                                    <button className="ua-action-btn secondary" onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>
+                                    <button className="ua-action-btn icon-only" onClick={() => resetPw(u)} title="Reset Password"><RotateCcw size={14} /></button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -235,22 +267,54 @@ const UsersAccess: React.FC = () => {
                         <h3 style={{ margin: 0, fontSize: 15 }}>{roles.length} role(s)</h3>
                         <button style={btn('#0f52ba')} onClick={openNewRole}><Plus size={16} />New role</button>
                     </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead><tr><th style={th}>Role</th><th style={th}>Description</th><th style={th}>Pages/actions</th><th style={th}></th></tr></thead>
-                        <tbody>
-                            {roles.map((r) => (
-                                <tr key={r.roleId}>
-                                    <td style={td}>{r.name}{r.isSystemDefined && <span style={{ marginLeft: 6, fontSize: 10, background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: 4 }}>system</span>}</td>
-                                    <td style={td}>{r.description}</td>
-                                    <td style={td}>{r.permissionKeys.length}</td>
-                                    <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                                        <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => openEditRole(r)}>Edit</button>{' '}
-                                        {!r.isSystemDefined && <button style={{ ...ghostBtn, padding: '5px 9px', color: '#991b1b' }} onClick={() => removeRole(r)}><Trash2 size={13} /></button>}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {/* Desktop View: Table */}
+                    <div className="ua-desktop-table">
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead><tr><th style={th}>Role</th><th style={th}>Description</th><th style={th}>Pages/actions</th><th style={th}></th></tr></thead>
+                            <tbody>
+                                {roles.map((r) => (
+                                    <tr key={r.roleId}>
+                                        <td style={td}>{r.name}{r.isSystemDefined && <span style={{ marginLeft: 6, fontSize: 10, background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: 4 }}>system</span>}</td>
+                                        <td style={td}>{r.description}</td>
+                                        <td style={td}>{r.permissionKeys.length}</td>
+                                        <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                                            <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => openEditRole(r)}>Edit</button>{' '}
+                                            {!r.isSystemDefined && <button style={{ ...ghostBtn, padding: '5px 9px', color: '#991b1b' }} onClick={() => removeRole(r)}><Trash2 size={13} /></button>}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile View: Cards */}
+                    <div className="ua-mobile-cards">
+                        {roles.map((r) => (
+                            <div key={r.roleId} className="ua-mobile-card">
+                                <div className="ua-card-header">
+                                    <div className="ua-avatar role">
+                                        R
+                                    </div>
+                                    <div className="ua-meta">
+                                        <h4 className="ua-name">
+                                            {r.name}
+                                            {r.isSystemDefined && <span className="ua-system-tag">system</span>}
+                                        </h4>
+                                        <p className="ua-desc-sub">{r.description || 'No description'}</p>
+                                    </div>
+                                </div>
+                                <div className="ua-card-details">
+                                    <p><strong>Pages/Actions:</strong> {r.permissionKeys.length} items</p>
+                                </div>
+                                <div className="ua-card-actions">
+                                    <button className="ua-action-btn secondary" onClick={() => openEditRole(r)}>Edit</button>
+                                    {!r.isSystemDefined && (
+                                        <button className="ua-action-btn danger" onClick={() => removeRole(r)}>Delete</button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 

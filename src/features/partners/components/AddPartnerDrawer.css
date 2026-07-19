@@ -226,3 +226,28 @@
   0% { transform: scale(0); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+@media (max-width: 768px) {
+  .drawer-header {
+    padding: 16px 20px;
+  }
+  .drawer-header h2 {
+    font-size: 20px;
+  }
+  .drawer-body {
+    padding: 20px;
+  }
+  .drawer-grid {
+    grid-template-columns: 1fr; /* Single column on mobile viewports */
+    gap: 16px;
+  }
+  .drawer-footer {
+    padding: 16px 20px;
+  }
+  .btn-drawer-cancel, .btn-drawer-submit {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+  }
+}

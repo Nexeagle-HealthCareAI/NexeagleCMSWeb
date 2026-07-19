@@ -117,6 +117,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 </NavLink>
               </li>
             )}
+            {can('subscriptions.view') && (
+              <li>
+                <NavLink
+                  to="/hospital-subscriptions"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Hospital Subscriptions" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Building2 size={22} />
+                  {(!collapsed || isMobile) && <span>Hospital Subscriptions</span>}
+                </NavLink>
+              </li>
+            )}
             {can('application-health.view') && (
               <li>
                 <NavLink

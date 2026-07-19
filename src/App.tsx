@@ -12,6 +12,7 @@ import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
 import SubscriptionManagementPage from './features/subscriptions/SubscriptionManagementPage';
+import HospitalSubscriptionsPage from './features/subscriptions/HospitalSubscriptionsPage';
 import PartnersPage from './features/partners/pages/PartnersPage';
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import RadAiCost from './features/ai-cost/pages/RadAiCost';
@@ -90,6 +91,7 @@ function App() {
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
+            <Route path="hospital-subscriptions" element={<RequirePermission perm="subscriptions.view"><HospitalSubscriptionsPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
             <Route path="application-health" element={<RequirePermission perm="application-health.view"><ApplicationHealth /></RequirePermission>} />
             <Route path="radai-cost" element={<RequirePermission perm="radai-cost.view"><RadAiCost /></RequirePermission>} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Send, User, Clock, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Send, User, Clock, CheckCircle2, ChevronLeft } from 'lucide-react';
 import { useSupportStore } from '../../../store/useSupportStore';
 import './LiveSupport.css';
 
@@ -13,9 +13,17 @@ const LiveSupport: React.FC = () => {
     const selectSession = useSupportStore(s => s.selectSession);
     const sendMessage = useSupportStore(s => s.sendMessage);
     const closeSession = useSupportStore(s => s.closeSession);
+    const clearSelection = useSupportStore(s => s.clearSelection);
 
     const [newMessage, setNewMessage] = useState('');
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -29,7 +37,7 @@ const LiveSupport: React.FC = () => {
     };
 
     return (
-        <div className="live-support-container">
+        <div className={`live-support-container ${isMobile ? 'mobile' : ''} ${activeSession ? 'chat-open' : ''}`}>
             <div className="support-sidebar">
                 <div className="sidebar-header">
                     <h2>Live Support</h2>
@@ -65,6 +73,11 @@ const LiveSupport: React.FC = () => {
                 {activeSession ? (
                     <>
                         <div className="chat-header">
+                            {isMobile && (
+                                <button className="mobile-chat-back-btn" onClick={clearSelection} title="Back to sessions">
+                                    <ChevronLeft size={20} />
+                                </button>
+                            )}
                             <div className="guest-details">
                                 <h3>Chat with {activeSession.guestId.substring(0, 8)}</h3>
                                 <p>Session ID: {activeSession.sessionId}</p>
