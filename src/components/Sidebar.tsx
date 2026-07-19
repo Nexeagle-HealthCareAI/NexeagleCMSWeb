@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard, Coins, Users } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard, Coins, Users, Stethoscope } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
@@ -82,6 +82,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 </NavLink>
               </li>
             )}
+            <li>
+              <NavLink
+                to="/doctors"
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed && !isMobile ? "Doctor Dekho" : ""}
+                onClick={isMobile ? toggle : undefined}
+              >
+                <Stethoscope size={22} />
+                {(!collapsed || isMobile) && <span>Doctor Dekho</span>}
+              </NavLink>
+            </li>
             <li>
               <NavLink
                 to="/partners"

@@ -23,6 +23,10 @@ export const API_ENDPOINTS = {
         GET_ALL: '/hospitals',
         GET_BY_ID: '/hospitals', // Usage: /hospitals/:id
     },
+    DOCTORS: {
+        GET_ALL: '/doctors',
+        UPDATE_MARKETING: '/doctors', // Usage: /doctors/:doctorId/marketing (PUT)
+    },
     DASHBOARD: {
         STATS: '/dashboard/stats',
     },
