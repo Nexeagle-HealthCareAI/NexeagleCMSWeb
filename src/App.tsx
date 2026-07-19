@@ -7,6 +7,7 @@ import Login from './features/login/pages/Login';
 import ChangePassword from './features/login/pages/ChangePassword';
 import HospitalDetails from './features/dashboard/pages/HospitalDetails';
 import OnboardedHospitals from './features/dashboard/pages/OnboardedHospitals';
+import DoctorsPage from './features/doctors/pages/DoctorsPage';
 import SettingsPage from './features/settings/pages/Settings';
 import ApplicationHealth from './features/dashboard/pages/ApplicationHealth';
 import LiveSupport from './features/support/pages/LiveSupport';
@@ -85,6 +86,7 @@ function App() {
           }>
             <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
             <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
+            <Route path="doctors" element={<DoctorsPage />} />
             <Route path="partners" element={<PartnersPage />} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
