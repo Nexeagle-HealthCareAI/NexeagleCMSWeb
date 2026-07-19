@@ -106,7 +106,8 @@ const SubscriptionsPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="subscriptions-card">
-                    <div className="subscriptions-table-container">
+                    {/* Desktop View: Table */}
+                    <div className="subscriptions-table-container subscriptions-desktop-table">
                         <table className="subscriptions-table">
                             <thead>
                                 <tr>
@@ -160,6 +161,53 @@ const SubscriptionsPage: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View: Cards (Android Compatible) */}
+                    <div className="subscriptions-mobile-cards">
+                        {requests.filter(r => (r.applicationName || 'EasyHMS') === activeTab).map((req) => (
+                            <div key={req.hospitalSubscriptionId} className="subscription-mobile-card">
+                                <div className="subscription-card-header">
+                                    <div className="hospital-avatar-wrapper">
+                                        <Building2 size={18} color="#4F46E5" />
+                                    </div>
+                                    <div className="hospital-meta">
+                                        <h4 className="hospital-name">{req.hospitalName}</h4>
+                                        <p className="hospital-id">ID: {req.hospitalId.split('-')[0]}...</p>
+                                    </div>
+                                    <span className={`status-badge status-${req.status.toLowerCase()}`}>
+                                        {req.status}
+                                    </span>
+                                </div>
+                                
+                                <div className="subscription-card-details">
+                                    <div className="detail-row">
+                                        <span className="label">Plan Name</span>
+                                        <span className="value plan-name-val">{req.planName || 'Unknown Plan'}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="label">Trial End Date</span>
+                                        <span className="value">
+                                            {req.trialEndDate ? new Date(req.trialEndDate).toLocaleDateString('en-IN', {
+                                                year: 'numeric', month: 'short', day: 'numeric'
+                                            }) : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {req.status !== 'Active' && (
+                                    <div className="subscription-card-actions">
+                                        <button 
+                                            className="mobile-approve-btn"
+                                            onClick={() => handleApprove(req.hospitalId)}
+                                            disabled={approvingId === req.hospitalId}
+                                        >
+                                            {approvingId === req.hospitalId ? 'Approving...' : 'Approve & Activate'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}

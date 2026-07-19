@@ -36,6 +36,11 @@ const ManagePlansPage: React.FC = () => {
         fetchPlans();
     }, []);
 
+    useEffect(() => {
+        window.addEventListener('sync-completed', fetchPlans);
+        return () => window.removeEventListener('sync-completed', fetchPlans);
+    }, []);
+
     const handleSave = async (plan: SubscriptionPlan) => {
         try {
             if (isCreating) {

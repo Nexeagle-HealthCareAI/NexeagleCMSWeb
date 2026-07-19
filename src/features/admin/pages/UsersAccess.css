@@ -1,0 +1,157 @@
+/* UsersAccess.css */
+
+.ua-desktop-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ua-mobile-cards {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .ua-desktop-table {
+        display: none !important;
+    }
+
+    .ua-mobile-cards {
+        display: flex !important;
+        padding-bottom: 100px; /* Clearance for bottom nav */
+    }
+
+    .ua-mobile-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .ua-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    .ua-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #EEF2FF;
+        border: 1px solid #C7D2FE;
+        color: #4F46E5;
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ua-avatar.role {
+        background-color: #ECFDF5;
+        border-color: #A7F3D0;
+        color: #059669;
+    }
+
+    .ua-meta {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ua-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ua-system-tag {
+        font-size: 9px;
+        background-color: #e2e8f0;
+        color: #475569;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .ua-email-sub, .ua-desc-sub {
+        margin: 0;
+        font-size: 11px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ua-card-details {
+        padding-top: 8px;
+        border-top: 1px dashed #e2e8f0;
+        font-size: 12px;
+    }
+
+    .ua-card-details p {
+        margin: 0;
+    }
+
+    .ua-card-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .ua-action-btn {
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        transition: transform 0.2s ease;
+    }
+
+    .ua-action-btn:active {
+        transform: scale(0.98);
+    }
+
+    .ua-action-btn.secondary {
+        background-color: white;
+        border-color: #cbd5e1;
+        color: #475569;
+        flex: 1;
+        min-width: calc(50% - 4px);
+    }
+
+    .ua-action-btn.danger {
+        background-color: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+        flex: 1;
+        min-width: calc(50% - 4px);
+    }
+
+    .ua-action-btn.icon-only {
+        background-color: white;
+        border-color: #cbd5e1;
+        color: #475569;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        flex-shrink: 0;
+    }
+}

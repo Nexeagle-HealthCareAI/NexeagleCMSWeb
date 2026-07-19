@@ -419,3 +419,148 @@
         text-align: center;
     }
 }
+
+/* Mobile Cards View styling for hospitals page */
+.hospitals-mobile-cards {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.hospitals-desktop-table {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .hospitals-desktop-table {
+        display: none !important;
+    }
+
+    .hospitals-mobile-cards {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 4px 100px 4px; /* Clearance for bottom nav bar */
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .hospital-mobile-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, background-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .hospital-mobile-card:active {
+        transform: scale(0.98);
+        background-color: #F9FAFB;
+    }
+
+    .hospital-mobile-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    .hospital-avatar-wrapper {
+        width: 40px;
+        height: 40px;
+        background-color: #EEF2FF;
+        border: 1px solid #C7D2FE;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hospital-avatar {
+        font-weight: 700;
+        color: #4F46E5;
+        font-size: 15px;
+    }
+
+    .hospital-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hospital-name {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #1F2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .hospital-id {
+        margin: 0;
+        font-size: 11px;
+        color: #9CA3AF;
+    }
+
+    .hospital-status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .hospital-status-badge.active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .hospital-status-badge.inactive,
+    .hospital-status-badge.pending {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .hospital-mobile-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-top: 10px;
+        border-top: 1px dashed #E5E7EB;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .detail-label {
+        color: #6B7280;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        color: #1F2937;
+        font-weight: 600;
+    }
+
+    .hospitals-empty-mobile {
+        text-align: center;
+        padding: 32px 0;
+        color: #9CA3AF;
+        font-size: 14px;
+    }
+}

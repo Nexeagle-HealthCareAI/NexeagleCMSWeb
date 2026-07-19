@@ -206,3 +206,154 @@
     max-width: 400px;
     margin: 0 auto;
 }
+
+/* Mobile-first layout for subscription approvals */
+.subscriptions-mobile-cards {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.subscriptions-desktop-table {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .subscriptions-page {
+        padding: var(--spacing-md);
+        padding-bottom: 100px; /* Safe padding for bottom navigation */
+    }
+
+    .subscriptions-header h1 {
+        font-size: 22px;
+    }
+
+    .subscriptions-card {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    .subscriptions-desktop-table {
+        display: none !important;
+    }
+
+    .subscriptions-mobile-cards {
+        display: flex !important;
+    }
+
+    .subscription-mobile-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .subscription-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    .hospital-avatar-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background-color: #F1F5F9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hospital-meta {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hospital-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .hospital-id {
+        margin: 0;
+        font-size: 11px;
+        color: var(--text-secondary);
+        font-family: monospace;
+    }
+
+    .subscription-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--border);
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .detail-row .label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .detail-row .value {
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    .plan-name-val {
+        color: var(--primary) !important;
+    }
+
+    .subscription-card-actions {
+        margin-top: 4px;
+    }
+
+    .mobile-approve-btn {
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, var(--primary), #3b82f6);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .mobile-approve-btn:active {
+        transform: scale(0.98);
+        box-shadow: none;
+    }
+
+    .mobile-approve-btn:disabled {
+        background: #cbd5e1;
+        color: #94a3b8;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+}

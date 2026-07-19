@@ -288,7 +288,8 @@ const HospitalDetails: React.FC = () => {
                             Total User Count: <span style={{ color: 'var(--primary)', fontSize: '16px' }}>{hospital.users?.length || 0}</span>
                         </div>
                     </div>
-                    <div className="table-wrapper">
+                    {/* Desktop View: Table */}
+                    <div className="table-wrapper details-desktop-table">
                         <table className="details-table">
                             <thead>
                                 <tr className="table-head-row">
@@ -329,11 +330,55 @@ const HospitalDetails: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Mobile View: Cards */}
+                    <div className="details-mobile-cards">
+                        {hospital.users?.map((user, idx) => (
+                            <div key={idx} className="details-mobile-card">
+                                <div className="details-card-header">
+                                    <div className="details-card-avatar">
+                                        {user.name[0].toUpperCase()}
+                                    </div>
+                                    <div className="details-card-meta">
+                                        <h4>{user.name}</h4>
+                                        <p>{user.role}</p>
+                                    </div>
+                                    <span className={`status-badge ${getStatusClass(user.status)}`}>
+                                        {user.status}
+                                    </span>
+                                </div>
+                                <div className="details-card-fields">
+                                    <div className="card-field-row">
+                                        <span className="field-label">Email</span>
+                                        <span className="field-value">{user.email}</span>
+                                    </div>
+                                    <div className="card-field-row">
+                                        <span className="field-label">Contact</span>
+                                        <span className="field-value">{user.contact}</span>
+                                    </div>
+                                    <div className="card-field-row">
+                                        <span className="field-label">Last Login</span>
+                                        <span className="field-value">
+                                            {user.lastLoginTime ? new Date(user.lastLoginTime).toLocaleString('en-IN') : '-'}
+                                        </span>
+                                    </div>
+                                    <div className="card-field-row">
+                                        <span className="field-label">Method</span>
+                                        <span className="field-value">{user.loginMethod || '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {(!hospital.users || hospital.users.length === 0) && (
+                            <div className="details-empty-mobile">No users found.</div>
+                        )}
+                    </div>
                 </CollapsibleCard>
 
                 {/* Doctors */}
                 <CollapsibleCard title="Doctors" icon={<Stethoscope size={20} />}>
-                    <div className="table-wrapper">
+                    {/* Desktop View: Table */}
+                    <div className="table-wrapper details-desktop-table">
                         <table className="details-table">
                             <thead>
                                 <tr className="table-head-row">
@@ -384,6 +429,54 @@ const HospitalDetails: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View: Cards */}
+                    <div className="details-mobile-cards">
+                        {hospital.doctors?.map((doc, idx) => (
+                            <div key={idx} className="details-mobile-card">
+                                <div className="details-card-header">
+                                    <div className="details-card-avatar doctor">
+                                        Dr
+                                    </div>
+                                    <div className="details-card-meta">
+                                        <h4>{doc.name}</h4>
+                                        <p>{doc.speciality}</p>
+                                    </div>
+                                </div>
+                                <div className="details-card-fields">
+                                    <div className="card-field-row">
+                                        <span className="field-label">Degree</span>
+                                        <span className="field-value">{doc.degree}</span>
+                                    </div>
+                                    <div className="card-field-row">
+                                        <span className="field-label">Departments</span>
+                                        <span className="field-value">{doc.departments.join(', ')}</span>
+                                    </div>
+                                    <div className="card-field-row">
+                                        <span className="field-label">Reg No</span>
+                                        <span className="field-value">{doc.registrationNumber} (since {doc.registeredOn})</span>
+                                    </div>
+                                    <div className="card-stats-block">
+                                        <div className="card-stat-subrow">
+                                            <span className="stat-heading">Appointments</span>
+                                            <span className="stat-values">
+                                                D: {doc.appointments.daily} | W: {doc.appointments.weekly} | M: {doc.appointments.monthly} | Y: {doc.appointments.yearly}
+                                            </span>
+                                        </div>
+                                        <div className="card-stat-subrow">
+                                            <span className="stat-heading">Unique Patients</span>
+                                            <span className="stat-values">
+                                                D: {doc.uniquePatients.daily} | W: {doc.uniquePatients.weekly} | M: {doc.uniquePatients.monthly} | Y: {doc.uniquePatients.yearly}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {(!hospital.doctors || hospital.doctors.length === 0) && (
+                            <div className="details-empty-mobile">No doctors found.</div>
+                        )}
                     </div>
                 </CollapsibleCard>
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { API_ENDPOINTS } from './endpoints';
+import { toast } from 'sonner';
 
 if (!import.meta.env.VITE_API_URL) {
     console.warn('[api] VITE_API_URL is not set – falling back to hard-coded dev URL.');
@@ -21,9 +22,53 @@ export const api = axios.create({
     },
 });
 
-// Attach the access token to every request.
+import { offlineCache } from '../utils/offlineCache';
+import { syncManager } from '../utils/syncManager';
+
+// Cache key generator
+const getCacheKey = (config: any) => {
+    const url = config.url || '';
+    const params = config.params ? JSON.stringify(config.params) : '';
+    return `${url}?${params}`;
+};
+
+// Map URL to a friendly operation description
+const getMutationDescription = (config: any) => {
+    const url = config.url || '';
+    if (url.includes('/status')) return 'Update Subscription Status';
+    if (url.includes('/trial')) return 'Set Trial Period';
+    if (url.includes('/validity')) return 'Set Subscription Validity';
+    if (url.includes('/plan')) return 'Assign Subscription Plan';
+    if (url.includes('/approve-payment')) return 'Approve Payment Request';
+    return 'Save CMS Update';
+};
+
+// Attach the access token and handle offline interception
 api.interceptors.request.use(
     (config) => {
+        // Intercept when device is explicitly offline
+        if (!navigator.onLine) {
+            if (config.method?.toLowerCase() === 'get') {
+                console.log('[API Interceptor] Offline: Fetching from local cache...');
+                // Throw cancel token to immediately jump to response interceptor bypass
+                config.cancelToken = new axios.CancelToken((cancel) => {
+                    cancel(`offline-get:${getCacheKey(config)}`);
+                });
+            } else if (config.method && ['post', 'put', 'delete', 'patch'].includes(config.method.toLowerCase())) {
+                console.log('[API Interceptor] Offline: Queuing mutation for sync...');
+                const description = getMutationDescription(config);
+                syncManager.enqueue(
+                    config.url || '', 
+                    config.method.toUpperCase() as any, 
+                    config.data, 
+                    description
+                );
+                config.cancelToken = new axios.CancelToken((cancel) => {
+                    cancel(`offline-mutate:${description}`);
+                });
+            }
+        }
+
         const token = useAuthStore.getState().token;
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -45,9 +90,61 @@ const doRefresh = async (): Promise<string | null> => {
 };
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Cache GET responses upon successful online fetch
+        if (response.config.method?.toLowerCase() === 'get' && response.status === 200) {
+            const cacheKey = getCacheKey(response.config);
+            offlineCache.set(cacheKey, response.data);
+        }
+        return response;
+    },
     async (error) => {
         const original = error.config;
+
+        // 1. Handle custom PWA offline interceptors (Cancelled requests)
+        if (axios.isCancel(error)) {
+            const message = error.message || '';
+            if (message.startsWith('offline-get:')) {
+                const cacheKey = message.replace('offline-get:', '');
+                const cachedData = offlineCache.get(cacheKey);
+                if (cachedData !== null) {
+                    return Promise.resolve({
+                        data: cachedData,
+                        status: 200,
+                        statusText: 'OK',
+                        headers: {},
+                        config: original
+                    });
+                }
+                return Promise.reject(new Error('No cached data available offline.'));
+            } else if (message.startsWith('offline-mutate:')) {
+                const desc = message.replace('offline-mutate:', '');
+                return Promise.resolve({
+                    data: { message: `Operation "${desc}" saved offline. Will sync when online.`, status: 'queued' },
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                    config: original
+                });
+            }
+        }
+
+        // 2. Fallback to cache for online requests that fail due to network loss/timeout
+        if (original && original.method?.toLowerCase() === 'get' && (!error.response || error.code === 'ECONNABORTED')) {
+            const cacheKey = getCacheKey(original);
+            const cachedData = offlineCache.get(cacheKey);
+            if (cachedData !== null) {
+                toast.warning('Network issue. Displaying cached data.', { position: 'bottom-center' });
+                return Promise.resolve({
+                    data: cachedData,
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                    config: original
+                });
+            }
+        }
+
         const status = error.response?.status;
         const isAuthCall = typeof original?.url === 'string' && original.url.includes('/auth/');
 
@@ -73,3 +170,4 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+

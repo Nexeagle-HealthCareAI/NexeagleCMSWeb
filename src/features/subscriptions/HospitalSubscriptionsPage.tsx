@@ -52,6 +52,11 @@ const HospitalSubscriptionsPage: React.FC = () => {
 
     useEffect(() => { load(); }, [load]);
 
+    useEffect(() => {
+        window.addEventListener('sync-completed', load);
+        return () => window.removeEventListener('sync-completed', load);
+    }, [load]);
+
     const openModal = async (kind: ModalKind, row: HospitalSubscription) => {
         setTarget(row);
         setModal(kind);
@@ -162,7 +167,8 @@ const HospitalSubscriptionsPage: React.FC = () => {
                 </label>
             </div>
 
-            <div className="hsub-tablewrap">
+            {/* Desktop View: Table */}
+            <div className="hsub-tablewrap hsub-desktop-table">
                 <table className="hsub-table">
                     <thead>
                         <tr>
@@ -216,6 +222,60 @@ const HospitalSubscriptionsPage: React.FC = () => {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile View: Cards (Android Compatible) */}
+            <div className="hsub-mobile-cards">
+                {loading ? (
+                    <div className="hsub-empty">Loading…</div>
+                ) : rows.length === 0 ? (
+                    <div className="hsub-empty">No subscriptions match these filters.</div>
+                ) : rows.map((r) => (
+                    <div key={r.hospitalSubscriptionId} className="hsub-mobile-card">
+                        <div className="hsub-card-header">
+                            <div className="hospital-avatar-wrapper">
+                                <Building2 size={18} color="#4F46E5" />
+                            </div>
+                            <div className="hospital-meta">
+                                <h4 className="hospital-name">{r.hospitalName || 'Unnamed hospital'}</h4>
+                                <p className="hospital-id">ID: {r.hospitalId.split('-')[0]}… · <span className="platform-tag">{r.platform}</span></p>
+                            </div>
+                            <span className={`status-badge hsub-pill ${r.status.toLowerCase()}`}>
+                                {r.status}
+                            </span>
+                        </div>
+                        
+                        <div className="hsub-card-details">
+                            <div className="detail-row">
+                                <span className="label">Plan</span>
+                                <span className="value plan-val">{r.planName || 'No plan'}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="label">Trial Ends</span>
+                                <span className="value">{fmtDate(r.trialEndDate)}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="label">Valid Until</span>
+                                <span className="value">{fmtDate(r.subscriptionEndDate)}</span>
+                            </div>
+                        </div>
+                        
+                        {canManage && (
+                            <div className="hsub-card-actions">
+                                <button
+                                    className={`hsub-mobile-action-btn ${r.status === 'Active' ? 'danger' : 'primary'}`}
+                                    disabled={busyId === r.hospitalSubscriptionId}
+                                    onClick={() => toggleActive(r)}
+                                >
+                                    {r.status === 'Active' ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <button className="hsub-mobile-action-btn secondary" onClick={() => openModal('plan', r)}>Plan</button>
+                                <button className="hsub-mobile-action-btn secondary" onClick={() => openModal('trial', r)}>Trial</button>
+                                <button className="hsub-mobile-action-btn secondary" onClick={() => openModal('validity', r)}>Validity</button>
+                            </div>
+                        )}
+                    </div>
+                ))}
             </div>
 
             {modal && target && (

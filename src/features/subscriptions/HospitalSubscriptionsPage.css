@@ -79,3 +79,162 @@
 .hsub-field { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 14px; }
 .hsub-field select, .hsub-field input { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #0f172a; }
 .hsub-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+/* Mobile-first layout for hospital subscriptions */
+.hsub-mobile-cards {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.hsub-desktop-table {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .hsub-page {
+        padding: var(--spacing-md);
+        padding-bottom: 100px; /* Clearance for bottom navigation */
+    }
+
+    .hsub-desktop-table {
+        display: none !important;
+    }
+
+    .hsub-mobile-cards {
+        display: flex !important;
+    }
+
+    .hsub-mobile-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .hsub-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    .hospital-avatar-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background-color: #EEF2FF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hospital-meta {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hospital-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .hospital-id {
+        margin: 0;
+        font-size: 11px;
+        color: #64748b;
+        font-family: monospace;
+    }
+
+    .platform-tag {
+        font-size: 10px;
+        font-weight: 700;
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .hsub-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px dashed #e2e8f0;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .detail-row .label {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .detail-row .value {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .plan-val {
+        color: #4F46E5 !important;
+    }
+
+    .hsub-card-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
+    .hsub-mobile-action-btn {
+        flex: 1;
+        min-width: calc(50% - 4px); /* 2 columns of buttons */
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        transition: transform 0.2s ease;
+    }
+
+    .hsub-mobile-action-btn:active {
+        transform: scale(0.98);
+    }
+
+    .hsub-mobile-action-btn.primary {
+        background-color: #4f46e5;
+        color: white;
+    }
+
+    .hsub-mobile-action-btn.danger {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .hsub-mobile-action-btn.secondary {
+        background-color: white;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+}

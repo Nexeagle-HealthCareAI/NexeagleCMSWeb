@@ -118,7 +118,8 @@ const OnboardedHospitals: React.FC = () => {
                     <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>
                 ) : (
                     <>
-                        <div className="table-responsive-wrapper">
+                        {/* Desktop View: Table */}
+                        <div className="table-responsive-wrapper hospitals-desktop-table">
                             <table className="dashboard-table">
                                 <thead>
                                     <tr className="table-header-row">
@@ -183,6 +184,48 @@ const OnboardedHospitals: React.FC = () => {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* Mobile View: Cards (Android Compatible) */}
+                        <div className="hospitals-mobile-cards">
+                            {processedHospitals.map((hospital) => (
+                                <div 
+                                    key={hospital.id} 
+                                    className="hospital-mobile-card" 
+                                    onClick={() => handleRowClick(hospital.id)}
+                                >
+                                    <div className="hospital-mobile-card-header">
+                                        <div className="hospital-avatar-wrapper">
+                                            <span className="hospital-avatar">{hospital.name[0].toUpperCase()}</span>
+                                        </div>
+                                        <div className="hospital-meta">
+                                            <h3 className="hospital-name">{hospital.name}</h3>
+                                            <p className="hospital-id">ID: {hospital.id.split('-')[0]}...</p>
+                                        </div>
+                                        <span className={`hospital-status-badge ${hospital.status.toLowerCase()}`}>
+                                            {hospital.status}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="hospital-mobile-card-details">
+                                        <div className="detail-item">
+                                            <span className="detail-label">City/State</span>
+                                            <span className="detail-value">{hospital.city}, {hospital.state}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Total Patients</span>
+                                            <span className="detail-value">{hospital.totalPatients?.toLocaleString() || 0}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Partner</span>
+                                            <span className="detail-value">{hospital.partnerName || '-'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {processedHospitals.length === 0 && (
+                                <div className="hospitals-empty-mobile">No hospitals found.</div>
+                            )}
                         </div>
 
                         {/* Pagination Controls */}
