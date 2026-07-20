@@ -24,6 +24,11 @@ const Field: React.FC<{ label: React.ReactNode; value: React.ReactNode }> = ({ l
 
 const formatMoney = (n: number | null): string => (n != null ? `₹${n.toLocaleString('en-IN')}` : '—');
 const formatDate = (iso: string | null): string => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—');
+const formatDateTime = (iso: string | null): string => {
+    if (!iso) return 'Never logged in';
+    const d = new Date(iso);
+    return `${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}, ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+};
 
 export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, onClose }) => {
     const [detail, setDetail] = useState<DoctorDetail | null>(null);
@@ -96,6 +101,7 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
                                     <Field label="State medical council" value={detail.medicalCouncil} />
                                     <Field label="Registration year" value={detail.registrationYear} />
                                     <Field label="On platform since" value={formatDate(detail.createdAt)} />
+                                    <Field label="Last login" value={formatDateTime(detail.lastLoginTime)} />
                                 </div>
                             </Section>
 

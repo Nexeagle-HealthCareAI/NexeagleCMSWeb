@@ -14,6 +14,8 @@ export interface DoctorListItem {
     discountPercent: number | null;
     discountStartAt: string | null;
     discountEndAt: string | null;
+    // From UserAuth.LastLoginTime (UTC ISO string) — null if the doctor has never logged in.
+    lastLoginTime: string | null;
 }
 
 export interface DoctorsResponse {
@@ -62,6 +64,8 @@ export interface DoctorDetail {
     discountStartAt: string | null;
     discountEndAt: string | null;
     createdAt: string;
+    // From UserAuth.LastLoginTime (UTC ISO string) — null if the doctor has never logged in.
+    lastLoginTime: string | null;
     hospitals: DoctorHospitalAffiliation[];
 }
 

@@ -15,6 +15,14 @@ const toLocalInputValue = (iso: string | null): string => {
 };
 const fromLocalInputValue = (local: string): string | null => (local ? new Date(local).toISOString() : null);
 
+const formatLastLogin = (iso: string | null): string => {
+    if (!iso) return 'Never logged in';
+    const d = new Date(iso);
+    const datePart = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timePart = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    return `${datePart}, ${timePart}`;
+};
+
 const isDiscountActive = (doctor: DoctorListItem): boolean => {
     if (!doctor.discountPercent || doctor.discountPercent <= 0) return false;
     const now = Date.now();
@@ -168,6 +176,7 @@ const DoctorsPage: React.FC = () => {
                                         <th className="table-header-cell">Doctor</th>
                                         <th className="table-header-cell">Hospital</th>
                                         <th className="table-header-cell">OPD Fee</th>
+                                        <th className="table-header-cell">Last Login</th>
                                         <th className="table-header-cell">Marketing</th>
                                         <th className="table-header-cell">Actions</th>
                                     </tr>
@@ -199,6 +208,11 @@ const DoctorsPage: React.FC = () => {
                                                 )}
                                             </td>
                                             <td className="table-cell">
+                                                <span style={{ fontSize: 12, color: doctor.lastLoginTime ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                                    {formatLastLogin(doctor.lastLoginTime)}
+                                                </span>
+                                            </td>
+                                            <td className="table-cell">
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                                     {doctor.isFeatured && (
                                                         <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>
@@ -228,7 +242,7 @@ const DoctorsPage: React.FC = () => {
                                     ))}
                                     {doctors.length === 0 && (
                                         <tr>
-                                            <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>No doctors found.</td>
+                                            <td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>No doctors found.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -286,8 +300,12 @@ const DoctorsPage: React.FC = () => {
                                                 )}
                                             </span>
                                         </div>
+                                        <div className="detail-row">
+                                            <span className="label">Last Login</span>
+                                            <span className="value">{formatLastLogin(doctor.lastLoginTime)}</span>
+                                        </div>
                                     </div>
-                                    
+
                                     <div className="doctor-card-actions" style={{ display: 'flex', gap: 8 }}>
                                         <button className="doctor-edit-btn mobile-edit-btn" onClick={() => setViewingDoctorId(doctor.doctorId)}>
                                             <Eye size={14} /> View
