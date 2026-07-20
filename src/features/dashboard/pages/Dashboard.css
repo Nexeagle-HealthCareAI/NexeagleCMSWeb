@@ -391,8 +391,11 @@
         padding-bottom: 90px !important;
     }
 
-    /* Fixed layout override removed to maintain app-like experience on mobile */
-
+    .dashboard-container.fixed-layout,
+    .fixed-layout .table-card {
+        height: auto !important;
+        overflow: visible !important;
+    }
 
     .table-card {
         padding: var(--spacing-md);
