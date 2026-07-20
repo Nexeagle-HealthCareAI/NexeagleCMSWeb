@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, Users } from 'lucide-react';
 import { getSiteVisitStats, type SiteVisitStats } from '../services/insightsService';
+import { InsightsExplainer } from './InsightsExplainer';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
 
@@ -37,6 +38,20 @@ export const SiteVisitsPanel: React.FC = () => {
 
     return (
         <div>
+            <InsightsExplainer>
+                <p>
+                    <strong>What this is:</strong> every page view on Doctor Dekho, with the visitor's region
+                    resolved server-side from their IP address. <strong>Unique Visitors</strong> counts distinct
+                    browser sessions, not raw page loads — one person browsing 10 pages counts once.
+                </p>
+                <p>
+                    <strong>How to use it:</strong> Top Regions shows where your traffic is geographically
+                    concentrated (useful for deciding where to run ads or onboard hospitals next). Top Pages
+                    shows what content actually draws attention. Daily Trend shows whether traffic is
+                    growing, flat, or declining day over day.
+                </p>
+            </InsightsExplainer>
+
             <div className="insights-filter-row">
                 <div className="insights-filter-toggle">
                     {(['all', 'today', 'custom'] as const).map(m => (

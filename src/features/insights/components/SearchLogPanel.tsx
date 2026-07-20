@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { CheckCircle2, UserX } from 'lucide-react';
-import { getOnlineAppointments, type OnlineAppointmentItem } from '../services/insightsService';
+import { Sparkles } from 'lucide-react';
+import { getSearchLog, type SearchLogItem } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
@@ -15,30 +15,29 @@ const formatDateTime = (iso: string): string => {
     return `${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}, ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
-export const OnlineAppointmentsPanel: React.FC = () => {
-    const [items, setItems] = useState<OnlineAppointmentItem[]>([]);
+const formatRegion = (i: { city: string | null; region: string | null; country: string | null }): string =>
+    [i.city, i.region, i.country].filter(Boolean).join(', ') || '—';
+
+export const SearchLogPanel: React.FC = () => {
+    const [items, setItems] = useState<SearchLogItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'bookedat', direction: 'desc' });
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'occurredat', direction: 'desc' });
     const [dateMode, setDateMode] = useState<DateFilterMode>('all');
     const [customFrom, setCustomFrom] = useState('');
     const [customTo, setCustomTo] = useState('');
-    const [source, setSource] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 10;
+    const itemsPerPage = 15;
 
     useEffect(() => {
-        const handle = setTimeout(() => {
-            setSearch(searchInput);
-            setCurrentPage(1);
-        }, 350);
+        const handle = setTimeout(() => { setSearch(searchInput); setCurrentPage(1); }, 350);
         return () => clearTimeout(handle);
     }, [searchInput]);
 
-    const fetchAppointments = useCallback(async () => {
+    const fetchSearches = useCallback(async () => {
         if (dateMode === 'custom' && (!customFrom || !customTo)) return;
         const today = toDateInputValue(new Date());
         const from = dateMode === 'today' ? today : dateMode === 'custom' ? customFrom : undefined;
@@ -46,7 +45,7 @@ export const OnlineAppointmentsPanel: React.FC = () => {
 
         try {
             setLoading(true);
-            const response = await getOnlineAppointments(currentPage, itemsPerPage, from, to, search, sortConfig.key, sortConfig.direction, source);
+            const response = await getSearchLog(currentPage, itemsPerPage, from, to, search, sortConfig.key, sortConfig.direction);
             setItems(response.data);
             setTotalPages(response.pagination.totalPages);
             setTotalItems(response.pagination.totalItems);
@@ -55,9 +54,9 @@ export const OnlineAppointmentsPanel: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, search, sortConfig, dateMode, customFrom, customTo, source]);
+    }, [currentPage, search, sortConfig, dateMode, customFrom, customTo]);
 
-    useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
+    useEffect(() => { fetchSearches(); }, [fetchSearches]);
 
     const handleSort = (key: string) => {
         setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
@@ -73,22 +72,24 @@ export const OnlineAppointmentsPanel: React.FC = () => {
         <div>
             <InsightsExplainer>
                 <p>
-                    <strong>What this is:</strong> every appointment booked through Doctor Dekho (not
-                    walk-ins or ones a hospital's own staff created), showing whether the patient had a
-                    verified WhatsApp session active at the moment of booking (<strong>Logged in</strong>)
-                    or booked without one (<strong>Guest</strong>).
+                    <strong>What this is:</strong> a raw, real-time log of every single search a visitor
+                    performs on Doctor Dekho — free-text queries (a symptom or doctor name) and/or a
+                    specialty filter — along with how many results it returned, whether the AI fallback
+                    kicked in (meaning the plain keyword match found nothing), and the visitor's region.
                 </p>
                 <p>
-                    <strong>How to use it:</strong> guest bookings are still fully valid appointments —
-                    but a rising share of Logged-in bookings over time means WhatsApp login is becoming
-                    trusted, load-bearing infrastructure rather than a hurdle patients skip past.
+                    <strong>How to use it:</strong> this is your rawest trend data for onboarding decisions.
+                    Recurring queries with few or zero results are a direct signal of unmet demand — either
+                    a doctor/specialty you don't have listed yet in that area, or a search term your
+                    platform doesn't recognize as a synonym for an existing specialty. The AI fallback badge
+                    flags exactly those "found nothing obvious" cases worth reviewing first.
                 </p>
             </InsightsExplainer>
 
             <div className="insights-filter-row">
                 <input
                     type="text"
-                    placeholder="Search patient, doctor, or hospital…"
+                    placeholder="Search by query text or specialty…"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     className="insights-search-input"
@@ -107,15 +108,7 @@ export const OnlineAppointmentsPanel: React.FC = () => {
                         <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="insights-date-input" />
                     </>
                 )}
-                <select
-                    className="premium-filter-select"
-                    value={source}
-                    onChange={(e) => { setSource(e.target.value); setCurrentPage(1); }}
-                >
-                    <option value="">All bookings</option>
-                    <option value="LoggedIn">Logged-in only</option>
-                    <option value="Guest">Guest only</option>
-                </select>
+                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>{totalItems} searches recorded</span>
             </div>
 
             <div className="premium-table-card">
@@ -123,54 +116,42 @@ export const OnlineAppointmentsPanel: React.FC = () => {
                     <table className="premium-table">
                         <thead>
                             <tr>
-                                <th onClick={() => handleSort('patientname')}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Patient <SortIcon columnKey="patientname" /></div>
+                                <th onClick={() => handleSort('occurredat')}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Date &amp; Time <SortIcon columnKey="occurredat" /></div>
                                 </th>
-                                <th onClick={() => handleSort('doctorname')}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Doctor <SortIcon columnKey="doctorname" /></div>
+                                <th>Search Query</th>
+                                <th onClick={() => handleSort('specialtyid')}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Specialty Filter <SortIcon columnKey="specialtyid" /></div>
                                 </th>
-                                <th onClick={() => handleSort('hospitalname')}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Hospital <SortIcon columnKey="hospitalname" /></div>
+                                <th onClick={() => handleSort('resultscount')}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Results <SortIcon columnKey="resultscount" /></div>
                                 </th>
-                                <th onClick={() => handleSort('apptdate')}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Appt Date <SortIcon columnKey="apptdate" /></div>
-                                </th>
-                                <th onClick={() => handleSort('bookedat')}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Booked At <SortIcon columnKey="bookedat" /></div>
-                                </th>
-                                <th onClick={() => handleSort('status')}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Status <SortIcon columnKey="status" /></div>
-                                </th>
-                                <th>Source</th>
+                                <th>Region</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 30 }}>Loading…</td></tr>
+                                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 30 }}>Loading…</td></tr>
                             ) : items.length === 0 ? (
-                                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>No online bookings match these filters.</td></tr>
-                            ) : items.map((item) => (
-                                <tr key={item.apptId} className="premium-row">
+                                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>No searches match these filters.</td></tr>
+                            ) : items.map((item, i) => (
+                                <tr key={i} className="premium-row">
+                                    <td style={{ whiteSpace: 'nowrap' }}>{formatDateTime(item.occurredAt)}</td>
                                     <td>
-                                        <div style={{ fontWeight: 600 }}>{item.patientName || 'Unnamed'}</div>
-                                        <div style={{ fontSize: 12, color: '#64748b', fontFamily: 'monospace' }}>{item.patientMobileMasked || '—'}</div>
-                                    </td>
-                                    <td>{item.doctorName || '—'}</td>
-                                    <td>{item.hospitalName || '—'}</td>
-                                    <td>{new Date(item.apptDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                    <td>{formatDateTime(item.bookedAt)}</td>
-                                    <td>{item.status}</td>
-                                    <td>
-                                        {item.isLoggedIn ? (
-                                            <span className="insights-badge insights-badge-loggedin" title={item.bookedByMobileMasked || undefined}>
-                                                <CheckCircle2 size={12} /> Logged in
-                                            </span>
+                                        {item.query ? (
+                                            <span style={{ fontWeight: 600 }}>&ldquo;{item.query}&rdquo;</span>
                                         ) : (
-                                            <span className="insights-badge insights-badge-guest">
-                                                <UserX size={12} /> Guest
+                                            <span style={{ color: '#94a3b8' }}>—</span>
+                                        )}
+                                        {item.aiUsed && (
+                                            <span className="insights-badge insights-badge-loggedin" style={{ marginLeft: 8 }}>
+                                                <Sparkles size={11} /> AI fallback
                                             </span>
                                         )}
                                     </td>
+                                    <td style={{ textTransform: 'capitalize' }}>{item.specialtyId || '—'}</td>
+                                    <td>{item.resultsCount ?? '—'}</td>
+                                    <td>{formatRegion(item)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -192,4 +173,4 @@ export const OnlineAppointmentsPanel: React.FC = () => {
     );
 };
 
-export default OnlineAppointmentsPanel;
+export default SearchLogPanel;

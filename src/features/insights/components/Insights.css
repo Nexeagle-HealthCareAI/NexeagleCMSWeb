@@ -31,6 +31,35 @@
     border-bottom: 2px solid #1d4ed8;
 }
 
+.insights-explainer {
+    display: flex;
+    gap: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+.insights-explainer-icon {
+    color: #1d4ed8;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.insights-explainer-text {
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: #334155;
+}
+.insights-explainer-text strong {
+    color: #0f172a;
+}
+.insights-explainer-text p {
+    margin: 0 0 8px 0;
+}
+.insights-explainer-text p:last-child {
+    margin-bottom: 0;
+}
+
 .insights-stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

@@ -40,6 +40,10 @@ export const API_ENDPOINTS = {
         SITE_VISITS: '/insights/site-visits',         // ?from=&to=
         PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
         APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
+        AUTH_FUNNEL: '/insights/auth-funnel',                     // ?from=&to=
+        AUTH_FUNNEL_ATTEMPTS: '/insights/auth-funnel/attempts',   // ?page=&limit=&from=&to=&search=
+        BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
+        SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
     },
     CHAT: {
         HISTORY: '../chat/history', // ChatController is /api/chat (steps out of /v1). Usage: /chat/history/:sessionId

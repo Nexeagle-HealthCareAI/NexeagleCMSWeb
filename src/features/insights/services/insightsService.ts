@@ -102,3 +102,104 @@ export const getOnlineAppointments = async (
     });
     return response.data;
 };
+
+// ── Auth Funnel (WhatsApp Login) ────────────────────────────────────────────
+export interface AuthFunnelStats {
+    totalVisitorSessions: number;
+    loginInitiatedSessions: number;
+    otpSentSessions: number;
+    otpVerifiedSessions: number;
+    loginInitiationRatePct: number;
+    authCompletionRatePct: number;
+    avgTimeToAuthenticateSeconds: number | null;
+}
+
+export const getAuthFunnelStats = async (from?: string, to?: string): Promise<AuthFunnelStats> => {
+    const response = await api.get<AuthFunnelStats>(API_ENDPOINTS.INSIGHTS.AUTH_FUNNEL, {
+        params: { from: from || undefined, to: to || undefined }
+    });
+    return response.data;
+};
+
+export interface AuthFunnelAttemptItem {
+    mobileMasked: string;
+    otpSentAt: string | null;
+    verifiedAt: string | null;
+    outcome: string;
+    timeToAuthenticateSeconds: number | null;
+    country: string | null;
+    region: string | null;
+    city: string | null;
+}
+
+export const getAuthFunnelAttempts = async (
+    page: number,
+    limit: number,
+    from?: string,
+    to?: string,
+    search?: string
+): Promise<PagedResponse<AuthFunnelAttemptItem>> => {
+    const response = await api.get<PagedResponse<AuthFunnelAttemptItem>>(API_ENDPOINTS.INSIGHTS.AUTH_FUNNEL_ATTEMPTS, {
+        params: { page, limit, from: from || undefined, to: to || undefined, search: search || undefined }
+    });
+    return response.data;
+};
+
+// ── Booking & Search Funnel ─────────────────────────────────────────────────
+export interface SpecialtyDemandItem {
+    specialtyId: string;
+    searchCount: number;
+    profileViewCount: number;
+    completedBookingCount: number;
+}
+
+export interface BookingFunnelStats {
+    searchCount: number;
+    profileViewCount: number;
+    searchToViewRatePct: number;
+    visitStepCount: number;
+    detailsStepCount: number;
+    doneStepCount: number;
+    specialtyDemand: SpecialtyDemandItem[];
+}
+
+export const getBookingFunnelStats = async (from?: string, to?: string): Promise<BookingFunnelStats> => {
+    const response = await api.get<BookingFunnelStats>(API_ENDPOINTS.INSIGHTS.BOOKING_FUNNEL, {
+        params: { from: from || undefined, to: to || undefined }
+    });
+    return response.data;
+};
+
+// ── All Searches (raw log) ──────────────────────────────────────────────────
+export interface SearchLogItem {
+    occurredAt: string;
+    query: string | null;
+    specialtyId: string | null;
+    resultsCount: number | null;
+    aiUsed: boolean;
+    country: string | null;
+    region: string | null;
+    city: string | null;
+}
+
+export const getSearchLog = async (
+    page: number,
+    limit: number,
+    from?: string,
+    to?: string,
+    search?: string,
+    sortBy?: string,
+    sortDir?: 'asc' | 'desc'
+): Promise<PagedResponse<SearchLogItem>> => {
+    const response = await api.get<PagedResponse<SearchLogItem>>(API_ENDPOINTS.INSIGHTS.SEARCHES, {
+        params: {
+            page, limit,
+            from: from || undefined,
+            to: to || undefined,
+            search: search || undefined,
+            sortBy: sortBy || undefined,
+            sortDir: sortDir || undefined,
+        }
+    });
+    return response.data;
+};

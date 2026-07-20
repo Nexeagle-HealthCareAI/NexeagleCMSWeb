@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getPatientLogins, type PatientLoginItem } from '../services/insightsService';
+import { InsightsExplainer } from './InsightsExplainer';
 
 const formatDateTime = (iso: string | null): string => {
     if (!iso) return 'Never';
@@ -54,6 +55,21 @@ export const PatientLoginsPanel: React.FC = () => {
 
     return (
         <div>
+            <InsightsExplainer>
+                <p>
+                    <strong>What this is:</strong> every mobile number that has successfully completed
+                    WhatsApp OTP login at least once, with when they last returned and how many times
+                    they've logged in total.
+                </p>
+                <p>
+                    <strong>How to use it:</strong> a rising <strong>Total Logins</strong> count per number
+                    means patients trust the platform enough to keep coming back rather than booking as a
+                    guest each time. A number with only one login and an old <strong>Last Login</strong> may
+                    be a one-time visitor — useful context when deciding whether WhatsApp login is actually
+                    driving repeat engagement or just a one-off convenience.
+                </p>
+            </InsightsExplainer>
+
             <div className="insights-filter-row">
                 <input
                     type="text"
