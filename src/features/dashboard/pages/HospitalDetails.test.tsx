@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import HospitalDetails from './HospitalDetails';
-import { getHospitalById } from '../services/hospitalService';
+import { getHospitalById, getHospitalAppointmentStats } from '../services/hospitalService';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 vi.mock('../services/hospitalService');
@@ -51,6 +51,11 @@ describe('HospitalDetails Component', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        (getHospitalAppointmentStats as any).mockResolvedValue({
+            onlineAppointments: 0,
+            hospitalAppointments: 0,
+            totalAppointments: 0
+        });
     });
 
     it('should render loading state initially', () => {
