@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
         GET_ALL: '/doctors',
         GET_DETAIL: '/doctors', // Usage: /doctors/:doctorId (GET)
         UPDATE_MARKETING: '/doctors', // Usage: /doctors/:doctorId/marketing (PUT)
+        BULK_UPDATE_MARKETING: '/doctors/bulk/marketing', // PUT
     },
     DASHBOARD: {
         STATS: '/dashboard/stats',

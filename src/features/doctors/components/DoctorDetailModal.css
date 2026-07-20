@@ -219,7 +219,14 @@
     font-size: 13px;
     font-weight: 800;
     color: #1e3a8a;
+    margin-bottom: 2px;
+}
+
+.doctor-detail-hospital-address {
+    font-size: 11px;
+    color: #94a3b8;
     margin-bottom: 10px;
+    padding-left: 20px;
 }
 
 @media (max-width: 640px) {

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Star, EyeOff, Percent, Stethoscope, Eye } from 'lucide-react';
+import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X } from 'lucide-react';
 import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../services/doctorService';
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
+import { BulkEditModal } from '../components/BulkEditModal';
 import '../../dashboard/pages/Dashboard.css';
 import './DoctorsPage.css';
 
@@ -58,6 +59,9 @@ const DoctorsPage: React.FC = () => {
 
     const [viewingDoctorId, setViewingDoctorId] = useState<string | null>(null);
 
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [bulkEditOpen, setBulkEditOpen] = useState(false);
+
     useEffect(() => {
         const handle = setTimeout(() => {
             setSearch(searchInput);
@@ -65,6 +69,31 @@ const DoctorsPage: React.FC = () => {
         }, 350);
         return () => clearTimeout(handle);
     }, [searchInput]);
+
+    // Selection is page-scoped (matches what's actually fetched) — clear it whenever the visible
+    // set of doctors changes so a stale checkbox never silently applies to doctors no longer shown.
+    useEffect(() => {
+        setSelectedIds(new Set());
+    }, [currentPage, search]);
+
+    const toggleSelected = (doctorId: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(doctorId)) next.delete(doctorId);
+            else next.add(doctorId);
+            return next;
+        });
+    };
+
+    const allOnPageSelected = doctors.length > 0 && doctors.every(d => selectedIds.has(d.doctorId));
+    const toggleSelectAllOnPage = () => {
+        setSelectedIds(prev => {
+            if (allOnPageSelected) return new Set();
+            const next = new Set(prev);
+            doctors.forEach(d => next.add(d.doctorId));
+            return next;
+        });
+    };
 
     const fetchDoctors = useCallback(async () => {
         try {
@@ -163,6 +192,18 @@ const DoctorsPage: React.FC = () => {
                     />
                 </div>
 
+                {selectedIds.size > 0 && (
+                    <div className="doctor-bulk-toolbar">
+                        <span className="doctor-bulk-count">{selectedIds.size} selected</span>
+                        <button className="doctor-edit-btn" onClick={() => setBulkEditOpen(true)}>
+                            <ListChecks size={14} /> Bulk Edit
+                        </button>
+                        <button className="doctor-bulk-clear" onClick={() => setSelectedIds(new Set())}>
+                            <X size={14} /> Clear selection
+                        </button>
+                    </div>
+                )}
+
                 {loading ? (
                     <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
                 ) : error ? (
@@ -173,6 +214,9 @@ const DoctorsPage: React.FC = () => {
                             <table className="dashboard-table">
                                 <thead>
                                     <tr className="table-header-row">
+                                        <th className="table-header-cell" style={{ width: 36 }}>
+                                            <input type="checkbox" checked={allOnPageSelected} onChange={toggleSelectAllOnPage} />
+                                        </th>
                                         <th className="table-header-cell">Doctor</th>
                                         <th className="table-header-cell">Hospital</th>
                                         <th className="table-header-cell">OPD Fee</th>
@@ -185,10 +229,22 @@ const DoctorsPage: React.FC = () => {
                                     {doctors.map((doctor) => (
                                         <tr key={doctor.doctorId} className="table-row">
                                             <td className="table-cell">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(doctor.doctorId)}
+                                                    onChange={() => toggleSelected(doctor.doctorId)}
+                                                />
+                                            </td>
+                                            <td className="table-cell">
                                                 <div style={{ fontWeight: 600, color: '#1e3a8a' }}>{doctor.fullName || 'Unnamed'}</div>
                                                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{doctor.departmentName || '—'}</div>
                                             </td>
-                                            <td className="table-cell">{doctor.hospitalName || '—'}</td>
+                                            <td className="table-cell">
+                                                <div>{doctor.hospitalName || '—'}</div>
+                                                {doctor.hospitalAddress && (
+                                                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 2 }}>{doctor.hospitalAddress}</div>
+                                                )}
+                                            </td>
                                             <td className="table-cell">
                                                 {doctor.opdConsultFee != null ? (
                                                     isDiscountActive(doctor) ? (
@@ -242,7 +298,7 @@ const DoctorsPage: React.FC = () => {
                                     ))}
                                     {doctors.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>No doctors found.</td>
+                                            <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>No doctors found.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -254,6 +310,12 @@ const DoctorsPage: React.FC = () => {
                             {doctors.map((doctor) => (
                                 <div key={doctor.doctorId} className="doctor-mobile-card">
                                     <div className="doctor-card-header">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.has(doctor.doctorId)}
+                                            onChange={() => toggleSelected(doctor.doctorId)}
+                                            style={{ flexShrink: 0 }}
+                                        />
                                         <div className="doctor-avatar-wrapper">
                                             <span className="doctor-avatar">{doctor.fullName ? doctor.fullName[0].toUpperCase() : 'D'}</span>
                                         </div>
@@ -277,7 +339,12 @@ const DoctorsPage: React.FC = () => {
                                     <div className="doctor-card-details">
                                         <div className="detail-row">
                                             <span className="label">Hospital</span>
-                                            <span className="value">{doctor.hospitalName || '—'}</span>
+                                            <span className="value">
+                                                {doctor.hospitalName || '—'}
+                                                {doctor.hospitalAddress && (
+                                                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 400, marginTop: 2 }}>{doctor.hospitalAddress}</div>
+                                                )}
+                                            </span>
                                         </div>
                                         <div className="detail-row">
                                             <span className="label">OPD Fee</span>
@@ -443,6 +510,18 @@ const DoctorsPage: React.FC = () => {
 
             {viewingDoctorId && (
                 <DoctorDetailModal doctorId={viewingDoctorId} onClose={() => setViewingDoctorId(null)} />
+            )}
+
+            {bulkEditOpen && (
+                <BulkEditModal
+                    doctorIds={Array.from(selectedIds)}
+                    onClose={() => setBulkEditOpen(false)}
+                    onSaved={async () => {
+                        setBulkEditOpen(false);
+                        setSelectedIds(new Set());
+                        await fetchDoctors();
+                    }}
+                />
             )}
         </div>
     );

@@ -139,6 +139,9 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
                                                 <div className="doctor-detail-hospital-name">
                                                     <Building2 size={14} /> {h.hospitalName || 'Unnamed hospital'}
                                                 </div>
+                                                {h.hospitalAddress && (
+                                                    <div className="doctor-detail-hospital-address">{h.hospitalAddress}</div>
+                                                )}
                                                 <div className="detail-grid">
                                                     <Field label="Department" value={h.departmentName} />
                                                     <Field label="OPD consult fee" value={formatMoney(h.opdConsultFee)} />

@@ -6,6 +6,7 @@ export interface DoctorListItem {
     fullName: string | null;
     hospitalId: string;
     hospitalName: string | null;
+    hospitalAddress: string | null;
     departmentName: string | null;
     opdConsultFee: number | null;
     isPubliclyListed: boolean;
@@ -31,6 +32,7 @@ export interface DoctorsResponse {
 export interface DoctorHospitalAffiliation {
     hospitalId: string;
     hospitalName: string | null;
+    hospitalAddress: string | null;
     departmentName: string | null;
     opdConsultFee: number | null;
     ipdVisitFee: number | null;
@@ -77,6 +79,25 @@ export interface UpdateDoctorMarketingPayload {
     discountEndAt: string | null;
 }
 
+// Campaign-style bulk action — undefined/null fields below are left untouched for every selected
+// doctor. Mirrors CMSAPI's BulkUpdateDoctorMarketingRequest opt-in-per-field semantics.
+export interface BulkUpdateDoctorMarketingPayload {
+    doctorIds: string[];
+    isFeatured?: boolean | null;
+    isDelistedByAdmin?: boolean | null;
+    updateDiscount: boolean;
+    discountPercent?: number | null;
+    discountStartAt?: string | null;
+    discountEndAt?: string | null;
+}
+
+export interface BulkUpdateDoctorMarketingResult {
+    success: boolean;
+    message: string | null;
+    updatedCount: number;
+    notFoundDoctorIds: string[];
+}
+
 export const getDoctors = async (
     page: number = 1,
     limit: number = 10,
@@ -100,5 +121,12 @@ export const updateDoctorMarketing = async (
     payload: UpdateDoctorMarketingPayload
 ): Promise<{ success: boolean; message: string }> => {
     const response = await api.put(`${API_ENDPOINTS.DOCTORS.UPDATE_MARKETING}/${doctorId}/marketing`, payload);
+    return response.data;
+};
+
+export const bulkUpdateDoctorMarketing = async (
+    payload: BulkUpdateDoctorMarketingPayload
+): Promise<BulkUpdateDoctorMarketingResult> => {
+    const response = await api.put<BulkUpdateDoctorMarketingResult>(API_ENDPOINTS.DOCTORS.BULK_UPDATE_MARKETING, payload);
     return response.data;
 };
