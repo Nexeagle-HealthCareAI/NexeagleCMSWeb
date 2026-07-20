@@ -36,6 +36,9 @@ const Layout: React.FC = () => {
     // Initial placeholder logic
     const initials = user?.name ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase() : 'U';
 
+    const isSubpageActive = !['/', '/onboarded-hospitals', '/support', '/settings'].includes(location.pathname);
+    const isMenuActive = isMenuOpen || isSubpageActive;
+
     // Click outside handler for profile dropdown
     useEffect(() => {
         const handleDocumentClick = () => {
@@ -283,7 +286,7 @@ const Layout: React.FC = () => {
 
                         {/* 3. Menu Button (Centered) */}
                         <button 
-                            className={`mobile-bottom-nav-item ${isMenuOpen ? 'active' : ''}`}
+                            className={`mobile-bottom-nav-item ${isMenuActive ? 'active' : ''}`}
                             onClick={() => setMenuOpen(!isMenuOpen)}
                         >
                             <div className="mobile-bottom-nav-icon-wrapper">

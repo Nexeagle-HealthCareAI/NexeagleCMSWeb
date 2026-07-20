@@ -275,13 +275,13 @@
 }
 
 .mobile-bottom-nav-item.active {
-    color: #4F46E5;
+    color: #0b57d0;
     font-weight: 600;
 }
 
 .mobile-bottom-nav-item.active .mobile-bottom-nav-icon-wrapper {
-    background-color: #E0E7FF; /* soft blue/purple pill */
-    color: #4F46E5;
+    background-color: #C2E7FF; /* Google Pixel active pill blue background */
+    color: #0b57d0;
 }
 
 .mobile-bottom-nav-item svg {
@@ -290,8 +290,8 @@
 }
 
 .mobile-bottom-nav-item.active svg {
-    stroke: #4F46E5;
-    fill: rgba(79, 70, 229, 0.15); /* Premium soft color fill inside active icons */
+    stroke: #0b57d0;
+    fill: rgba(11, 87, 208, 0.15); /* Premium soft color fill inside active icons */
 }
 
 @keyframes slideDown {
