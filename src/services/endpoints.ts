@@ -36,6 +36,11 @@ export const API_ENDPOINTS = {
     PLANS: {
         LIST: '/SubscriptionPlans',                   // ?application=EasyHMS|1Rad|All
     },
+    INSIGHTS: {
+        SITE_VISITS: '/insights/site-visits',         // ?from=&to=
+        PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
+        APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
+    },
     CHAT: {
         HISTORY: '../chat/history', // ChatController is /api/chat (steps out of /v1). Usage: /chat/history/:sessionId
     }
