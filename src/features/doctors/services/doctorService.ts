@@ -26,6 +26,45 @@ export interface DoctorsResponse {
     };
 }
 
+export interface DoctorHospitalAffiliation {
+    hospitalId: string;
+    hospitalName: string | null;
+    departmentName: string | null;
+    opdConsultFee: number | null;
+    ipdVisitFee: number | null;
+    emergencyFee: number | null;
+}
+
+// Full "A to Z" profile — every hospital this doctor is affiliated with, not just the one
+// GET /doctors' list row deterministically picks.
+export interface DoctorDetail {
+    doctorId: string;
+    userId: string;
+    fullName: string | null;
+    mobileNumber: string | null;
+    email: string | null;
+    photoUrl: string | null;
+    licenseNumber: string;
+    medicalCouncil: string | null;
+    registrationYear: number | null;
+    qualification: string | null;
+    experienceYears: number | null;
+    bio: string | null;
+    profileCompletionPercent: number;
+    specializations: string[];
+    languages: string[];
+    publicContactEmail: string | null;
+    publicContactPhone: string | null;
+    isPubliclyListed: boolean;
+    isFeatured: boolean;
+    isDelistedByAdmin: boolean;
+    discountPercent: number | null;
+    discountStartAt: string | null;
+    discountEndAt: string | null;
+    createdAt: string;
+    hospitals: DoctorHospitalAffiliation[];
+}
+
 export interface UpdateDoctorMarketingPayload {
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
@@ -44,6 +83,11 @@ export const getDoctors = async (
     const response = await api.get<DoctorsResponse>(API_ENDPOINTS.DOCTORS.GET_ALL, {
         params: { page, limit, search: search || undefined, sortBy: sortBy || undefined, sortDir: sortDir || undefined }
     });
+    return response.data;
+};
+
+export const getDoctorDetail = async (doctorId: string): Promise<DoctorDetail> => {
+    const response = await api.get<DoctorDetail>(`${API_ENDPOINTS.DOCTORS.GET_DETAIL}/${doctorId}`);
     return response.data;
 };
 

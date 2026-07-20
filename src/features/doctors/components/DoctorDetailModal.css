@@ -1,0 +1,237 @@
+/* Detail-view modal — reuses .reject-modal-overlay / .doctor-badge from DoctorsPage.css but
+   needs a wider, scrollable shell since it shows a full profile rather than a short form. */
+
+.doctor-detail-modal {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3);
+}
+
+.doctor-detail-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    cursor: pointer;
+    z-index: 2;
+}
+.doctor-detail-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.doctor-detail-loading {
+    padding: 60px 24px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.doctor-detail-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.doctor-detail-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1e3a8a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 22px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.doctor-detail-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.doctor-detail-identity {
+    flex: 1;
+    min-width: 0;
+}
+.doctor-detail-identity h3 {
+    margin: 0 0 2px 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+}
+.doctor-detail-identity p {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.doctor-detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.doctor-detail-completion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px 14px;
+    flex-shrink: 0;
+}
+.doctor-detail-completion-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1e3a8a;
+}
+.doctor-detail-completion-label {
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.doctor-detail-body {
+    padding: 8px 24px 24px 24px;
+}
+
+.detail-section {
+    padding: 16px 0;
+    border-bottom: 1px dashed #e2e8f0;
+}
+.detail-section:last-child {
+    border-bottom: none;
+}
+
+.detail-section-title {
+    margin: 0 0 12px 0;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 20px;
+}
+
+.detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.detail-field-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.detail-field-value {
+    font-size: 13px;
+    color: #0f172a;
+    font-weight: 700;
+    overflow-wrap: break-word;
+}
+
+.detail-empty {
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.doctor-detail-bio {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.doctor-detail-chips-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+}
+.doctor-detail-chips-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.doctor-detail-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.doctor-detail-chip {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.doctor-detail-hospitals {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.doctor-detail-hospital-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.doctor-detail-hospital-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+    .doctor-detail-header {
+        flex-wrap: wrap;
+    }
+    .doctor-detail-completion {
+        flex-direction: row;
+        gap: 6px;
+        width: 100%;
+    }
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}

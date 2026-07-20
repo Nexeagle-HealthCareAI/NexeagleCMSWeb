@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Star, EyeOff, Percent, Stethoscope } from 'lucide-react';
+import { Star, EyeOff, Percent, Stethoscope, Eye } from 'lucide-react';
 import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../services/doctorService';
+import { DoctorDetailModal } from '../components/DoctorDetailModal';
 import '../../dashboard/pages/Dashboard.css';
 import './DoctorsPage.css';
 
@@ -46,6 +47,8 @@ const DoctorsPage: React.FC = () => {
     const [form, setForm] = useState<EditFormState | null>(null);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+
+    const [viewingDoctorId, setViewingDoctorId] = useState<string | null>(null);
 
     useEffect(() => {
         const handle = setTimeout(() => {
@@ -212,9 +215,14 @@ const DoctorsPage: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="table-cell">
-                                                <button className="doctor-edit-btn" onClick={() => openEdit(doctor)}>
-                                                    <Stethoscope size={14} /> Edit
-                                                </button>
+                                                <div style={{ display: 'flex', gap: 8 }}>
+                                                    <button className="doctor-edit-btn" onClick={() => setViewingDoctorId(doctor.doctorId)}>
+                                                        <Eye size={14} /> View
+                                                    </button>
+                                                    <button className="doctor-edit-btn" onClick={() => openEdit(doctor)}>
+                                                        <Stethoscope size={14} /> Edit
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -280,9 +288,12 @@ const DoctorsPage: React.FC = () => {
                                         </div>
                                     </div>
                                     
-                                    <div className="doctor-card-actions">
+                                    <div className="doctor-card-actions" style={{ display: 'flex', gap: 8 }}>
+                                        <button className="doctor-edit-btn mobile-edit-btn" onClick={() => setViewingDoctorId(doctor.doctorId)}>
+                                            <Eye size={14} /> View
+                                        </button>
                                         <button className="doctor-edit-btn mobile-edit-btn" onClick={() => openEdit(doctor)}>
-                                            <Stethoscope size={14} /> Edit Marketing Settings
+                                            <Stethoscope size={14} /> Edit
                                         </button>
                                     </div>
                                 </div>
@@ -410,6 +421,10 @@ const DoctorsPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {viewingDoctorId && (
+                <DoctorDetailModal doctorId={viewingDoctorId} onClose={() => setViewingDoctorId(null)} />
             )}
         </div>
     );
