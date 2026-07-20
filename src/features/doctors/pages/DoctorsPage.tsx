@@ -368,8 +368,8 @@ const DoctorsPage: React.FC = () => {
                             />
                         </div>
 
-                        <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                            <div style={{ flex: 1 }}>
+                        <div className="doctor-modal-row">
+                            <div className="doctor-modal-col">
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
                                     Starts
                                 </label>
@@ -380,7 +380,7 @@ const DoctorsPage: React.FC = () => {
                                     className="doctor-form-input"
                                 />
                             </div>
-                            <div style={{ flex: 1 }}>
+                            <div className="doctor-modal-col">
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
                                     Ends
                                 </label>

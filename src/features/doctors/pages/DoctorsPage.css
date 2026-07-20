@@ -160,6 +160,16 @@
     display: block;
 }
 
+.doctor-modal-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.doctor-modal-col {
+    flex: 1;
+}
+
 @media (max-width: 768px) {
     .doctors-desktop-table {
         display: none !important;
@@ -273,5 +283,10 @@
         color: #1e3a8a !important;
         font-weight: 700;
         font-size: 12px;
+    }
+
+    .doctor-modal-row {
+        flex-direction: column;
+        gap: 12px;
     }
 }
