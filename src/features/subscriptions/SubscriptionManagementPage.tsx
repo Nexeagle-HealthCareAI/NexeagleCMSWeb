@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PlansTab } from './PlansTab';
 import { ApprovalsTab } from './ApprovalsTab';
-import '../../dashboard/pages/PremiumHospitals.css';
+import '../dashboard/pages/PremiumHospitals.css';
 import './SubscriptionManagementPage.css';
 
 type MainTab = 'plans' | 'approvals';

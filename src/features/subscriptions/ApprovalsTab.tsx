@@ -182,6 +182,7 @@ export const ApprovalsTab: React.FC = () => {
                     {/* Desktop View: Table */}
                     <div className="premium-responsive-wrapper subscriptions-desktop-table">
                         <table className="premium-table">
+                                <thead>
                                     <tr>
                                         <th style={{ paddingLeft: 16 }}>Hospital</th>
                                         <th>Product</th>

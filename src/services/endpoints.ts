@@ -15,10 +15,6 @@ export const API_ENDPOINTS = {
         ROLES: '/roles',                 // GET list, POST create; /roles/:id PUT/DELETE
         PERMISSIONS: '/permissions',     // GET catalog
     },
-    // Add other domains here as needed
-    SYSTEM: {
-        HEALTH: '../health', // Steps out of /v1 to /api/health
-    },
     HOSPITALS: {
         GET_ALL: '/hospitals',
         GET_BY_ID: '/hospitals', // Usage: /hospitals/:id
@@ -37,16 +33,8 @@ export const API_ENDPOINTS = {
         GET_ALL_REQUESTS: '/subscriptions/admin/payment-requests',
         APPROVE: '/subscriptions/approve-payment', // Usage: /subscriptions/approve-payment/:id
     },
-    HOSPITAL_SUBSCRIPTIONS: {
-        LIST: '/hospital-subscriptions',              // ?platform=EasyHMS|1Rad|All&status=
-        SUMMARY: '/hospital-subscriptions/summary',
-        // Actions: /hospital-subscriptions/:platform/:hospitalId/(status|trial|validity|plan)
-    },
     PLANS: {
         LIST: '/SubscriptionPlans',                   // ?application=EasyHMS|1Rad|All
-    },
-    ASSIST: {
-        USAGE: '/assist/usage',                       // RadAI token usage & savings
     },
     CHAT: {
         HISTORY: '../chat/history', // ChatController is /api/chat (steps out of /v1). Usage: /chat/history/:sessionId
