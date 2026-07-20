@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, Activity, UserCheck, LogOut, Home, Download, X } from 'lucide-react';
+import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, Activity, UserCheck, LogOut, Home, Download, X, Stethoscope } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useSupportStore } from '../store/useSupportStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -135,6 +135,7 @@ const Layout: React.FC = () => {
     // Card menu items in the bottom sheet (excluding onboarded hospitals, support)
     const cardMenuItems = [
         { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={22} /> },
+        { path: '/doctors', label: 'Doctor Dekho', icon: <Stethoscope size={22} /> },
         { path: '/partners', label: 'Partners', icon: <Users size={22} /> },
         { path: '/subscriptions', label: 'Verify Payments', icon: <Wallet size={22} /> },
         { path: '/manage-plans', label: 'Manage Plans', icon: <Calculator size={22} /> },
