@@ -156,8 +156,12 @@ jobs:
         with:
           context: .
           push: true
+          # HTTPS + a real domain, not the raw IP — needed so LiveChat.tsx's /chathub connection
+          # from NexEagleWebsite (served over https://1hms.nexeagle.com) isn't blocked as mixed
+          # content, and so CMS's own admin UI isn't calling its API over plain HTTP either.
+          # Requires cms-api.nexeagle.com reverse-proxied to this VM's :5002 with a valid TLS cert.
           build-args: |
-            VITE_API_URL=${{ vars.PROD_API_URL || 'http://151.185.45.67:5002/api/v1' }}
+            VITE_API_URL=${{ vars.PROD_API_URL || 'https://cms-api.nexeagle.com/api/v1' }}
           tags: |
             ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
             ${{ steps.vars.outputs.image }}:latest
