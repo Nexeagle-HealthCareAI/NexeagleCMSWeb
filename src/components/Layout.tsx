@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, Activity, UserCheck, LogOut, Home, Download, X } from 'lucide-react';
+import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, Activity, UserCheck, LogOut, Home, Download, X, Stethoscope } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useSupportStore } from '../store/useSupportStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -35,6 +35,9 @@ const Layout: React.FC = () => {
 
     // Initial placeholder logic
     const initials = user?.name ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase() : 'U';
+
+    const isSubpageActive = !['/', '/onboarded-hospitals', '/support', '/settings'].includes(location.pathname);
+    const isMenuActive = isMenuOpen || isSubpageActive;
 
     // Click outside handler for profile dropdown
     useEffect(() => {
@@ -135,6 +138,7 @@ const Layout: React.FC = () => {
     // Card menu items in the bottom sheet (excluding onboarded hospitals, support)
     const cardMenuItems = [
         { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={22} /> },
+        { path: '/doctors', label: 'Doctor Dekho', icon: <Stethoscope size={22} /> },
         { path: '/partners', label: 'Partners', icon: <Users size={22} /> },
         { path: '/subscriptions', label: 'Verify Payments', icon: <Wallet size={22} /> },
         { path: '/manage-plans', label: 'Manage Plans', icon: <Calculator size={22} /> },
@@ -282,7 +286,7 @@ const Layout: React.FC = () => {
 
                         {/* 3. Menu Button (Centered) */}
                         <button 
-                            className={`mobile-bottom-nav-item ${isMenuOpen ? 'active' : ''}`}
+                            className={`mobile-bottom-nav-item ${isMenuActive ? 'active' : ''}`}
                             onClick={() => setMenuOpen(!isMenuOpen)}
                         >
                             <div className="mobile-bottom-nav-icon-wrapper">
