@@ -44,6 +44,8 @@ const OnboardedHospitals: React.FC = () => {
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'registeredon', direction: 'desc' });
+    const [statusFilter, setStatusFilter] = useState('');
+    const [subscriptionStatusFilter, setSubscriptionStatusFilter] = useState('');
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +65,10 @@ const OnboardedHospitals: React.FC = () => {
     const fetchHospitals = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await getHospitals(currentPage, itemsPerPage, search, sortConfig.key, sortConfig.direction);
+            const response = await getHospitals(
+                currentPage, itemsPerPage, search, sortConfig.key, sortConfig.direction,
+                statusFilter, subscriptionStatusFilter
+            );
             setHospitals(response.data);
             setTotalPages(response.pagination.totalPages);
             setTotalItems(response.pagination.totalItems);
@@ -74,11 +79,21 @@ const OnboardedHospitals: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, itemsPerPage, search, sortConfig]);
+    }, [currentPage, itemsPerPage, search, sortConfig, statusFilter, subscriptionStatusFilter]);
 
     useEffect(() => {
         fetchHospitals();
     }, [fetchHospitals]);
+
+    const handleStatusFilterChange = (value: string) => {
+        setStatusFilter(value);
+        setCurrentPage(1);
+    };
+
+    const handleSubscriptionStatusFilterChange = (value: string) => {
+        setSubscriptionStatusFilter(value);
+        setCurrentPage(1);
+    };
 
     const handleRowClick = (id: string) => {
         navigate(`/hospital/${id}`);
@@ -114,17 +129,42 @@ const OnboardedHospitals: React.FC = () => {
                             {totalItems}
                         </span>
                     </h2>
-                    <div className="premium-search-wrapper">
-                        <svg className="premium-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search hospitals..."
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            className="premium-search-input"
-                        />
+                    <div className="premium-filters-row">
+                        <div className="premium-search-wrapper">
+                            <svg className="premium-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search hospitals..."
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                className="premium-search-input"
+                            />
+                        </div>
+                        <select
+                            className="premium-filter-select"
+                            value={statusFilter}
+                            onChange={(e) => handleStatusFilterChange(e.target.value)}
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                        <select
+                            className="premium-filter-select"
+                            value={subscriptionStatusFilter}
+                            onChange={(e) => handleSubscriptionStatusFilterChange(e.target.value)}
+                        >
+                            <option value="">All Subscriptions</option>
+                            <option value="Trial">Trial</option>
+                            <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                            <option value="Blocked">Blocked</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="PendingApproval">Pending Approval</option>
+                            <option value="None">No Subscription</option>
+                        </select>
                     </div>
                 </div>
 
@@ -139,21 +179,46 @@ const OnboardedHospitals: React.FC = () => {
                             <table className="premium-table">
                                 <thead>
                                     <tr>
-                                        <th onClick={() => handleSort('name')}>
+                                        <th onClick={() => handleSort('name')} className="premium-sortable-th">
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 Hospital <SortIcon columnKey="name" />
                                             </div>
                                         </th>
-                                        <th>Contact</th>
-                                        <th>Location</th>
-                                        <th>Total Patients</th>
-                                        <th onClick={() => handleSort('registeredon')}>
+                                        <th onClick={() => handleSort('contactnumber')} className="premium-sortable-th">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Contact <SortIcon columnKey="contactnumber" />
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('totalpatients')} className="premium-sortable-th">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Total Patients <SortIcon columnKey="totalpatients" />
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('totaldoctors')} className="premium-sortable-th">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Total Doctors <SortIcon columnKey="totaldoctors" />
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('totalnondoctorusers')} className="premium-sortable-th">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Other Users <SortIcon columnKey="totalnondoctorusers" />
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('registeredon')} className="premium-sortable-th">
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 Registered On <SortIcon columnKey="registeredon" />
                                             </div>
                                         </th>
-                                        <th>Subscription</th>
-                                        <th>Status</th>
+                                        <th onClick={() => handleSort('subscriptionstatus')} className="premium-sortable-th">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Subscription <SortIcon columnKey="subscriptionstatus" />
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('status')} className="premium-sortable-th">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Status <SortIcon columnKey="status" />
+                                            </div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -170,7 +235,9 @@ const OnboardedHospitals: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <div className="premium-hospital-name">{hospital.name}</div>
-                                                        <span className="premium-hospital-id">#{hospital.id.split('-')[0]}</span>
+                                                        <span className="premium-hospital-location">
+                                                            {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -179,13 +246,18 @@ const OnboardedHospitals: React.FC = () => {
                                                 <div style={{ fontSize: '13px', color: '#64748b' }}>{hospital.email}</div>
                                             </td>
                                             <td>
-                                                <div style={{ color: '#475569' }}>
-                                                    {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
+                                                <div style={{ fontWeight: 600, color: '#3b82f6' }}>
+                                                    {hospital.totalPatients?.toLocaleString() || 0}
                                                 </div>
                                             </td>
                                             <td>
-                                                <div style={{ fontWeight: 600, color: '#3b82f6' }}>
-                                                    {hospital.totalPatients?.toLocaleString() || 0}
+                                                <div style={{ fontWeight: 600, color: '#059669' }}>
+                                                    {hospital.totalDoctors ?? 0}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style={{ fontWeight: 600, color: '#4f46e5' }}>
+                                                    {hospital.totalNonDoctorUsers ?? 0}
                                                 </div>
                                             </td>
                                             <td>
@@ -207,7 +279,7 @@ const OnboardedHospitals: React.FC = () => {
                                     ))}
                                     {hospitals.length === 0 && (
                                         <tr>
-                                            <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>No hospitals found.</td>
+                                            <td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>No hospitals found.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -228,26 +300,42 @@ const OnboardedHospitals: React.FC = () => {
                                         </div>
                                         <div style={{ flex: 1 }}>
                                             <h3 className="premium-hospital-name">{hospital.name}</h3>
-                                            <p className="premium-hospital-id">#{hospital.id.split('-')[0]}</p>
+                                            <p className="premium-hospital-location">
+                                                {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
+                                            </p>
                                         </div>
                                         <span className={`premium-status premium-status-${hospital.status.toLowerCase()}`}>
                                             {hospital.status}
                                         </span>
                                     </div>
-                                    
+
                                     <div className="premium-mobile-details">
                                         <div className="premium-mobile-detail-item">
                                             <span className="premium-mobile-detail-label">Contact</span>
                                             <span className="premium-mobile-detail-value">{hospital.contactNumber}</span>
                                         </div>
                                         <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">City/State</span>
-                                            <span className="premium-mobile-detail-value">{hospital.city}, {hospital.state}</span>
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
                                             <span className="premium-mobile-detail-label">Total Patients</span>
                                             <span className="premium-mobile-detail-value" style={{ color: '#3b82f6' }}>
                                                 {hospital.totalPatients?.toLocaleString() || 0}
+                                            </span>
+                                        </div>
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Total Doctors</span>
+                                            <span className="premium-mobile-detail-value" style={{ color: '#059669' }}>
+                                                {hospital.totalDoctors ?? 0}
+                                            </span>
+                                        </div>
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Other Users</span>
+                                            <span className="premium-mobile-detail-value" style={{ color: '#4f46e5' }}>
+                                                {hospital.totalNonDoctorUsers ?? 0}
+                                            </span>
+                                        </div>
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Subscription</span>
+                                            <span className="premium-mobile-detail-value">
+                                                {hospital.subscriptionStatus || 'None'}
                                             </span>
                                         </div>
                                         <div className="premium-mobile-detail-item">

@@ -118,11 +118,20 @@ export const getHospitals = async (
     limit: number = 10,
     search?: string,
     sortBy?: string,
-    sortDir?: 'asc' | 'desc'
+    sortDir?: 'asc' | 'desc',
+    status?: string,
+    subscriptionStatus?: string
 ): Promise<HospitalsResponse> => {
     try {
         const response = await api.get<HospitalsResponse>(API_ENDPOINTS.HOSPITALS.GET_ALL, {
-            params: { page, limit, search: search || undefined, sortBy: sortBy || undefined, sortDir: sortDir || undefined }
+            params: {
+                page, limit,
+                search: search || undefined,
+                sortBy: sortBy || undefined,
+                sortDir: sortDir || undefined,
+                status: status || undefined,
+                subscriptionStatus: subscriptionStatus || undefined
+            }
         });
         return response.data;
     } catch (error) {

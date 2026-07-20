@@ -7,6 +7,7 @@ import {
     type SubscriptionSummary,
     type Plan,
 } from './services/subscriptionsService';
+import '../../dashboard/pages/PremiumHospitals.css';
 import './HospitalSubscriptionsPage.css';
 
 type ModalKind = 'plan' | 'trial' | 'validity' | null;
@@ -125,16 +126,16 @@ const HospitalSubscriptionsPage: React.FC = () => {
     const unavailable = summary?.platforms.filter((p) => !p.available).map((p) => p.platform) ?? [];
 
     return (
-        <div className="hsub-page">
-            <div className="hsub-header">
+        <div className="premium-container">
+            <header className="premium-header">
                 <div>
-                    <h1>Hospital Subscriptions</h1>
-                    <p>Manage subscriptions across EasyHMS and 1Rad — status, trial, validity, and plan.</p>
+                    <h1 className="premium-title">Hospital Subscriptions</h1>
+                    <p className="premium-subtitle">Manage subscriptions across EasyHMS and 1Rad — status, trial, validity, and plan.</p>
                 </div>
-                <button className="hsub-refresh" onClick={load} disabled={loading}>
+                <button className="hsub-refresh" style={{background: 'white', border: '1px solid #cbd5e1', color: '#1e3a8a', padding: '8px 12px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px'}} onClick={load} disabled={loading}>
                     <RefreshCw size={16} className={loading ? 'spin' : ''} /> Refresh
                 </button>
-            </div>
+            </header>
 
             {unavailable.length > 0 && (
                 <div className="hsub-banner">
@@ -168,40 +169,43 @@ const HospitalSubscriptionsPage: React.FC = () => {
             </div>
 
             {/* Desktop View: Table */}
-            <div className="hsub-tablewrap hsub-desktop-table">
-                <table className="hsub-table">
-                    <thead>
-                        <tr>
-                            <th>Hospital</th>
-                            <th>Platform</th>
-                            <th>Plan</th>
-                            <th>Status</th>
-                            <th>Trial Ends</th>
-                            <th>Valid Until</th>
-                            {canManage && <th>Actions</th>}
-                        </tr>
-                    </thead>
+            <div className="premium-table-card" style={{marginTop: '24px'}}>
+                <div className="premium-responsive-wrapper hsub-desktop-table">
+                    <table className="premium-table">
+                        <thead>
+                            <tr>
+                                <th style={{ paddingLeft: 16 }}>Hospital</th>
+                                <th>Platform</th>
+                                <th>Plan</th>
+                                <th>Status</th>
+                                <th>Trial Ends</th>
+                                <th>Valid Until</th>
+                                {canManage && <th>Actions</th>}
+                            </tr>
+                        </thead>
                     <tbody>
                         {loading ? (
                             <tr><td colSpan={canManage ? 7 : 6} className="hsub-empty">Loading…</td></tr>
                         ) : rows.length === 0 ? (
-                            <tr><td colSpan={canManage ? 7 : 6} className="hsub-empty">No subscriptions match these filters.</td></tr>
+                            <tr><td colSpan={canManage ? 7 : 6} className="hsub-empty" style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No subscriptions match these filters.</td></tr>
                         ) : rows.map((r) => (
-                            <tr key={r.hospitalSubscriptionId}>
-                                <td>
-                                    <div className="hsub-hospital">
-                                        <span className="hsub-avatar"><Building2 size={18} /></span>
+                            <tr key={r.hospitalSubscriptionId} className="premium-row">
+                                <td style={{ paddingLeft: 16 }}>
+                                    <div className="premium-hospital-cell">
+                                        <div className="premium-avatar gradient-1">
+                                            <Building2 size={18} color="var(--primary)" />
+                                        </div>
                                         <div>
-                                            <div className="hsub-hospital-name">{r.hospitalName || 'Unnamed hospital'}</div>
-                                            <div className="hsub-hospital-id">{r.hospitalId.split('-')[0]}…</div>
+                                            <div className="premium-hospital-name">{r.hospitalName || 'Unnamed hospital'}</div>
+                                            <div style={{fontSize: '12px', color: '#64748b', fontFamily: 'monospace'}}>{r.hospitalId.split('-')[0]}…</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td><span className="hsub-platform">{r.platform}</span></td>
-                                <td>{r.planName || <span className="hsub-muted">No plan</span>}</td>
-                                <td><span className={`hsub-pill ${r.status.toLowerCase()}`}>{r.status}</span></td>
-                                <td>{fmtDate(r.trialEndDate)}</td>
-                                <td>{fmtDate(r.subscriptionEndDate)}</td>
+                                <td><span style={{fontWeight: 600, color: '#0f52ba', fontSize: '13px'}}>{r.platform}</span></td>
+                                <td><span style={{fontWeight: 600, color: '#334155', fontSize: '13px'}}>{r.planName || <span className="hsub-muted">No plan</span>}</span></td>
+                                <td><span className={`status-badge status-${r.status.toLowerCase()}`}>{r.status}</span></td>
+                                <td style={{fontSize: '13px', color: '#475569'}}>{fmtDate(r.trialEndDate)}</td>
+                                <td style={{fontSize: '13px', color: '#475569'}}>{fmtDate(r.subscriptionEndDate)}</td>
                                 {canManage && (
                                     <td>
                                         <div className="hsub-actions">
@@ -224,54 +228,55 @@ const HospitalSubscriptionsPage: React.FC = () => {
                 </table>
             </div>
 
-            {/* Mobile View: Cards (Android Compatible) */}
-            <div className="hsub-mobile-cards">
+            {/* Mobile View: Cards */}
+            <div className="premium-mobile-cards" style={{marginTop: '24px'}}>
                 {loading ? (
-                    <div className="hsub-empty">Loading…</div>
+                    <div className="hsub-empty" style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading…</div>
                 ) : rows.length === 0 ? (
-                    <div className="hsub-empty">No subscriptions match these filters.</div>
+                    <div className="hsub-empty" style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No subscriptions match these filters.</div>
                 ) : rows.map((r) => (
-                    <div key={r.hospitalSubscriptionId} className="hsub-mobile-card">
-                        <div className="hsub-card-header">
-                            <div className="hospital-avatar-wrapper">
-                                <Building2 size={18} color="#4F46E5" />
+                    <div key={r.hospitalSubscriptionId} className="premium-mobile-card">
+                        <div className="premium-mobile-header">
+                            <div className="premium-avatar gradient-1">
+                                <Building2 size={18} color="var(--primary)" />
                             </div>
-                            <div className="hospital-meta">
-                                <h4 className="hospital-name">{r.hospitalName || 'Unnamed hospital'}</h4>
-                                <p className="hospital-id">ID: {r.hospitalId.split('-')[0]}… · <span className="platform-tag">{r.platform}</span></p>
+                            <div style={{flex: 1}}>
+                                <h4 className="premium-hospital-name">{r.hospitalName || 'Unnamed hospital'}</h4>
+                                <p className="premium-hospital-id">ID: {r.hospitalId.split('-')[0]}… · <span style={{fontWeight: 600, color: 'var(--primary)'}}>{r.platform}</span></p>
                             </div>
-                            <span className={`status-badge hsub-pill ${r.status.toLowerCase()}`}>
+                            <span className={`status-badge status-${r.status.toLowerCase()}`}>
                                 {r.status}
                             </span>
                         </div>
                         
-                        <div className="hsub-card-details">
-                            <div className="detail-row">
-                                <span className="label">Plan</span>
-                                <span className="value plan-val">{r.planName || 'No plan'}</span>
+                        <div className="premium-mobile-details">
+                            <div className="premium-mobile-detail-item">
+                                <span className="premium-mobile-detail-label">Plan</span>
+                                <span className="premium-mobile-detail-value" style={{fontWeight: 600, color: 'var(--primary)'}}>{r.planName || 'No plan'}</span>
                             </div>
-                            <div className="detail-row">
-                                <span className="label">Trial Ends</span>
-                                <span className="value">{fmtDate(r.trialEndDate)}</span>
+                            <div className="premium-mobile-detail-item">
+                                <span className="premium-mobile-detail-label">Trial Ends</span>
+                                <span className="premium-mobile-detail-value">{fmtDate(r.trialEndDate)}</span>
                             </div>
-                            <div className="detail-row">
-                                <span className="label">Valid Until</span>
-                                <span className="value">{fmtDate(r.subscriptionEndDate)}</span>
+                            <div className="premium-mobile-detail-item">
+                                <span className="premium-mobile-detail-label">Valid Until</span>
+                                <span className="premium-mobile-detail-value">{fmtDate(r.subscriptionEndDate)}</span>
                             </div>
                         </div>
                         
                         {canManage && (
-                            <div className="hsub-card-actions">
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
                                 <button
                                     className={`hsub-mobile-action-btn ${r.status === 'Active' ? 'danger' : 'primary'}`}
                                     disabled={busyId === r.hospitalSubscriptionId}
                                     onClick={() => toggleActive(r)}
+                                    style={{ flex: '1 1 100%' }}
                                 >
                                     {r.status === 'Active' ? 'Deactivate' : 'Activate'}
                                 </button>
-                                <button className="hsub-mobile-action-btn secondary" onClick={() => openModal('plan', r)}>Plan</button>
-                                <button className="hsub-mobile-action-btn secondary" onClick={() => openModal('trial', r)}>Trial</button>
-                                <button className="hsub-mobile-action-btn secondary" onClick={() => openModal('validity', r)}>Validity</button>
+                                <button className="hsub-mobile-action-btn secondary" style={{flex: 1}} onClick={() => openModal('plan', r)}>Plan</button>
+                                <button className="hsub-mobile-action-btn secondary" style={{flex: 1}} onClick={() => openModal('trial', r)}>Trial</button>
+                                <button className="hsub-mobile-action-btn secondary" style={{flex: 1}} onClick={() => openModal('validity', r)}>Validity</button>
                             </div>
                         )}
                     </div>

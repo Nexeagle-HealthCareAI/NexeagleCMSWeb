@@ -178,43 +178,42 @@ export const ApprovalsTab: React.FC = () => {
             </div>
 
             {viewMode === 'pending' ? (
-                <div className="subscriptions-card">
+                <div className="premium-table-card">
                     {/* Desktop View: Table */}
-                    <div className="subscriptions-table-container subscriptions-desktop-table">
-                        <table className="subscriptions-table">
-                            <thead>
-                                <tr>
-                                    <th>Hospital</th>
-                                    <th>Product</th>
-                                    <th>Plan Details</th>
-                                    <th>Payment Submitted</th>
-                                    <th>Status</th>
-                                    <th>Trial End Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr><td colSpan={7} style={{textAlign: 'center', padding: '40px'}}>Loading...</td></tr>
-                                ) : requests.length === 0 ? (
-                                    <tr><td colSpan={7} style={{textAlign: 'center', padding: '40px'}}>No pending payment approvals.</td></tr>
-                                ) : (
-                                    requests.map((req) => (
-                                        <tr key={req.hospitalSubscriptionId}>
-                                            <td>
-                                                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                                                    <div style={{background: '#f1f5f9', padding: '8px', borderRadius: '8px', color: '#0f52ba'}}>
-                                                        <Building2 size={20} />
+                    <div className="premium-responsive-wrapper subscriptions-desktop-table">
+                        <table className="premium-table">
+                                    <tr>
+                                        <th style={{ paddingLeft: 16 }}>Hospital</th>
+                                        <th>Product</th>
+                                        <th>Plan Details</th>
+                                        <th>Payment Submitted</th>
+                                        <th>Status</th>
+                                        <th>Trial End Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr><td colSpan={7} style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</td></tr>
+                                    ) : requests.length === 0 ? (
+                                        <tr><td colSpan={7} style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No pending payment approvals.</td></tr>
+                                    ) : (
+                                        requests.map((req) => (
+                                            <tr key={req.hospitalSubscriptionId} className="premium-row">
+                                                <td style={{ paddingLeft: 16 }}>
+                                                    <div className="premium-hospital-cell">
+                                                        <div className="premium-avatar gradient-3">
+                                                            <Building2 size={18} color="var(--primary)" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="premium-hospital-name">{req.hospitalName}</div>
+                                                            <div style={{fontSize: '12px', color: '#64748b', fontFamily: 'monospace'}}>{req.hospitalId.split('-')[0]}...</div>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <div style={{fontWeight: 700}}>{req.hospitalName}</div>
-                                                        <div style={{fontSize: '12px', color: '#64748b', fontFamily: 'monospace'}}>{req.hospitalId.split('-')[0]}...</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <ProductBadge product={req.applicationName || 'EasyHMS'} />
-                                            </td>
+                                                </td>
+                                                <td>
+                                                    <ProductBadge product={req.applicationName || 'EasyHMS'} />
+                                                </td>
                                             <td>
                                                 <div style={{fontWeight: 600, color: '#0f52ba'}}>{req.planName || 'Unknown Plan'}</div>
                                                 {req.isProratedSwitch && (
@@ -279,48 +278,48 @@ export const ApprovalsTab: React.FC = () => {
                     </div>
 
                     {/* Mobile View: Cards */}
-                    <div className="subscriptions-mobile-cards">
+                    <div className="premium-mobile-cards">
                         {loading ? (
                             <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</div>
                         ) : requests.length === 0 ? (
                             <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No pending payment approvals.</div>
                         ) : (
                             requests.map((req) => (
-                                <div key={req.hospitalSubscriptionId} className="subscription-mobile-card">
-                                    <div className="subscription-card-header">
-                                        <div className="hospital-avatar-wrapper">
-                                            <Building2 size={18} color="#0f52ba" />
+                                <div key={req.hospitalSubscriptionId} className="premium-mobile-card">
+                                    <div className="premium-mobile-header">
+                                        <div className="premium-avatar gradient-3">
+                                            <Building2 size={18} color="var(--primary)" />
                                         </div>
-                                        <div className="hospital-meta">
-                                            <h4 className="hospital-name">{req.hospitalName}</h4>
-                                            <p className="hospital-id">ID: {req.hospitalId.split('-')[0]}... · <span className="product-tag">{req.applicationName || 'EasyHMS'}</span></p>
+                                        <div style={{ flex: 1 }}>
+                                            <h3 className="premium-hospital-name">{req.hospitalName}</h3>
+                                            <p className="premium-hospital-id">ID: {req.hospitalId.split('-')[0]}... · <span style={{fontWeight: 600, color: 'var(--primary)'}}>{req.applicationName || 'EasyHMS'}</span></p>
                                         </div>
                                         <span className={`status-badge status-${req.status.toLowerCase()}`}>
                                             {req.status}
                                         </span>
                                     </div>
                                     
-                                    <div className="subscription-card-details">
-                                        <div className="detail-row">
-                                            <span className="label">Plan Details</span>
-                                            <span className="value plan-name-val">{req.planName || 'Unknown Plan'}</span>
+                                    <div className="premium-mobile-details">
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Plan Details</span>
+                                            <span className="premium-mobile-detail-value" style={{fontWeight: 600, color: 'var(--primary)'}}>{req.planName || 'Unknown Plan'}</span>
                                         </div>
-                                        <div className="detail-row">
-                                            <span className="label">Trial End Date</span>
-                                            <span className="value">
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Trial End Date</span>
+                                            <span className="premium-mobile-detail-value">
                                                 {req.trialEndDate ? new Date(req.trialEndDate).toLocaleDateString('en-IN', {
                                                     year: 'numeric', month: 'short', day: 'numeric'
                                                 }) : 'N/A'}
                                             </span>
                                         </div>
-                                        <div className="detail-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', borderTop: '1px dashed var(--border)', paddingTop: '8px', marginTop: '4px' }}>
-                                            <span className="label">Payment Submitted:</span>
-                                            <span className="value" style={{ width: '100%', textAlign: 'left', marginTop: '2px' }}>
+                                        <div className="premium-mobile-detail-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', borderTop: '1px dashed rgba(226, 232, 240, 0.8)', paddingTop: '12px', marginTop: '8px' }}>
+                                            <span className="premium-mobile-detail-label">Payment Submitted:</span>
+                                            <span className="premium-mobile-detail-value" style={{ width: '100%', textAlign: 'left', marginTop: '2px' }}>
                                                 {req.paymentAmount != null ? (
                                                     <>
-                                                        <strong style={{ fontSize: '13px', color: '#0f172a' }}>₹{req.paymentAmount}</strong>
+                                                        <strong style={{ fontSize: '14px', color: '#0f172a' }}>₹{req.paymentAmount}</strong>
                                                         {req.paymentMode && <span style={{ color: '#64748b' }}> ({req.paymentMode})</span>}
-                                                        <div style={{fontSize: '11px', color: '#64748b', fontFamily: 'monospace', marginTop: '2px'}}>{req.paymentReference}</div>
+                                                        <div style={{fontSize: '12px', color: '#64748b', fontFamily: 'monospace', marginTop: '4px'}}>{req.paymentReference}</div>
                                                     </>
                                                 ) : '—'}
                                             </span>
@@ -328,19 +327,19 @@ export const ApprovalsTab: React.FC = () => {
                                     </div>
                                     
                                     {req.status !== 'Active' && (
-                                        <div className="subscription-card-actions" style={{ display: 'flex', gap: '8px' }}>
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                                             <button 
-                                                className="mobile-approve-btn"
+                                                className="approve-btn"
                                                 onClick={() => handleApprove(req.hospitalId)}
                                                 disabled={approvingId === req.hospitalId}
-                                                style={{ flex: 1 }}
+                                                style={{ flex: 1, justifyContent: 'center' }}
                                             >
                                                 {approvingId === req.hospitalId ? 'Approving...' : 'Approve & Activate'}
                                             </button>
                                             <button 
                                                 className="reject-btn"
                                                 onClick={() => { setRejectingRequest(req); setRejectionReason(''); }}
-                                                style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '12px' }}
+                                                style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600 }}
                                             >
                                                 Reject
                                             </button>
@@ -352,13 +351,13 @@ export const ApprovalsTab: React.FC = () => {
                     </div>
                 </div>
             ) : (
-                <div className="subscriptions-card">
+                <div className="premium-table-card">
                     {/* Desktop View: Table */}
-                    <div className="subscriptions-table-container subscriptions-desktop-table">
-                        <table className="subscriptions-table">
+                    <div className="premium-responsive-wrapper subscriptions-desktop-table">
+                        <table className="premium-table">
                             <thead>
                                 <tr>
-                                    <th>Hospital</th>
+                                    <th style={{ paddingLeft: 16 }}>Hospital</th>
                                     <th>Product</th>
                                     <th>Plan Details</th>
                                     <th>Payment</th>
@@ -368,18 +367,18 @@ export const ApprovalsTab: React.FC = () => {
                             </thead>
                             <tbody>
                                 {loadingHistory ? (
-                                    <tr><td colSpan={6} style={{textAlign: 'center', padding: '40px'}}>Loading...</td></tr>
+                                    <tr><td colSpan={6} style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</td></tr>
                                 ) : history.length === 0 ? (
-                                    <tr><td colSpan={6} style={{textAlign: 'center', padding: '40px'}}>No approval history yet.</td></tr>
+                                    <tr><td colSpan={6} style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No approval history yet.</td></tr>
                                 ) : (
                                     history.map((entry) => (
-                                        <tr key={entry.paymentId}>
-                                            <td>
-                                                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                                                    <div style={{background: '#f1f5f9', padding: '8px', borderRadius: '8px', color: '#0f52ba'}}>
-                                                        <Building2 size={20} />
+                                        <tr key={entry.paymentId} className="premium-row">
+                                            <td style={{ paddingLeft: 16 }}>
+                                                <div className="premium-hospital-cell">
+                                                    <div className="premium-avatar gradient-3">
+                                                        <Building2 size={18} color="var(--primary)" />
                                                     </div>
-                                                    <div style={{fontWeight: 700}}>{entry.hospitalName}</div>
+                                                    <div className="premium-hospital-name">{entry.hospitalName}</div>
                                                 </div>
                                             </td>
                                             <td>
@@ -423,51 +422,51 @@ export const ApprovalsTab: React.FC = () => {
                     </div>
 
                     {/* Mobile View: Cards */}
-                    <div className="subscriptions-mobile-cards">
+                    <div className="premium-mobile-cards">
                         {loadingHistory ? (
                             <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</div>
                         ) : history.length === 0 ? (
-                            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No approval history yet.</div>
+                            <div style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No approval history yet.</div>
                         ) : (
                             history.map((entry) => (
-                                <div key={entry.paymentId} className="subscription-mobile-card">
-                                    <div className="subscription-card-header">
-                                        <div className="hospital-avatar-wrapper">
-                                            <Building2 size={18} color="#0f52ba" />
+                                <div key={entry.paymentId} className="premium-mobile-card">
+                                    <div className="premium-mobile-header">
+                                        <div className="premium-avatar gradient-3">
+                                            <Building2 size={18} color="var(--primary)" />
                                         </div>
-                                        <div className="hospital-meta">
-                                            <h4 className="hospital-name">{entry.hospitalName}</h4>
-                                            <p className="hospital-id">Product: <span className="product-tag">{entry.applicationName || 'EasyHMS'}</span></p>
+                                        <div style={{ flex: 1 }}>
+                                            <h3 className="premium-hospital-name">{entry.hospitalName}</h3>
+                                            <p className="premium-hospital-id">Product: <span style={{fontWeight: 600, color: 'var(--primary)'}}>{entry.applicationName || 'EasyHMS'}</span></p>
                                         </div>
                                         <span className={`status-badge status-${entry.status.toLowerCase()}`}>
                                             {entry.status}
                                         </span>
                                     </div>
                                     
-                                    <div className="subscription-card-details">
-                                        <div className="detail-row">
-                                            <span className="label">Plan Name</span>
-                                            <span className="value plan-name-val">{entry.planName}</span>
+                                    <div className="premium-mobile-details">
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Plan Name</span>
+                                            <span className="premium-mobile-detail-value" style={{fontWeight: 600, color: 'var(--primary)'}}>{entry.planName}</span>
                                         </div>
-                                        <div className="detail-row">
-                                            <span className="label">Amount Paid</span>
-                                            <span className="value">
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Amount Paid</span>
+                                            <span className="premium-mobile-detail-value">
                                                 <strong>₹{entry.amount}</strong>
-                                                {entry.paymentMode && <span> &middot; {entry.paymentMode}</span>}
+                                                {entry.paymentMode && <span style={{color: '#64748b'}}> &middot; {entry.paymentMode}</span>}
                                             </span>
                                         </div>
-                                        <div className="detail-row">
-                                            <span className="label">Reference ID</span>
-                                            <span className="value" style={{fontFamily: 'monospace', fontSize: '11px'}}>{entry.reference}</span>
+                                        <div className="premium-mobile-detail-item">
+                                            <span className="premium-mobile-detail-label">Reference ID</span>
+                                            <span className="premium-mobile-detail-value" style={{fontFamily: 'monospace', fontSize: '12px'}}>{entry.reference}</span>
                                         </div>
                                         {entry.status === 'Rejected' && entry.rejectionReason && (
-                                            <div className="rejection-reason-block" style={{marginTop: '6px', padding: '8px', background: '#fef2f2', borderRadius: '8px', borderLeft: '3px solid #dc2626', fontSize: '11px', color: '#dc2626', width: '100%'}}>
+                                            <div style={{marginTop: '8px', padding: '10px 12px', background: '#fef2f2', borderRadius: '8px', borderLeft: '3px solid #dc2626', fontSize: '12px', color: '#dc2626', width: '100%'}}>
                                                 <strong>Rejection Reason:</strong> {entry.rejectionReason}
                                             </div>
                                         )}
-                                        <div className="detail-row" style={{marginTop: '8px', fontSize: '10px', color: '#94a3b8', borderTop: '1px solid #f1f5f9', paddingTop: '6px'}}>
-                                            <span>Reviewed:</span>
-                                            <span>{entry.reviewedAt ? new Date(entry.reviewedAt).toLocaleString('en-IN', {dateStyle: 'medium', timeStyle: 'short'}) : '—'}</span>
+                                        <div className="premium-mobile-detail-item" style={{marginTop: '8px', borderTop: '1px dashed rgba(226, 232, 240, 0.8)', paddingTop: '12px'}}>
+                                            <span className="premium-mobile-detail-label">Reviewed:</span>
+                                            <span className="premium-mobile-detail-value" style={{color: '#64748b'}}>{entry.reviewedAt ? new Date(entry.reviewedAt).toLocaleString('en-IN', {dateStyle: 'medium', timeStyle: 'short'}) : '—'}</span>
                                         </div>
                                     </div>
                                 </div>

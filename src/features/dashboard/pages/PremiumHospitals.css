@@ -123,6 +123,32 @@
     color: #94a3b8;
 }
 
+.premium-filters-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.premium-filter-select {
+    padding: 11px 14px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-filter-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
 .premium-responsive-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -239,13 +265,11 @@
     margin-bottom: 4px;
 }
 
-.premium-hospital-id {
+.premium-hospital-location {
+    display: block;
     font-size: 12px;
     color: #64748b;
-    font-family: 'Courier New', Courier, monospace;
-    background: #f1f5f9;
-    padding: 2px 6px;
-    border-radius: 4px;
+    font-weight: 500;
 }
 
 /* Status Badges */
@@ -441,6 +465,14 @@
         gap: 16px;
     }
     .premium-search-wrapper {
+        width: 100%;
+    }
+    .premium-filters-row {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .premium-filter-select {
         width: 100%;
     }
     .premium-pagination {
