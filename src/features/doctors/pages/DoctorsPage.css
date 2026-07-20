@@ -147,3 +147,131 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Mobile-first layouts for Doctors page */
+.doctors-mobile-cards {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.doctors-desktop-table {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .doctors-desktop-table {
+        display: none !important;
+    }
+
+    .doctors-mobile-cards {
+        display: flex !important;
+    }
+
+    .doctor-mobile-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .doctor-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    .doctor-avatar-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background-color: #F1F5F9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .doctor-avatar {
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 16px;
+    }
+
+    .doctor-meta {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .doctor-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .doctor-dept {
+        margin: 0;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+
+    .doctor-card-badges {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .doctor-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--border);
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .detail-row .label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .detail-row .value {
+        color: var(--text-primary);
+        font-weight: 700;
+        text-align: right;
+    }
+
+    .doctor-card-actions {
+        margin-top: 4px;
+    }
+
+    .mobile-edit-btn {
+        width: 100% !important;
+        justify-content: center;
+        padding: 10px !important;
+        background: #eff6ff !important;
+        border-color: #1e3a8a !important;
+        color: #1e3a8a !important;
+        font-weight: 700;
+        font-size: 12px;
+    }
+}

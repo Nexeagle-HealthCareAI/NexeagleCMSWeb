@@ -112,6 +112,8 @@
     color: var(--text-primary);
     font-weight: 800;
     letter-spacing: -0.3px;
+}
+
 /* Plan editor — premium side drawer */
 .plan-drawer-overlay {
     position: fixed;
@@ -489,7 +491,6 @@
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
-.save-btn:hover {
 .save-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);

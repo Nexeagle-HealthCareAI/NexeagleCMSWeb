@@ -158,7 +158,7 @@ const DoctorsPage: React.FC = () => {
                     <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>
                 ) : (
                     <>
-                        <div className="table-responsive-wrapper">
+                        <div className="table-responsive-wrapper doctors-desktop-table">
                             <table className="dashboard-table">
                                 <thead>
                                     <tr className="table-header-row">
@@ -225,6 +225,71 @@ const DoctorsPage: React.FC = () => {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* Mobile View: Cards (Android Compatible) */}
+                        <div className="doctors-mobile-cards">
+                            {doctors.map((doctor) => (
+                                <div key={doctor.doctorId} className="doctor-mobile-card">
+                                    <div className="doctor-card-header">
+                                        <div className="doctor-avatar-wrapper">
+                                            <span className="doctor-avatar">{doctor.fullName ? doctor.fullName[0].toUpperCase() : 'D'}</span>
+                                        </div>
+                                        <div className="doctor-meta">
+                                            <h4 className="doctor-name">{doctor.fullName || 'Unnamed'}</h4>
+                                            <p className="doctor-dept">{doctor.departmentName || '—'}</p>
+                                        </div>
+                                        <div className="doctor-card-badges">
+                                            {doctor.isFeatured && (
+                                                <span className="doctor-badge doctor-badge-featured" title="Featured"><Star size={12} /></span>
+                                            )}
+                                            {isDiscountActive(doctor) && (
+                                                <span className="doctor-badge doctor-badge-discount" title={`${doctor.discountPercent}% off`}><Percent size={12} /></span>
+                                            )}
+                                            {doctor.isDelistedByAdmin && (
+                                                <span className="doctor-badge doctor-badge-delisted" title="Delisted"><EyeOff size={12} /></span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="doctor-card-details">
+                                        <div className="detail-row">
+                                            <span className="label">Hospital</span>
+                                            <span className="value">{doctor.hospitalName || '—'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="label">OPD Fee</span>
+                                            <span className="value">
+                                                {doctor.opdConsultFee != null ? (
+                                                    isDiscountActive(doctor) ? (
+                                                        <>
+                                                            <span style={{ textDecoration: 'line-through', color: 'var(--text-secondary)', marginRight: 6 }}>
+                                                                ₹{doctor.opdConsultFee}
+                                                            </span>
+                                                            <strong style={{ color: '#16a34a' }}>
+                                                                ₹{Math.round(doctor.opdConsultFee * (1 - (doctor.discountPercent || 0) / 100))}
+                                                            </strong>
+                                                        </>
+                                                    ) : (
+                                                        <strong>₹{doctor.opdConsultFee}</strong>
+                                                    )
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="doctor-card-actions">
+                                        <button className="doctor-edit-btn mobile-edit-btn" onClick={() => openEdit(doctor)}>
+                                            <Stethoscope size={14} /> Edit Marketing Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {doctors.length === 0 && (
+                                <div className="doctors-empty-mobile">No doctors found.</div>
+                            )}
                         </div>
 
                         <div className="pagination-container">
