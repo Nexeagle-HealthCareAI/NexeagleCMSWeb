@@ -90,6 +90,17 @@ export interface Hospital {
     users?: User[]; // Optional in API response
     doctors?: Doctor[]; // Optional in API response
     stats?: HospitalStats;
+    // Quick counts — not date-scoped.
+    totalDoctors?: number;
+    totalNonDoctorUsers?: number;
+}
+
+// Online (booked via NexEagleWebsite) vs hospital-booked (created by staff in easyHMSWeb)
+// appointment counts for an arbitrary date range.
+export interface HospitalAppointmentSourceStats {
+    onlineAppointments: number;
+    hospitalAppointments: number;
+    totalAppointments: number;
 }
 
 export interface HospitalsResponse {
@@ -107,11 +118,20 @@ export const getHospitals = async (
     limit: number = 10,
     search?: string,
     sortBy?: string,
-    sortDir?: 'asc' | 'desc'
+    sortDir?: 'asc' | 'desc',
+    status?: string,
+    subscriptionStatus?: string
 ): Promise<HospitalsResponse> => {
     try {
         const response = await api.get<HospitalsResponse>(API_ENDPOINTS.HOSPITALS.GET_ALL, {
-            params: { page, limit, search: search || undefined, sortBy: sortBy || undefined, sortDir: sortDir || undefined }
+            params: {
+                page, limit,
+                search: search || undefined,
+                sortBy: sortBy || undefined,
+                sortDir: sortDir || undefined,
+                status: status || undefined,
+                subscriptionStatus: subscriptionStatus || undefined
+            }
         });
         return response.data;
     } catch (error) {
@@ -126,6 +146,20 @@ export const getHospitalById = async (id: string): Promise<Hospital> => {
     } catch (error) {
         throw error;
     }
+};
+
+// from/to are "yyyy-MM-dd" (inclusive). Omit both for all-time; pass the same date for both for
+// "today". Backend distinguishes online vs hospital-booked via Appointments.BookingSource.
+export const getHospitalAppointmentStats = async (
+    id: string,
+    from?: string,
+    to?: string
+): Promise<HospitalAppointmentSourceStats> => {
+    const response = await api.get<HospitalAppointmentSourceStats>(
+        `${API_ENDPOINTS.HOSPITALS.APPOINTMENT_STATS}/${id}/appointment-stats`,
+        { params: { from: from || undefined, to: to || undefined } }
+    );
+    return response.data;
 };
 
 export interface StatMetric {

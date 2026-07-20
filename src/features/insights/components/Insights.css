@@ -1,0 +1,202 @@
+/* Shared styling for the Doctor Dekho "Insights" tab (Site Visits / Patient Logins / Appointments).
+   Reuses .premium-table / .premium-status-* / .premium-badge-count from PremiumHospitals.css
+   (already cross-imported by several features) so tables match the rest of the app. */
+
+.insights-subtabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+}
+
+.insights-subtab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s;
+    position: relative;
+    top: 2px;
+}
+.insights-subtab-btn:hover {
+    background: rgba(241, 245, 249, 0.8);
+    color: #334155;
+}
+.insights-subtab-btn.active {
+    color: #1d4ed8;
+    border-bottom: 2px solid #1d4ed8;
+}
+
+.insights-explainer {
+    display: flex;
+    gap: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+.insights-explainer-icon {
+    color: #1d4ed8;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.insights-explainer-text {
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: #334155;
+}
+.insights-explainer-text strong {
+    color: #0f172a;
+}
+.insights-explainer-text p {
+    margin: 0 0 8px 0;
+}
+.insights-explainer-text p:last-child {
+    margin-bottom: 0;
+}
+
+.insights-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.insights-stat-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.insights-stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+}
+.insights-stat-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.insights-filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.insights-filter-toggle {
+    display: flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+    gap: 2px;
+}
+.insights-filter-btn {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.insights-filter-btn.active {
+    background: white;
+    color: #1d4ed8;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.insights-date-input {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: inherit;
+}
+
+.insights-search-input {
+    padding: 9px 14px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 13px;
+    min-width: 220px;
+}
+.insights-search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #ffffff;
+}
+
+.insights-panels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.insights-mini-table-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.insights-mini-table-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 12px 0;
+}
+.insights-mini-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed #f1f5f9;
+}
+.insights-mini-row:last-child {
+    border-bottom: none;
+}
+.insights-mini-row-label {
+    color: #334155;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 70%;
+}
+.insights-mini-row-value {
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.insights-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.insights-badge-loggedin { background: #dcfce7; color: #16a34a; }
+.insights-badge-guest { background: #f1f5f9; color: #64748b; }
+
+.insights-empty {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+    font-size: 13px;
+}

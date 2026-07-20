@@ -3,13 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, MapPin, Phone, Mail, Building2, ChevronDown, ChevronUp,
     Users, Stethoscope, CreditCard, Calendar, Activity, GraduationCap,
-    FileText, Shield, TrendingUp, Receipt
+    FileText, Shield, TrendingUp, Receipt, UserCog, Globe, Building
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { getHospitalById, type Hospital } from '../services/hospitalService';
+import { getHospitalById, getHospitalAppointmentStats, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
 import './HospitalDetails.css';
+
+type DateFilterMode = 'today' | 'all' | 'custom';
+
+const toDateInputValue = (d: Date): string => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 
 const statusStyles: Record<string, string> = {
     Trial: 'sub-badge-trial',
@@ -30,6 +37,12 @@ const HospitalDetails: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('all');
+    const [customFrom, setCustomFrom] = useState('');
+    const [customTo, setCustomTo] = useState('');
+    const [apptStats, setApptStats] = useState<HospitalAppointmentSourceStats | null>(null);
+    const [apptStatsLoading, setApptStatsLoading] = useState(false);
+
     React.useEffect(() => {
         const fetchHospital = async () => {
             if (!id) return;
@@ -46,6 +59,24 @@ const HospitalDetails: React.FC = () => {
 
         fetchHospital();
     }, [id]);
+
+    React.useEffect(() => {
+        if (!id) return;
+        // Custom range: wait until both bounds are picked rather than firing on every half-typed date.
+        if (dateFilterMode === 'custom' && (!customFrom || !customTo)) return;
+
+        const today = toDateInputValue(new Date());
+        const from = dateFilterMode === 'today' ? today : dateFilterMode === 'custom' ? customFrom : undefined;
+        const to = dateFilterMode === 'today' ? today : dateFilterMode === 'custom' ? customTo : undefined;
+
+        let cancelled = false;
+        setApptStatsLoading(true);
+        getHospitalAppointmentStats(id, from, to)
+            .then(stats => { if (!cancelled) setApptStats(stats); })
+            .catch(() => { if (!cancelled) setApptStats(null); })
+            .finally(() => { if (!cancelled) setApptStatsLoading(false); });
+        return () => { cancelled = true; };
+    }, [id, dateFilterMode, customFrom, customTo]);
 
     if (loading) {
         return (
@@ -174,6 +205,62 @@ const HospitalDetails: React.FC = () => {
             </div>
 
             <div className="details-content">
+
+                {/* Quick Stats: headcounts + online vs hospital appointment counts */}
+                <div className="quick-stats-section">
+                    <div className="quick-stats-grid">
+                        <div className="quick-stat-card">
+                            <div className="quick-stat-icon quick-stat-icon-doctors"><Stethoscope size={18} /></div>
+                            <div>
+                                <div className="quick-stat-value">{hospital.totalDoctors ?? hospital.doctors?.length ?? 0}</div>
+                                <div className="quick-stat-label">Total Doctors</div>
+                            </div>
+                        </div>
+                        <div className="quick-stat-card">
+                            <div className="quick-stat-icon quick-stat-icon-users"><UserCog size={18} /></div>
+                            <div>
+                                <div className="quick-stat-value">{hospital.totalNonDoctorUsers ?? 0}</div>
+                                <div className="quick-stat-label">Other Users</div>
+                            </div>
+                        </div>
+                        <div className="quick-stat-card">
+                            <div className="quick-stat-icon quick-stat-icon-online"><Globe size={18} /></div>
+                            <div>
+                                <div className="quick-stat-value">{apptStatsLoading ? '…' : (apptStats?.onlineAppointments ?? '—')}</div>
+                                <div className="quick-stat-label">Online Appointments</div>
+                            </div>
+                        </div>
+                        <div className="quick-stat-card">
+                            <div className="quick-stat-icon quick-stat-icon-hospital"><Building size={18} /></div>
+                            <div>
+                                <div className="quick-stat-value">{apptStatsLoading ? '…' : (apptStats?.hospitalAppointments ?? '—')}</div>
+                                <div className="quick-stat-label">Hospital Appointments</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="quick-stats-filter">
+                        <span className="quick-stats-filter-label">Appointment counts for:</span>
+                        <div className="quick-stats-filter-toggle">
+                            {(['all', 'today', 'custom'] as const).map(mode => (
+                                <button
+                                    key={mode}
+                                    className={`quick-stats-filter-btn ${dateFilterMode === mode ? 'active' : ''}`}
+                                    onClick={() => setDateFilterMode(mode)}
+                                >
+                                    {mode === 'all' ? 'All time' : mode === 'today' ? 'Today' : 'Custom range'}
+                                </button>
+                            ))}
+                        </div>
+                        {dateFilterMode === 'custom' && (
+                            <div className="quick-stats-filter-dates">
+                                <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="quick-stats-date-input" />
+                                <span>to</span>
+                                <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="quick-stats-date-input" />
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 {/* Analytics Section */}
                 {hospital.stats && (

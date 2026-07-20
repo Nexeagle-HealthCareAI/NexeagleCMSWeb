@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, Activity, MessageSquare, CreditCard, Coins, Users, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
@@ -114,45 +114,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 >
                   <CreditCard size={22} />
                   {(!collapsed || isMobile) && <span>Manage Subscription</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('subscriptions.view') && (
-              <li>
-                <NavLink
-                  to="/hospital-subscriptions"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Hospital Subscriptions" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Building2 size={22} />
-                  {(!collapsed || isMobile) && <span>Hospital Subscriptions</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('application-health.view') && (
-              <li>
-                <NavLink
-                  to="/application-health"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Application Health" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Activity size={22} />
-                  {(!collapsed || isMobile) && <span>Application Health</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('radai-cost.view') && (
-              <li>
-                <NavLink
-                  to="/radai-cost"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "RadAI Cost" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Coins size={22} />
-                  {(!collapsed || isMobile) && <span>RadAI Cost</span>}
                 </NavLink>
               </li>
             )}

@@ -15,17 +15,16 @@ export const API_ENDPOINTS = {
         ROLES: '/roles',                 // GET list, POST create; /roles/:id PUT/DELETE
         PERMISSIONS: '/permissions',     // GET catalog
     },
-    // Add other domains here as needed
-    SYSTEM: {
-        HEALTH: '../health', // Steps out of /v1 to /api/health
-    },
     HOSPITALS: {
         GET_ALL: '/hospitals',
         GET_BY_ID: '/hospitals', // Usage: /hospitals/:id
+        APPOINTMENT_STATS: '/hospitals', // Usage: /hospitals/:id/appointment-stats?from=&to= (GET)
     },
     DOCTORS: {
         GET_ALL: '/doctors',
+        GET_DETAIL: '/doctors', // Usage: /doctors/:doctorId (GET)
         UPDATE_MARKETING: '/doctors', // Usage: /doctors/:doctorId/marketing (PUT)
+        BULK_UPDATE_MARKETING: '/doctors/bulk/marketing', // PUT
     },
     DASHBOARD: {
         STATS: '/dashboard/stats',
@@ -34,16 +33,17 @@ export const API_ENDPOINTS = {
         GET_ALL_REQUESTS: '/subscriptions/admin/payment-requests',
         APPROVE: '/subscriptions/approve-payment', // Usage: /subscriptions/approve-payment/:id
     },
-    HOSPITAL_SUBSCRIPTIONS: {
-        LIST: '/hospital-subscriptions',              // ?platform=EasyHMS|1Rad|All&status=
-        SUMMARY: '/hospital-subscriptions/summary',
-        // Actions: /hospital-subscriptions/:platform/:hospitalId/(status|trial|validity|plan)
-    },
     PLANS: {
         LIST: '/SubscriptionPlans',                   // ?application=EasyHMS|1Rad|All
     },
-    ASSIST: {
-        USAGE: '/assist/usage',                       // RadAI token usage & savings
+    INSIGHTS: {
+        SITE_VISITS: '/insights/site-visits',         // ?from=&to=
+        PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
+        APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
+        AUTH_FUNNEL: '/insights/auth-funnel',                     // ?from=&to=
+        AUTH_FUNNEL_ATTEMPTS: '/insights/auth-funnel/attempts',   // ?page=&limit=&from=&to=&search=
+        BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
+        SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
     },
     CHAT: {
         HISTORY: '../chat/history', // ChatController is /api/chat (steps out of /v1). Usage: /chat/history/:sessionId
