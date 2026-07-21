@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { X, Stethoscope, Phone, Mail, Award, Building2, Star, EyeOff, Percent, Globe } from 'lucide-react';
-import { getDoctorDetail, type DoctorDetail } from '../services/doctorService';
+import { X, Stethoscope, Phone, Mail, Award, Building2, Star, EyeOff, Percent, Globe, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { toast } from 'sonner';
+import { getDoctorDetail, updateDoctorMarketing, type DoctorDetail } from '../services/doctorService';
+import { copyToClipboard } from '../../../utils/clipboard';
 import './DoctorDetailModal.css';
+
+// No official public API exists for verifying an Indian doctor's registration (the NMC's Indian
+// Medical Register only has a manual web-search UI, no documented programmatic access) — so
+// "Verify" copies the registration number and opens the NMC's own register for the admin to
+// confirm by hand, rather than pretending to auto-verify.
+const NMC_IMR_SEARCH_URL = 'https://www.nmc.org.in/information-desk/indian-medical-register/';
 
 interface DoctorDetailModalProps {
     doctorId: string;
@@ -34,6 +42,7 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
     const [detail, setDetail] = useState<DoctorDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [verifying, setVerifying] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -46,6 +55,45 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
         return () => { cancelled = true; };
     }, [doctorId]);
 
+    const handleVerifyOnNmc = async (licenseNumber: string) => {
+        const copied = await copyToClipboard(licenseNumber);
+        toast[copied ? 'success' : 'message'](
+            copied
+                ? 'Registration number copied — paste it into the search form on the page that just opened.'
+                : `Registration number: ${licenseNumber} — search for it on the page that just opened.`
+        );
+        window.open(NMC_IMR_SEARCH_URL, '_blank', 'noopener,noreferrer');
+    };
+
+    // Full-replace marketing save, reusing the doctor's already-loaded Featured/Delisted/discount
+    // values so this toggle only ever changes IsRegistrationVerified — same endpoint the Edit
+    // modal's form uses, just with everything else round-tripped unchanged.
+    const handleToggleVerified = async () => {
+        if (!detail) return;
+        const nextVerified = !detail.isRegistrationVerified;
+        setVerifying(true);
+        try {
+            await updateDoctorMarketing(detail.doctorId, {
+                isFeatured: detail.isFeatured,
+                isDelistedByAdmin: detail.isDelistedByAdmin,
+                isRegistrationVerified: nextVerified,
+                discountPercent: detail.discountPercent,
+                discountStartAt: detail.discountStartAt,
+                discountEndAt: detail.discountEndAt,
+            });
+            setDetail({
+                ...detail,
+                isRegistrationVerified: nextVerified,
+                registrationVerifiedAt: nextVerified ? new Date().toISOString() : null,
+            });
+            toast.success(nextVerified ? 'Marked as verified.' : 'Verification removed.');
+        } catch {
+            toast.error('Could not update verification status.');
+        } finally {
+            setVerifying(false);
+        }
+    };
+
     return (
         <div className="reject-modal-overlay" onClick={onClose}>
             <div className="doctor-detail-modal" onClick={e => e.stopPropagation()}>
@@ -57,31 +105,42 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
                     <div className="doctor-detail-loading" style={{ color: '#dc2626' }}>{error}</div>
                 ) : detail ? (
                     <>
-                        <div className="doctor-detail-header">
-                            <div className="doctor-detail-avatar">
+                        <div className="premium-doctor-banner">
+                            <div className="premium-banner-pattern"></div>
+                        </div>
+                        <div className="doctor-detail-header premium-header-overlap">
+                            <div className="doctor-detail-avatar premium-avatar-large">
                                 {detail.photoUrl ? (
                                     <img src={detail.photoUrl} alt={detail.fullName ?? 'Doctor'} />
                                 ) : (
                                     <span>{detail.fullName ? detail.fullName[0].toUpperCase() : 'D'}</span>
                                 )}
                             </div>
-                            <div className="doctor-detail-identity">
-                                <h3>{detail.fullName || 'Unnamed doctor'}</h3>
-                                <p>{detail.qualification || '—'}{detail.experienceYears != null ? ` · ${detail.experienceYears} yrs experience` : ''}</p>
-                                <div className="doctor-detail-badges">
-                                    {detail.isFeatured && <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>}
-                                    {detail.isDelistedByAdmin && <span className="doctor-badge doctor-badge-delisted"><EyeOff size={12} /> Delisted</span>}
-                                    {detail.discountPercent != null && detail.discountPercent > 0 && (
-                                        <span className="doctor-badge doctor-badge-discount"><Percent size={12} /> {detail.discountPercent}% off</span>
-                                    )}
-                                    <span className={`doctor-badge ${detail.isPubliclyListed ? 'doctor-badge-discount' : 'doctor-badge-delisted'}`}>
-                                        {detail.isPubliclyListed ? 'Publicly listed' : 'Not publicly listed'}
-                                    </span>
+                            
+                            <div className="premium-header-content">
+                                <div className="doctor-detail-identity">
+                                    <h3 className="premium-doctor-name">{detail.fullName || 'Unnamed doctor'}</h3>
+                                    <p className="premium-doctor-sub">{detail.qualification || '—'}{detail.experienceYears != null ? ` • ${detail.experienceYears} yrs experience` : ''}</p>
+                                    <div className="doctor-detail-badges" style={{ marginTop: '12px' }}>
+                                        {detail.isRegistrationVerified && (
+                                            <span className="doctor-badge doctor-badge-verified" title={`Verified on ${formatDate(detail.registrationVerifiedAt)}`}>
+                                                <BadgeCheck size={12} /> NMC Verified
+                                            </span>
+                                        )}
+                                        {detail.isFeatured && <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>}
+                                        {detail.isDelistedByAdmin && <span className="doctor-badge doctor-badge-delisted"><EyeOff size={12} /> Delisted</span>}
+                                        {detail.discountPercent != null && detail.discountPercent > 0 && (
+                                            <span className="doctor-badge doctor-badge-discount"><Percent size={12} /> {detail.discountPercent}% off</span>
+                                        )}
+                                        <span className={`doctor-badge ${detail.isPubliclyListed ? 'doctor-badge-discount' : 'doctor-badge-delisted'}`}>
+                                            {detail.isPubliclyListed ? 'Publicly listed' : 'Not publicly listed'}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="doctor-detail-completion">
-                                <span className="doctor-detail-completion-value">{detail.profileCompletionPercent}%</span>
-                                <span className="doctor-detail-completion-label">Profile complete</span>
+                                <div className="doctor-detail-completion premium-completion-card">
+                                    <span className="doctor-detail-completion-value">{detail.profileCompletionPercent}%</span>
+                                    <span className="doctor-detail-completion-label">Profile complete</span>
+                                </div>
                             </div>
                         </div>
 
@@ -103,6 +162,31 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
                                     <Field label="On platform since" value={formatDate(detail.createdAt)} />
                                     <Field label="Last login" value={formatDateTime(detail.lastLoginTime)} />
                                 </div>
+                                {detail.licenseNumber && (
+                                    <div className="doctor-detail-verify-row">
+                                        <button
+                                            type="button"
+                                            className="doctor-detail-verify-btn"
+                                            onClick={() => handleVerifyOnNmc(detail.licenseNumber!)}
+                                        >
+                                            <ShieldCheck size={14} /> Verify on NMC Register
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={detail.isRegistrationVerified ? 'doctor-detail-verify-btn doctor-detail-verify-btn-active' : 'doctor-detail-verify-btn'}
+                                            onClick={handleToggleVerified}
+                                            disabled={verifying}
+                                        >
+                                            <BadgeCheck size={14} />
+                                            {detail.isRegistrationVerified ? 'Remove verified mark' : 'Mark as verified'}
+                                        </button>
+                                        <span className="doctor-detail-verify-note">
+                                            {detail.isRegistrationVerified
+                                                ? `Confirmed on ${formatDate(detail.registrationVerifiedAt)}. Shows as a "Verified profile" badge on Doctor Dekho.`
+                                                : 'India has no automated verification API — this copies the registration number and opens the National Medical Register for manual confirmation. Once you\'ve checked it there, mark it verified here.'}
+                                        </span>
+                                    </div>
+                                )}
                             </Section>
 
                             <Section title="Professional profile">
