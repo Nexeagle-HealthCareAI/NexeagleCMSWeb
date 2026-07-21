@@ -12,6 +12,10 @@ export interface DoctorListItem {
     isPubliclyListed: boolean;
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
+    // Set by a CMS admin only after manually confirming registration against the NMC's Indian
+    // Medical Register — drives the public "Verified profile" badge on Doctor Dekho.
+    isRegistrationVerified: boolean;
+    registrationVerifiedAt: string | null;
     discountPercent: number | null;
     discountStartAt: string | null;
     discountEndAt: string | null;
@@ -62,6 +66,8 @@ export interface DoctorDetail {
     isPubliclyListed: boolean;
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
+    isRegistrationVerified: boolean;
+    registrationVerifiedAt: string | null;
     discountPercent: number | null;
     discountStartAt: string | null;
     discountEndAt: string | null;
@@ -74,6 +80,7 @@ export interface DoctorDetail {
 export interface UpdateDoctorMarketingPayload {
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
+    isRegistrationVerified: boolean;
     discountPercent: number | null;
     discountStartAt: string | null;
     discountEndAt: string | null;

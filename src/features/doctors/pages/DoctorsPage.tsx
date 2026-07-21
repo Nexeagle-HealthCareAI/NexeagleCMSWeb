@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X } from 'lucide-react';
+import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X, BadgeCheck } from 'lucide-react';
 import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../services/doctorService';
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
 import { BulkEditModal } from '../components/BulkEditModal';
@@ -47,6 +47,7 @@ const isDiscountActive = (doctor: DoctorListItem): boolean => {
 interface EditFormState {
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
+    isRegistrationVerified: boolean;
     discountPercent: string;
     discountStartAt: string;
     discountEndAt: string;
@@ -134,6 +135,7 @@ const DoctorsPage: React.FC = () => {
         setForm({
             isFeatured: doctor.isFeatured,
             isDelistedByAdmin: doctor.isDelistedByAdmin,
+            isRegistrationVerified: doctor.isRegistrationVerified,
             discountPercent: doctor.discountPercent != null ? String(doctor.discountPercent) : '',
             discountStartAt: toLocalInputValue(doctor.discountStartAt),
             discountEndAt: toLocalInputValue(doctor.discountEndAt),
@@ -167,6 +169,7 @@ const DoctorsPage: React.FC = () => {
             await updateDoctorMarketing(editingDoctor.doctorId, {
                 isFeatured: form.isFeatured,
                 isDelistedByAdmin: form.isDelistedByAdmin,
+                isRegistrationVerified: form.isRegistrationVerified,
                 discountPercent: percent,
                 discountStartAt: startAt,
                 discountEndAt: endAt,
@@ -315,6 +318,9 @@ const DoctorsPage: React.FC = () => {
                                             </td>
                                             <td>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                    {doctor.isRegistrationVerified && (
+                                                        <span className="doctor-badge doctor-badge-verified" title={`Verified on ${formatLastLogin(doctor.registrationVerifiedAt)}`}><BadgeCheck size={12} /> Verified</span>
+                                                    )}
                                                     {doctor.isFeatured && (
                                                         <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>
                                                     )}
@@ -324,7 +330,7 @@ const DoctorsPage: React.FC = () => {
                                                     {doctor.isDelistedByAdmin && (
                                                         <span className="doctor-badge doctor-badge-delisted"><EyeOff size={12} /> Delisted</span>
                                                     )}
-                                                    {!doctor.isFeatured && !isDiscountActive(doctor) && !doctor.isDelistedByAdmin && (
+                                                    {!doctor.isRegistrationVerified && !doctor.isFeatured && !isDiscountActive(doctor) && !doctor.isDelistedByAdmin && (
                                                         <span style={{ color: '#94a3b8', fontSize: 13 }}>—</span>
                                                     )}
                                                 </div>
@@ -371,6 +377,9 @@ const DoctorsPage: React.FC = () => {
                                     </div>
                                     
                                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px', paddingLeft: '32px' }}>
+                                        {doctor.isRegistrationVerified && (
+                                            <span className="doctor-badge doctor-badge-verified" title="Registration verified"><BadgeCheck size={12} /> Verified</span>
+                                        )}
                                         {doctor.isFeatured && (
                                             <span className="doctor-badge doctor-badge-featured" title="Featured"><Star size={12} /> Featured</span>
                                         )}
@@ -495,6 +504,22 @@ const DoctorsPage: React.FC = () => {
                             <div>
                                 <div style={{ fontWeight: 700 }}>Delisted</div>
                                 <div style={{ fontSize: 12, color: '#64748b' }}>Hides this doctor from Doctor Dekho, overriding the hospital's own listing choice.</div>
+                            </div>
+                        </label>
+
+                        <label className="doctor-form-checkbox">
+                            <input
+                                type="checkbox"
+                                checked={form.isRegistrationVerified}
+                                onChange={e => setForm({ ...form, isRegistrationVerified: e.target.checked })}
+                            />
+                            <div>
+                                <div style={{ fontWeight: 700 }}>Registration verified</div>
+                                <div style={{ fontSize: 12, color: '#64748b' }}>
+                                    Only check this after confirming the license/council/year on the NMC's Indian
+                                    Medical Register from the doctor's "View" profile. Shows a "Verified profile"
+                                    badge on Doctor Dekho.
+                                </div>
                             </div>
                         </label>
 

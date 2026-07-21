@@ -5,6 +5,7 @@ import { OnlineAppointmentsPanel } from './OnlineAppointmentsPanel';
 import { AuthFunnelPanel } from './AuthFunnelPanel';
 import { BookingFunnelPanel } from './BookingFunnelPanel';
 import { SearchLogPanel } from './SearchLogPanel';
+import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search } from 'lucide-react';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './Insights.css';
 
@@ -13,17 +14,17 @@ type InsightsSubTab = 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'boo
 export const InsightsTab: React.FC = () => {
     const [activeSubTab, setActiveSubTab] = useState<InsightsSubTab>('visits');
 
-    const tabs: { key: InsightsSubTab; label: string }[] = [
-        { key: 'visits', label: 'Site Visits' },
-        { key: 'logins', label: 'Patient Logins' },
-        { key: 'appointments', label: 'Appointments' },
-        { key: 'authFunnel', label: 'Auth Funnel' },
-        { key: 'bookingFunnel', label: 'Booking Funnel' },
-        { key: 'searches', label: 'All Searches' },
+    const tabs: { key: InsightsSubTab; label: string; icon: React.ReactNode }[] = [
+        { key: 'visits', label: 'Site Visits', icon: <BarChart3 size={16} /> },
+        { key: 'logins', label: 'Patient Logins', icon: <Users size={16} /> },
+        { key: 'appointments', label: 'Appointments', icon: <CalendarDays size={16} /> },
+        { key: 'authFunnel', label: 'Auth Funnel', icon: <KeyRound size={16} /> },
+        { key: 'bookingFunnel', label: 'Booking Funnel', icon: <Filter size={16} /> },
+        { key: 'searches', label: 'All Searches', icon: <Search size={16} /> },
     ];
 
     return (
-        <div>
+        <div className="insights-premium-container">
             <div className="insights-subtabs">
                 {tabs.map(t => (
                     <button
@@ -31,17 +32,20 @@ export const InsightsTab: React.FC = () => {
                         className={`insights-subtab-btn ${activeSubTab === t.key ? 'active' : ''}`}
                         onClick={() => setActiveSubTab(t.key)}
                     >
-                        {t.label}
+                        {t.icon}
+                        <span>{t.label}</span>
                     </button>
                 ))}
             </div>
 
-            {activeSubTab === 'visits' && <SiteVisitsPanel />}
-            {activeSubTab === 'logins' && <PatientLoginsPanel />}
-            {activeSubTab === 'appointments' && <OnlineAppointmentsPanel />}
-            {activeSubTab === 'authFunnel' && <AuthFunnelPanel />}
-            {activeSubTab === 'bookingFunnel' && <BookingFunnelPanel />}
-            {activeSubTab === 'searches' && <SearchLogPanel />}
+            <div className="insights-panel-animated" key={activeSubTab}>
+                {activeSubTab === 'visits' && <SiteVisitsPanel />}
+                {activeSubTab === 'logins' && <PatientLoginsPanel />}
+                {activeSubTab === 'appointments' && <OnlineAppointmentsPanel />}
+                {activeSubTab === 'authFunnel' && <AuthFunnelPanel />}
+                {activeSubTab === 'bookingFunnel' && <BookingFunnelPanel />}
+                {activeSubTab === 'searches' && <SearchLogPanel />}
+            </div>
         </div>
     );
 };

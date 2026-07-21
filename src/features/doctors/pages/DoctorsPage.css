@@ -13,6 +13,7 @@
 .doctor-badge-featured { background: #fef3c7; color: #b45309; }
 .doctor-badge-discount { background: #dcfce7; color: #16a34a; }
 .doctor-badge-delisted { background: #fee2e2; color: #dc2626; }
+.doctor-badge-verified { background: #eff6ff; color: #1e3a8a; }
 
 .doctor-edit-btn {
     display: inline-flex;
