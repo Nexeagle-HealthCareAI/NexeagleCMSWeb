@@ -476,96 +476,94 @@ const DoctorsPage: React.FC = () => {
             {editingDoctor && form && (
                 <div className="reject-modal-overlay" onClick={closeEdit}>
                     <div className="reject-modal" onClick={e => e.stopPropagation()}>
-                        <div className="reject-modal-header">
-                            <h3>{editingDoctor.fullName || 'Doctor'}</h3>
+                        <div className="reject-modal-header" style={{ marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '20px' }}>{editingDoctor.fullName || 'Doctor Settings'}</h3>
+                            <div style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, marginTop: '4px' }}>
+                                {editingDoctor.hospitalName}
+                            </div>
                         </div>
-                        <p style={{ color: '#64748b', fontSize: 13, margin: '0 0 16px 0' }}>
-                            {editingDoctor.hospitalName} — these settings apply platform-wide on Doctor Dekho.
-                        </p>
 
-                        <label className="doctor-form-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={form.isFeatured}
-                                onChange={e => setForm({ ...form, isFeatured: e.target.checked })}
-                            />
-                            <div>
-                                <div style={{ fontWeight: 700 }}>Featured</div>
-                                <div style={{ fontSize: 12, color: '#64748b' }}>Pins this doctor to the top of the public listing.</div>
-                            </div>
-                        </label>
-
-                        <label className="doctor-form-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={form.isDelistedByAdmin}
-                                onChange={e => setForm({ ...form, isDelistedByAdmin: e.target.checked })}
-                            />
-                            <div>
-                                <div style={{ fontWeight: 700 }}>Delisted</div>
-                                <div style={{ fontSize: 12, color: '#64748b' }}>Hides this doctor from Doctor Dekho, overriding the hospital's own listing choice.</div>
-                            </div>
-                        </label>
-
-                        <label className="doctor-form-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={form.isRegistrationVerified}
-                                onChange={e => setForm({ ...form, isRegistrationVerified: e.target.checked })}
-                            />
-                            <div>
-                                <div style={{ fontWeight: 700 }}>Registration verified</div>
-                                <div style={{ fontSize: 12, color: '#64748b' }}>
-                                    Only check this after confirming the license/council/year on the NMC's Indian
-                                    Medical Register from the doctor's "View" profile. Shows a "Verified profile"
-                                    badge on Doctor Dekho.
+                        <div className="premium-edit-section">
+                            <h4 className="premium-edit-section-title">Visibility & Ranking</h4>
+                            
+                            <label className={`premium-toggle-card ${form.isFeatured ? 'active' : ''}`}>
+                                <div className="premium-toggle-card-content">
+                                    <div className="premium-toggle-card-title">Featured Profile</div>
+                                    <div className="premium-toggle-card-desc">Pins this doctor to the top of the public listing.</div>
                                 </div>
-                            </div>
-                        </label>
-
-                        <div style={{ marginTop: 16 }}>
-                            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
-                                Consultation-fee discount (%)
+                                <div className="premium-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.isFeatured}
+                                        onChange={e => setForm({ ...form, isFeatured: e.target.checked })}
+                                    />
+                                    <span className="premium-slider"></span>
+                                </div>
                             </label>
-                            <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                step={1}
-                                placeholder="e.g. 20"
-                                value={form.discountPercent}
-                                onChange={e => setForm({ ...form, discountPercent: e.target.value })}
-                                className="doctor-form-input"
-                            />
+
+                            <label className={`premium-toggle-card ${form.isDelistedByAdmin ? 'danger' : ''}`}>
+                                <div className="premium-toggle-card-content">
+                                    <div className="premium-toggle-card-title" style={{ color: form.isDelistedByAdmin ? '#dc2626' : undefined }}>Delisted by Admin</div>
+                                    <div className="premium-toggle-card-desc">Hides this doctor platform-wide, overriding the hospital's choice.</div>
+                                </div>
+                                <div className="premium-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.isDelistedByAdmin}
+                                        onChange={e => setForm({ ...form, isDelistedByAdmin: e.target.checked })}
+                                    />
+                                    <span className="premium-slider danger-slider"></span>
+                                </div>
+                            </label>
                         </div>
 
-                        <div className="doctor-modal-row">
-                            <div className="doctor-modal-col">
-                                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
-                                    Starts
+                        <div className="premium-edit-section" style={{ marginTop: '24px' }}>
+                            <h4 className="premium-edit-section-title">Promotional Discount</h4>
+                            
+                            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                                    Consultation-fee discount (%)
                                 </label>
                                 <input
-                                    type="datetime-local"
-                                    value={form.discountStartAt}
-                                    onChange={e => setForm({ ...form, discountStartAt: e.target.value })}
-                                    className="doctor-form-input"
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    placeholder="e.g. 20"
+                                    value={form.discountPercent}
+                                    onChange={e => setForm({ ...form, discountPercent: e.target.value })}
+                                    className="doctor-form-input premium-input"
                                 />
-                            </div>
-                            <div className="doctor-modal-col">
-                                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
-                                    Ends
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    value={form.discountEndAt}
-                                    onChange={e => setForm({ ...form, discountEndAt: e.target.value })}
-                                    className="doctor-form-input"
-                                />
+
+                                <div className="doctor-modal-row" style={{ marginTop: '16px' }}>
+                                    <div className="doctor-modal-col">
+                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>
+                                            Starts
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            value={form.discountStartAt}
+                                            onChange={e => setForm({ ...form, discountStartAt: e.target.value })}
+                                            className="doctor-form-input premium-input"
+                                        />
+                                    </div>
+                                    <div className="doctor-modal-col">
+                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>
+                                            Ends
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            value={form.discountEndAt}
+                                            onChange={e => setForm({ ...form, discountEndAt: e.target.value })}
+                                            className="doctor-form-input premium-input"
+                                        />
+                                    </div>
+                                </div>
+                                <p style={{ fontSize: '11px', color: '#94a3b8', margin: '12px 0 0 0', lineHeight: 1.4 }}>
+                                    Leave both dates blank for an always-on discount, or leave the percent blank to remove it.
+                                </p>
                             </div>
                         </div>
-                        <p style={{ fontSize: 11, color: '#94a3b8', margin: '6px 0 0 0' }}>
-                            Leave both blank for an always-on discount, or leave the percent blank to remove it. Changes may take up to a minute to appear on Doctor Dekho.
-                        </p>
 
                         {saveError && (
                             <div style={{ marginTop: 12, padding: '8px 12px', background: '#fef2f2', color: '#dc2626', borderRadius: 8, fontSize: 13 }}>

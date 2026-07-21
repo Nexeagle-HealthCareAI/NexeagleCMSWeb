@@ -105,36 +105,42 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
                     <div className="doctor-detail-loading" style={{ color: '#dc2626' }}>{error}</div>
                 ) : detail ? (
                     <>
-                        <div className="doctor-detail-header">
-                            <div className="doctor-detail-avatar">
+                        <div className="premium-doctor-banner">
+                            <div className="premium-banner-pattern"></div>
+                        </div>
+                        <div className="doctor-detail-header premium-header-overlap">
+                            <div className="doctor-detail-avatar premium-avatar-large">
                                 {detail.photoUrl ? (
                                     <img src={detail.photoUrl} alt={detail.fullName ?? 'Doctor'} />
                                 ) : (
                                     <span>{detail.fullName ? detail.fullName[0].toUpperCase() : 'D'}</span>
                                 )}
                             </div>
-                            <div className="doctor-detail-identity">
-                                <h3>{detail.fullName || 'Unnamed doctor'}</h3>
-                                <p>{detail.qualification || '—'}{detail.experienceYears != null ? ` · ${detail.experienceYears} yrs experience` : ''}</p>
-                                <div className="doctor-detail-badges">
-                                    {detail.isRegistrationVerified && (
-                                        <span className="doctor-badge doctor-badge-verified" title={`Verified on ${formatDate(detail.registrationVerifiedAt)}`}>
-                                            <BadgeCheck size={12} /> NMC Verified
+                            
+                            <div className="premium-header-content">
+                                <div className="doctor-detail-identity">
+                                    <h3 className="premium-doctor-name">{detail.fullName || 'Unnamed doctor'}</h3>
+                                    <p className="premium-doctor-sub">{detail.qualification || '—'}{detail.experienceYears != null ? ` • ${detail.experienceYears} yrs experience` : ''}</p>
+                                    <div className="doctor-detail-badges" style={{ marginTop: '12px' }}>
+                                        {detail.isRegistrationVerified && (
+                                            <span className="doctor-badge doctor-badge-verified" title={`Verified on ${formatDate(detail.registrationVerifiedAt)}`}>
+                                                <BadgeCheck size={12} /> NMC Verified
+                                            </span>
+                                        )}
+                                        {detail.isFeatured && <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>}
+                                        {detail.isDelistedByAdmin && <span className="doctor-badge doctor-badge-delisted"><EyeOff size={12} /> Delisted</span>}
+                                        {detail.discountPercent != null && detail.discountPercent > 0 && (
+                                            <span className="doctor-badge doctor-badge-discount"><Percent size={12} /> {detail.discountPercent}% off</span>
+                                        )}
+                                        <span className={`doctor-badge ${detail.isPubliclyListed ? 'doctor-badge-discount' : 'doctor-badge-delisted'}`}>
+                                            {detail.isPubliclyListed ? 'Publicly listed' : 'Not publicly listed'}
                                         </span>
-                                    )}
-                                    {detail.isFeatured && <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>}
-                                    {detail.isDelistedByAdmin && <span className="doctor-badge doctor-badge-delisted"><EyeOff size={12} /> Delisted</span>}
-                                    {detail.discountPercent != null && detail.discountPercent > 0 && (
-                                        <span className="doctor-badge doctor-badge-discount"><Percent size={12} /> {detail.discountPercent}% off</span>
-                                    )}
-                                    <span className={`doctor-badge ${detail.isPubliclyListed ? 'doctor-badge-discount' : 'doctor-badge-delisted'}`}>
-                                        {detail.isPubliclyListed ? 'Publicly listed' : 'Not publicly listed'}
-                                    </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="doctor-detail-completion">
-                                <span className="doctor-detail-completion-value">{detail.profileCompletionPercent}%</span>
-                                <span className="doctor-detail-completion-label">Profile complete</span>
+                                <div className="doctor-detail-completion premium-completion-card">
+                                    <span className="doctor-detail-completion-value">{detail.profileCompletionPercent}%</span>
+                                    <span className="doctor-detail-completion-label">Profile complete</span>
+                                </div>
                             </div>
                         </div>
 

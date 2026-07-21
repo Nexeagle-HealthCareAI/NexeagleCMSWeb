@@ -9,7 +9,9 @@
     max-width: 720px;
     max-height: 88vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    animation: modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .doctor-detail-close {
@@ -42,46 +44,66 @@
 
 .doctor-detail-header {
     display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 24px 24px 16px 24px;
+    flex-direction: column;
+    padding: 0 24px 24px 24px;
     border-bottom: 1px solid #e2e8f0;
 }
 
-.doctor-detail-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    background: #eff6ff;
-    color: #1e3a8a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 22px;
-    flex-shrink: 0;
+.premium-doctor-banner {
+    height: 100px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    border-radius: 16px 16px 0 0;
+    position: relative;
     overflow: hidden;
 }
-.doctor-detail-avatar img {
+.premium-banner-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: radial-gradient(white 1px, transparent 1px);
+    background-size: 16px 16px;
+}
+
+.premium-header-overlap {
+    position: relative;
+    margin-top: -36px;
+}
+
+.doctor-detail-avatar.premium-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: #ffffff;
+    color: #1e3a8a;
+    font-size: 28px;
+    box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1), 0 0 0 4px white;
+    z-index: 2;
+    margin-bottom: 16px;
+}
+
+.premium-header-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 .doctor-detail-identity {
     flex: 1;
     min-width: 0;
 }
-.doctor-detail-identity h3 {
-    margin: 0 0 2px 0;
-    font-size: 18px;
+.premium-doctor-name {
+    margin: 0 0 4px 0;
+    font-size: 24px;
     font-weight: 800;
     color: #0f172a;
+    letter-spacing: -0.02em;
 }
-.doctor-detail-identity p {
+.premium-doctor-sub {
     margin: 0 0 8px 0;
-    font-size: 13px;
+    font-size: 14px;
     color: #64748b;
+    font-weight: 500;
 }
 
 .doctor-detail-badges {
@@ -90,27 +112,12 @@
     gap: 6px;
 }
 
-.doctor-detail-completion {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #f8fafc;
+.doctor-detail-completion.premium-completion-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 10px 14px;
-    flex-shrink: 0;
-}
-.doctor-detail-completion-value {
-    font-size: 18px;
-    font-weight: 800;
-    color: #1e3a8a;
-}
-.doctor-detail-completion-label {
-    font-size: 10px;
-    color: #94a3b8;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    padding: 12px 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .doctor-detail-body {
