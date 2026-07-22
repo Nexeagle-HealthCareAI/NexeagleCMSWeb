@@ -4,6 +4,7 @@ import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../servi
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
 import { BulkEditModal } from '../components/BulkEditModal';
 import { InsightsTab } from '../../insights/components/InsightsTab';
+import { SymptomRouterTab } from '../../insights/components/SymptomRouterTab';
 import '../../dashboard/pages/Dashboard.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './DoctorsPage.css';
@@ -54,7 +55,7 @@ interface EditFormState {
 }
 
 const DoctorsPage: React.FC = () => {
-    const [pageTab, setPageTab] = useState<'doctors' | 'insights'>('doctors');
+    const [pageTab, setPageTab] = useState<'doctors' | 'insights' | 'nlp'>('doctors');
     const [doctors, setDoctors] = useState<DoctorListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -206,9 +207,16 @@ const DoctorsPage: React.FC = () => {
                 >
                     Insights
                 </button>
+                <button
+                    className={`doctor-page-tab-btn ${pageTab === 'nlp' ? 'active' : ''}`}
+                    onClick={() => setPageTab('nlp')}
+                >
+                    NLP
+                </button>
             </div>
 
             {pageTab === 'insights' && <InsightsTab />}
+            {pageTab === 'nlp' && <SymptomRouterTab />}
 
             {pageTab === 'doctors' && (
             <div className="premium-table-card">

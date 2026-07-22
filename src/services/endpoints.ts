@@ -45,6 +45,12 @@ export const API_ENDPOINTS = {
         BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
         SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
     },
+    SYMPTOM_ROUTER: {
+        TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
+        FEEDBACK_LOG: '/symptom-router/feedback-log',             // ?page=&limit=&from=&to=&correctionsOnly=
+        MODEL_INFO: '/symptom-router/model-info',
+        RETRAIN: '/symptom-router/retrain',                       // POST
+    },
     CHAT: {
         HISTORY: '../chat/history', // ChatController is /api/chat (steps out of /v1). Usage: /chat/history/:sessionId
     }
