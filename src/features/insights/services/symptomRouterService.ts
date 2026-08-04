@@ -88,7 +88,10 @@ export const getFeedbackLog = async (
 // ── Model info / retrain ──────────────────────────────────────────────────────
 export interface ValidationMetrics {
     top1Accuracy: number;
-    topKAccuracy: number;
+    // Coverage-gate rejections (cosine similarity too low to trust the classifier) -- an
+    // honest "no match" rather than a guess, not inherently bad. See 1HMS-NLP-Router's
+    // nlp_brain.config.MATCH_THRESHOLD and data_pipeline/retrain_pipeline.py's evaluate().
+    noMatchRate: number;
     confidentlyWrongRate: number;
 }
 

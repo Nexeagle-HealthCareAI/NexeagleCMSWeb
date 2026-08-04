@@ -81,8 +81,8 @@ export const ModelInfoPanel: React.FC = () => {
                             <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{pct(info.validationMetrics?.top1Accuracy)}</div>
                         </div>
                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Top-K Accuracy</div>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{pct(info.validationMetrics?.topKAccuracy)}</div>
+                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>No-Match Rate</div>
+                            <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{pct(info.validationMetrics?.noMatchRate)}</div>
                         </div>
                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
                             <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Confidently Wrong</div>
