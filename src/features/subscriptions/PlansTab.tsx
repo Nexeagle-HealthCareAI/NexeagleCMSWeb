@@ -312,11 +312,11 @@ export const PlansTab: React.FC = () => {
                                 <div className="form-grid">
                                     <div>
                                         <label>Base Price (₹)</label>
-                                        <input type="number" value={editingPlan.basePrice} onChange={e => setEditingPlan({...editingPlan, basePrice: parseFloat(e.target.value)})} />
+                                        <input type="number" min={0} value={editingPlan.basePrice} onChange={e => setEditingPlan({...editingPlan, basePrice: parseFloat(e.target.value)})} />
                                     </div>
                                     <div>
                                         <label>Discount Price (₹)</label>
-                                        <input type="number" value={editingPlan.discountPrice} onChange={e => setEditingPlan({...editingPlan, discountPrice: parseFloat(e.target.value)})} />
+                                        <input type="number" min={0} value={editingPlan.discountPrice} onChange={e => setEditingPlan({...editingPlan, discountPrice: parseFloat(e.target.value)})} />
                                     </div>
                                 </div>
                                 {savingsPercent !== null && savingsPercent > 0 && (

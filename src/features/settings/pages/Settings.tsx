@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Bell, Monitor, Shield } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import './Settings.css';
 
 const Settings: React.FC = () => {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
     const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
     const [notifications, setNotifications] = React.useState({
         email: true,
@@ -115,7 +117,11 @@ const Settings: React.FC = () => {
                         <p>Change your account password.</p>
                     </div>
                     <div className="setting-control">
-                        <button className="btn btn-secondary" style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: 'white' }}>
+                        <button
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: 'white' }}
+                            onClick={() => navigate('/change-password')}
+                        >
                             Change Password
                         </button>
                     </div>

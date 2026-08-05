@@ -93,17 +93,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 {(!collapsed || isMobile) && <span>Doctor Dekho</span>}
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/partners"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Partner Network" : ""}
-                onClick={isMobile ? toggle : undefined}
-              >
-                <Handshake size={22} />
-                {(!collapsed || isMobile) && <span>Partner Network</span>}
-              </NavLink>
-            </li>
+            {can('partners.manage') && (
+              <li>
+                <NavLink
+                  to="/partners"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Partner Network" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Handshake size={22} />
+                  {(!collapsed || isMobile) && <span>Partner Network</span>}
+                </NavLink>
+              </li>
+            )}
             {can('subscriptions.view') && (
               <li>
                 <NavLink
