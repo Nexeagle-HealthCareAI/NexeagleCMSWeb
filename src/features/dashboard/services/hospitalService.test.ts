@@ -12,16 +12,20 @@ describe('hospitalService', () => {
     it('should fetch hospitals successfully', async () => {
         const mockData = {
             data: {
-                hospitals: [{ id: '1', name: 'Test Hospital' }],
-                currentPage: 1,
-                totalPages: 10,
-                totalItems: 100
+                data: [{ id: '1', name: 'Test Hospital' }],
+                pagination: { currentPage: 1, totalPages: 10, totalItems: 100, itemsPerPage: 10 },
             }
         };
         (api.get as any).mockResolvedValue(mockData);
 
         const result = await getHospitals(1, 10);
-        expect(api.get).toHaveBeenCalledWith('/hospitals?page=1&limit=10');
+        expect(api.get).toHaveBeenCalledWith('/hospitals', {
+            params: {
+                page: 1, limit: 10,
+                search: undefined, sortBy: undefined, sortDir: undefined,
+                status: undefined, subscriptionStatus: undefined,
+            }
+        });
         expect(result).toEqual(mockData.data);
     });
 

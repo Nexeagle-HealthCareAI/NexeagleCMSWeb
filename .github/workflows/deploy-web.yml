@@ -48,6 +48,8 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Run tests
+        run: npm test -- --run
       - name: Build (validation)
         run: npm run build
         env:

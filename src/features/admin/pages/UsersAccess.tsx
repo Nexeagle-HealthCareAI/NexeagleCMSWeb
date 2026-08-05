@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Users, ShieldCheck, Plus, RotateCcw, Save, Trash2, X } from 'lucide-react';
 import '../../dashboard/pages/Dashboard.css';
 import './UsersAccess.css';
+import { useAuthStore } from '../../../store/useAuthStore';
 import {
     adminService,
     type PermissionDto,
@@ -26,6 +27,12 @@ const th: React.CSSProperties = { textAlign: 'left', fontSize: '11px', textTrans
 const td: React.CSSProperties = { padding: '10px', borderTop: '1px solid #eef2f7', fontSize: '14px', color: '#334155' };
 
 const UsersAccess: React.FC = () => {
+    // The route only requires user-management.view (see App.tsx) so read-only staff can see this
+    // page at all -- but every mutating action below (create/edit/disable/reset a user,
+    // create/edit/delete a role) requires user-management.manage server-side (UsersController.cs,
+    // RolesController.cs). Gate those specific controls on it too, so a .view-only account sees a
+    // working read-only page instead of fully-enabled buttons that all 403.
+    const canManage = useAuthStore((s) => s.hasAccess('user-management.manage'));
     const [tab, setTab] = useState<'users' | 'roles'>('users');
     const [permissions, setPermissions] = useState<PermissionDto[]>([]);
     const [roles, setRoles] = useState<RoleDto[]>([]);
@@ -180,10 +187,10 @@ const UsersAccess: React.FC = () => {
                 <div className="table-card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                         <h3 style={{ margin: 0, fontSize: 15 }}>{users.length} user(s)</h3>
-                        <button style={btn('#0f52ba')} onClick={() => setNuOpen((v) => !v)}><Plus size={16} />New user</button>
+                        {canManage && <button style={btn('#0f52ba')} onClick={() => setNuOpen((v) => !v)}><Plus size={16} />New user</button>}
                     </div>
 
-                    {nuOpen && (
+                    {nuOpen && canManage && (
                         <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 16, marginBottom: 16, background: '#f8fafc' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                                 <input style={input} placeholder="Email" value={nu.email} onChange={(e) => setNu({ ...nu, email: e.target.value })} />
@@ -222,8 +229,10 @@ const UsersAccess: React.FC = () => {
                                         </td>
                                         <td style={{ ...td, whiteSpace: 'nowrap' }}>
                                             <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => openEdit(u.userId)}>Edit access</button>{' '}
-                                            <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>{' '}
-                                            <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => resetPw(u)}><RotateCcw size={13} /></button>
+                                            {canManage && <>
+                                                <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>{' '}
+                                                <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => resetPw(u)}><RotateCcw size={13} /></button>
+                                            </>}
                                         </td>
                                     </tr>
                                 ))}
@@ -252,8 +261,10 @@ const UsersAccess: React.FC = () => {
                                 </div>
                                 <div className="ua-card-actions">
                                     <button className="ua-action-btn secondary" onClick={() => openEdit(u.userId)}>Edit access</button>
-                                    <button className="ua-action-btn secondary" onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>
-                                    <button className="ua-action-btn icon-only" onClick={() => resetPw(u)} title="Reset Password"><RotateCcw size={14} /></button>
+                                    {canManage && <>
+                                        <button className="ua-action-btn secondary" onClick={() => toggleActive(u)}>{u.isActive ? 'Disable' : 'Enable'}</button>
+                                        <button className="ua-action-btn icon-only" onClick={() => resetPw(u)} title="Reset Password"><RotateCcw size={14} /></button>
+                                    </>}
                                 </div>
                             </div>
                         ))}
@@ -265,7 +276,7 @@ const UsersAccess: React.FC = () => {
                 <div className="table-card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                         <h3 style={{ margin: 0, fontSize: 15 }}>{roles.length} role(s)</h3>
-                        <button style={btn('#0f52ba')} onClick={openNewRole}><Plus size={16} />New role</button>
+                        {canManage && <button style={btn('#0f52ba')} onClick={openNewRole}><Plus size={16} />New role</button>}
                     </div>
                     {/* Desktop View: Table */}
                     <div className="ua-desktop-table">
@@ -279,7 +290,7 @@ const UsersAccess: React.FC = () => {
                                         <td style={td}>{r.permissionKeys.length}</td>
                                         <td style={{ ...td, whiteSpace: 'nowrap' }}>
                                             <button style={{ ...ghostBtn, padding: '5px 9px' }} onClick={() => openEditRole(r)}>Edit</button>{' '}
-                                            {!r.isSystemDefined && <button style={{ ...ghostBtn, padding: '5px 9px', color: '#991b1b' }} onClick={() => removeRole(r)}><Trash2 size={13} /></button>}
+                                            {canManage && !r.isSystemDefined && <button style={{ ...ghostBtn, padding: '5px 9px', color: '#991b1b' }} onClick={() => removeRole(r)}><Trash2 size={13} /></button>}
                                         </td>
                                     </tr>
                                 ))}
@@ -308,7 +319,7 @@ const UsersAccess: React.FC = () => {
                                 </div>
                                 <div className="ua-card-actions">
                                     <button className="ua-action-btn secondary" onClick={() => openEditRole(r)}>Edit</button>
-                                    {!r.isSystemDefined && (
+                                    {canManage && !r.isSystemDefined && (
                                         <button className="ua-action-btn danger" onClick={() => removeRole(r)}>Delete</button>
                                     )}
                                 </div>
@@ -320,7 +331,7 @@ const UsersAccess: React.FC = () => {
 
             {/* Edit-user drawer */}
             {edit && (
-                <Drawer title={`Access — ${edit.fullName}`} onClose={() => setEdit(null)} onSave={saveEdit}>
+                <Drawer title={`Access — ${edit.fullName}`} onClose={() => setEdit(null)} onSave={saveEdit} saveDisabled={!canManage}>
                     <Section title="Roles">
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                             {roles.map((r) => (
@@ -352,7 +363,7 @@ const UsersAccess: React.FC = () => {
 
             {/* Role create/edit drawer */}
             {roleFormOpen && (
-                <Drawer title={roleForm.id ? 'Edit role' : 'New role'} onClose={() => setRoleFormOpen(false)} onSave={saveRole}>
+                <Drawer title={roleForm.id ? 'Edit role' : 'New role'} onClose={() => setRoleFormOpen(false)} onSave={saveRole} saveDisabled={!canManage}>
                     <input style={{ ...input, marginBottom: 10 }} placeholder="Role name" value={roleForm.name} onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })} />
                     <input style={{ ...input, marginBottom: 14 }} placeholder="Description" value={roleForm.description} onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })} />
                     <Section title="Permissions">
@@ -373,7 +384,7 @@ const UsersAccess: React.FC = () => {
     );
 };
 
-const Drawer: React.FC<{ title: string; onClose: () => void; onSave: () => void; children: React.ReactNode }> = ({ title, onClose, onSave, children }) => (
+const Drawer: React.FC<{ title: string; onClose: () => void; onSave: () => void; saveDisabled?: boolean; children: React.ReactNode }> = ({ title, onClose, onSave, saveDisabled, children }) => (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', display: 'flex', justifyContent: 'flex-end', zIndex: 1000 }} onClick={onClose}>
         <div style={{ width: 460, maxWidth: '92vw', height: '100%', background: 'white', padding: 22, overflowY: 'auto', boxShadow: '-8px 0 24px rgba(0,0,0,0.12)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -382,7 +393,12 @@ const Drawer: React.FC<{ title: string; onClose: () => void; onSave: () => void;
             </div>
             {children}
             <div style={{ marginTop: 18, display: 'flex', gap: 8 }}>
-                <button style={btn('#16a34a')} onClick={onSave}><Save size={16} />Save</button>
+                <button
+                    style={{ ...btn('#16a34a'), ...(saveDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+                    onClick={onSave}
+                    disabled={saveDisabled}
+                    title={saveDisabled ? "You don't have permission to save changes here." : undefined}
+                ><Save size={16} />Save</button>
                 <button style={ghostBtn} onClick={onClose}>Cancel</button>
             </div>
         </div>

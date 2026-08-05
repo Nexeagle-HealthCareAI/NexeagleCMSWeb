@@ -41,9 +41,12 @@ function App() {
   const [booting, setBooting] = React.useState(true);
 
   React.useEffect(() => {
-    // Access token lives in memory only. On page reload the persisted store still
-    // knows the user was authenticated but the token is gone. Try a silent refresh
-    // using the HttpOnly refresh cookie before rendering any protected routes.
+    // The access token IS persisted (useAuthStore's zustand `persist` includes it in
+    // partialize, rehydrated from localStorage before this effect runs), so this branch
+    // is a defensive fallback for the rarer case where isAuthenticated rehydrated but
+    // token didn't (partial localStorage failure/tampering) rather than the normal-reload
+    // path. Try a silent refresh using the HttpOnly refresh cookie before rendering any
+    // protected routes in that case.
     if (isAuthenticated && !token) {
       silentRefresh().finally(() => setBooting(false));
     } else {
@@ -84,7 +87,7 @@ function App() {
             <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
             <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
             <Route path="doctors" element={<DoctorsPage />} />
-            <Route path="partners" element={<PartnersPage />} />
+            <Route path="partners" element={<RequirePermission perm="partners.manage"><PartnersPage /></RequirePermission>} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />

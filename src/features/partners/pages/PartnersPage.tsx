@@ -10,6 +10,7 @@ import './PartnersPage.css';
 const PartnersPage: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
@@ -27,10 +28,13 @@ const PartnersPage: React.FC = () => {
   const fetchPartners = async () => {
     try {
       setLoading(true);
+      setFetchError(false);
       const data = await partnerService.getAll();
       setPartners(data);
     } catch (error) {
       console.error('Failed to fetch partners:', error);
+      setFetchError(true);
+      toast.error('Failed to load partners. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -152,6 +156,15 @@ const PartnersPage: React.FC = () => {
 
         {loading ? (
           <div className="flex justify-center p-8">Loading partners...</div>
+        ) : fetchError ? (
+          <div className="empty-state">
+            <AlertTriangle size={48} className="text-gray-400 mb-4 mx-auto" />
+            <h3>Couldn't load partners</h3>
+            <p>Something went wrong fetching the partner list.</p>
+            <button className="btn-secondary" style={{ marginTop: '12px' }} onClick={fetchPartners}>
+              Try again
+            </button>
+          </div>
         ) : partners.length === 0 ? (
           <div className="empty-state">
             <Users size={48} className="text-gray-400 mb-4 mx-auto" />
