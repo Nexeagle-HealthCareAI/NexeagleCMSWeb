@@ -53,5 +53,6 @@ export const API_ENDPOINTS = {
     },
     CHAT: {
         HISTORY: '../chat/history', // ChatController is /api/chat (steps out of /v1). Usage: /chat/history/:sessionId
+        SESSIONS: '../chat/sessions', // ?page=&limit=&from=&to=&search=
     }
 };
