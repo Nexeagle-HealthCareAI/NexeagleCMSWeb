@@ -85,7 +85,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
-            <Route path="onboarded-hospitals" element={<OnboardedHospitals />} />
+            <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
             <Route path="partners" element={<RequirePermission perm="partners.manage"><PartnersPage /></RequirePermission>} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
