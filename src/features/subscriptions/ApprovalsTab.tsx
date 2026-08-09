@@ -21,6 +21,9 @@ interface PaymentRequest {
     isProratedSwitch: boolean;
     previousPlanName: string | null;
     proratedCreditAmount: number | null;
+    referralCode: string | null;
+    referralCodeRewardKind: 'PercentageOff' | 'ExtraMonths' | null;
+    referralCodeRewardValue: number | null;
 }
 
 interface ApprovalHistoryEntry {
@@ -40,7 +43,20 @@ interface ApprovalHistoryEntry {
     isProratedSwitch: boolean;
     previousPlanName: string | null;
     proratedCreditAmount: number | null;
+    referralCode: string | null;
+    referralCodeRewardKind: 'PercentageOff' | 'ExtraMonths' | null;
+    referralCodeRewardValue: number | null;
 }
+
+const ReferralHint: React.FC<{ code: string | null; rewardKind: 'PercentageOff' | 'ExtraMonths' | null; rewardValue: number | null }> = ({ code, rewardKind, rewardValue }) => {
+    if (!code) return null;
+    const reward = rewardKind === 'PercentageOff' ? `${rewardValue}% off` : `+${rewardValue} month${rewardValue === 1 ? '' : 's'}`;
+    return (
+        <div style={{ fontSize: 11, color: '#0f766e', fontWeight: 700, marginTop: 4, fontFamily: 'monospace' }}>
+            Referral: {code} ({reward})
+        </div>
+    );
+};
 
 // Both products' approval requests are shown together — this badge is the only thing that tells
 // them apart, so it needs to read at a glance rather than requiring a tab switch to know which is which.
@@ -222,6 +238,7 @@ export const ApprovalsTab: React.FC = () => {
                                                         Switch from {req.previousPlanName} &middot; credit ₹{req.proratedCreditAmount?.toLocaleString('en-IN')}
                                                     </div>
                                                 )}
+                                                <ReferralHint code={req.referralCode} rewardKind={req.referralCodeRewardKind} rewardValue={req.referralCodeRewardValue} />
                                             </td>
                                             <td>
                                                 {req.paymentAmount != null ? (
@@ -304,6 +321,7 @@ export const ApprovalsTab: React.FC = () => {
                                         <div className="premium-mobile-detail-item">
                                             <span className="premium-mobile-detail-label">Plan Details</span>
                                             <span className="premium-mobile-detail-value" style={{fontWeight: 600, color: 'var(--primary)'}}>{req.planName || 'Unknown Plan'}</span>
+                                            <ReferralHint code={req.referralCode} rewardKind={req.referralCodeRewardKind} rewardValue={req.referralCodeRewardValue} />
                                         </div>
                                         <div className="premium-mobile-detail-item">
                                             <span className="premium-mobile-detail-label">Trial End Date</span>
@@ -392,6 +410,7 @@ export const ApprovalsTab: React.FC = () => {
                                                         Switch from {entry.previousPlanName} &middot; credit ₹{entry.proratedCreditAmount?.toLocaleString('en-IN')}
                                                     </div>
                                                 )}
+                                                <ReferralHint code={entry.referralCode} rewardKind={entry.referralCodeRewardKind} rewardValue={entry.referralCodeRewardValue} />
                                             </td>
                                             <td>
                                                 <div style={{fontWeight: 700}}>
@@ -448,6 +467,7 @@ export const ApprovalsTab: React.FC = () => {
                                         <div className="premium-mobile-detail-item">
                                             <span className="premium-mobile-detail-label">Plan Name</span>
                                             <span className="premium-mobile-detail-value" style={{fontWeight: 600, color: 'var(--primary)'}}>{entry.planName}</span>
+                                            <ReferralHint code={entry.referralCode} rewardKind={entry.referralCodeRewardKind} rewardValue={entry.referralCodeRewardValue} />
                                         </div>
                                         <div className="premium-mobile-detail-item">
                                             <span className="premium-mobile-detail-label">Amount Paid</span>
