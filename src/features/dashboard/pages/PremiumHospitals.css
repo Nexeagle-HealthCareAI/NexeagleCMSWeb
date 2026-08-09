@@ -315,6 +315,30 @@
 }
 .premium-status-trial::before { background: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
 
+.premium-status-archived {
+    background: #f1f5f9;
+    color: #64748b;
+}
+.premium-status-archived::before { background: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2); }
+
+.premium-row-archived {
+    opacity: 0.55;
+}
+
+.premium-archived-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.premium-archived-toggle input {
+    cursor: pointer;
+}
+
 /* Subscription Details */
 .premium-sub-plan {
     font-weight: 600;

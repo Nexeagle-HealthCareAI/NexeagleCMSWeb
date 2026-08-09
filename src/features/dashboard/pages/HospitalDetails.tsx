@@ -3,13 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, MapPin, Phone, Mail, Building2, ChevronDown, ChevronUp,
     Users, Stethoscope, CreditCard, Calendar, Activity, GraduationCap,
-    FileText, Shield, TrendingUp, Receipt, UserCog, Globe, Building
+    FileText, Shield, TrendingUp, Receipt, UserCog, Globe, Building,
+    AlertTriangle, ArchiveRestore, Archive as ArchiveIcon
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { getHospitalById, getHospitalAppointmentStats, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
+import { toast } from 'sonner';
+import { useAuthStore } from '../../../store/useAuthStore';
+import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
 import './HospitalDetails.css';
+import '../../partners/pages/PartnersPage.css';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
 
@@ -42,6 +46,12 @@ const HospitalDetails: React.FC = () => {
     const [customTo, setCustomTo] = useState('');
     const [apptStats, setApptStats] = useState<HospitalAppointmentSourceStats | null>(null);
     const [apptStatsLoading, setApptStatsLoading] = useState(false);
+
+    const canManageHospitals = useAuthStore((s) => s.hasAccess('hospitals.manage'));
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [archiveConfirmText, setArchiveConfirmText] = useState('');
+    const [isArchiving, setIsArchiving] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(false);
 
     React.useEffect(() => {
         const fetchHospital = async () => {
@@ -78,6 +88,36 @@ const HospitalDetails: React.FC = () => {
         return () => { cancelled = true; };
     }, [id, dateFilterMode, customFrom, customTo]);
 
+    const handleArchive = async () => {
+        if (!hospital || archiveConfirmText !== hospital.name) return;
+        setIsArchiving(true);
+        try {
+            await archiveHospital(hospital.id);
+            toast.success('Hospital archived');
+            setHospital(prev => prev ? { ...prev, isArchived: true, archivedAt: new Date().toISOString() } : prev);
+            setShowArchiveModal(false);
+            setArchiveConfirmText('');
+        } catch {
+            toast.error('Failed to archive hospital');
+        } finally {
+            setIsArchiving(false);
+        }
+    };
+
+    const handleRestore = async () => {
+        if (!hospital) return;
+        setIsRestoring(true);
+        try {
+            await restoreHospital(hospital.id);
+            toast.success('Hospital restored');
+            setHospital(prev => prev ? { ...prev, isArchived: false, archivedAt: null } : prev);
+        } catch {
+            toast.error('Failed to restore hospital');
+        } finally {
+            setIsRestoring(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -104,13 +144,38 @@ const HospitalDetails: React.FC = () => {
 
     return (
         <div className="hospital-details-container">
-            <button
-                onClick={() => navigate('/onboarded-hospitals')}
-                className="back-button"
-            >
-                <ArrowLeft size={16} />
-                Back to Onboarded Hospitals
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <button
+                    onClick={() => navigate('/onboarded-hospitals')}
+                    className="back-button"
+                >
+                    <ArrowLeft size={16} />
+                    Back to Onboarded Hospitals
+                </button>
+
+                {canManageHospitals && (
+                    hospital.isArchived ? (
+                        <button
+                            onClick={handleRestore}
+                            disabled={isRestoring}
+                            className="btn-secondary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            <ArchiveRestore size={16} />
+                            {isRestoring ? 'Restoring…' : 'Restore Hospital'}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setShowArchiveModal(true)}
+                            className="btn-secondary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', borderColor: '#fecaca' }}
+                        >
+                            <ArchiveIcon size={16} />
+                            Archive Hospital
+                        </button>
+                    )
+                )}
+            </div>
 
             {/* Header Section */}
             <div className="hospital-header">
@@ -127,6 +192,11 @@ const HospitalDetails: React.FC = () => {
                             <span className={`status-badge ${getStatusClass(hospital.status)}`} style={{ marginLeft: '12px' }}>
                                 {hospital.status}
                             </span>
+                            {hospital.isArchived && (
+                                <span className="status-badge status-inactive" style={{ marginLeft: '8px' }}>
+                                    Archived{hospital.archivedAt ? ` on ${new Date(hospital.archivedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -444,7 +514,7 @@ const HospitalDetails: React.FC = () => {
                             <div key={idx} className="details-mobile-card">
                                 <div className="details-card-header">
                                     <div className="details-card-avatar">
-                                        {user.name[0].toUpperCase()}
+                                        {user.name?.[0]?.toUpperCase() || '?'}
                                     </div>
                                     <div className="details-card-meta">
                                         <h4>{user.name}</h4>
@@ -679,10 +749,64 @@ const HospitalDetails: React.FC = () => {
                     </div>
                 </CollapsibleCard>
 
-
-
-
             </div>
+
+            {/* Archive Confirmation Modal */}
+            {showArchiveModal && (
+                <div className="modal-backdrop">
+                    <div className="modal-content" style={{ maxWidth: '420px' }}>
+                        <div className="modal-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%' }}>
+                                    <AlertTriangle size={20} />
+                                </div>
+                                <h2 className="modal-title" style={{ margin: 0, color: '#0f172a' }}>Archive Hospital</h2>
+                            </div>
+                            <button className="modal-close" onClick={() => { setShowArchiveModal(false); setArchiveConfirmText(''); }}>&times;</button>
+                        </div>
+
+                        <div className="modal-body" style={{ marginTop: '16px' }}>
+                            <p style={{ color: '#475569', fontSize: '14px', marginBottom: '16px' }}>
+                                This hides <strong>{hospital.name}</strong> and all its data — staff access, patient
+                                records, and its public listing — everywhere. Nothing is deleted; you can restore it
+                                from this page at any time.
+                            </p>
+
+                            <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
+                                    Please type <strong>{hospital.name}</strong> to confirm.
+                                </label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={archiveConfirmText}
+                                    onChange={(e) => setArchiveConfirmText(e.target.value)}
+                                    placeholder={hospital.name}
+                                    autoComplete="off"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                className="btn-secondary"
+                                onClick={() => { setShowArchiveModal(false); setArchiveConfirmText(''); }}
+                                disabled={isArchiving}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn-primary"
+                                style={{ background: '#ef4444', opacity: archiveConfirmText === hospital.name ? 1 : 0.5 }}
+                                disabled={archiveConfirmText !== hospital.name || isArchiving}
+                                onClick={handleArchive}
+                            >
+                                {isArchiving ? 'Archiving…' : 'Archive Hospital'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

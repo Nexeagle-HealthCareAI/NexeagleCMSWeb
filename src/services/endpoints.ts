@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
         GET_ALL: '/hospitals',
         GET_BY_ID: '/hospitals', // Usage: /hospitals/:id
         APPOINTMENT_STATS: '/hospitals', // Usage: /hospitals/:id/appointment-stats?from=&to= (GET)
+        ARCHIVE: '/hospitals', // Usage: /hospitals/:id/archive (PATCH)
+        RESTORE: '/hospitals', // Usage: /hospitals/:id/restore (PATCH)
     },
     DOCTORS: {
         GET_ALL: '/doctors',

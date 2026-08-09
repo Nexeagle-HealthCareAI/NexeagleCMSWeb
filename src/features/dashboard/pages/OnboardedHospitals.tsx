@@ -46,6 +46,7 @@ const OnboardedHospitals: React.FC = () => {
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'registeredon', direction: 'desc' });
     const [statusFilter, setStatusFilter] = useState('');
     const [subscriptionStatusFilter, setSubscriptionStatusFilter] = useState('');
+    const [includeArchived, setIncludeArchived] = useState(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -67,7 +68,7 @@ const OnboardedHospitals: React.FC = () => {
             setLoading(true);
             const response = await getHospitals(
                 currentPage, itemsPerPage, search, sortConfig.key, sortConfig.direction,
-                statusFilter, subscriptionStatusFilter
+                statusFilter, subscriptionStatusFilter, includeArchived
             );
             setHospitals(response.data);
             setTotalPages(response.pagination.totalPages);
@@ -79,7 +80,7 @@ const OnboardedHospitals: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, itemsPerPage, search, sortConfig, statusFilter, subscriptionStatusFilter]);
+    }, [currentPage, itemsPerPage, search, sortConfig, statusFilter, subscriptionStatusFilter, includeArchived]);
 
     useEffect(() => {
         fetchHospitals();
@@ -165,6 +166,14 @@ const OnboardedHospitals: React.FC = () => {
                             <option value="PendingApproval">Pending Approval</option>
                             <option value="None">No Subscription</option>
                         </select>
+                        <label className="premium-archived-toggle">
+                            <input
+                                type="checkbox"
+                                checked={includeArchived}
+                                onChange={(e) => { setIncludeArchived(e.target.checked); setCurrentPage(1); }}
+                            />
+                            Show archived
+                        </label>
                     </div>
                 </div>
 
@@ -226,7 +235,7 @@ const OnboardedHospitals: React.FC = () => {
                                         <tr
                                             key={hospital.id}
                                             onClick={() => handleRowClick(hospital.id)}
-                                            className="premium-row"
+                                            className={`premium-row ${hospital.isArchived ? 'premium-row-archived' : ''}`}
                                         >
                                             <td>
                                                 <div className="premium-hospital-cell">
@@ -274,6 +283,11 @@ const OnboardedHospitals: React.FC = () => {
                                                 <span className={`premium-status premium-status-${hospital.status.toLowerCase()}`}>
                                                     {hospital.status}
                                                 </span>
+                                                {hospital.isArchived && (
+                                                    <span className="premium-status premium-status-archived" style={{ marginLeft: '6px' }}>
+                                                        Archived
+                                                    </span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -289,9 +303,9 @@ const OnboardedHospitals: React.FC = () => {
                         {/* Mobile View: Cards */}
                         <div className="premium-mobile-cards">
                             {hospitals.map((hospital) => (
-                                <div 
-                                    key={hospital.id} 
-                                    className="premium-mobile-card" 
+                                <div
+                                    key={hospital.id}
+                                    className={`premium-mobile-card ${hospital.isArchived ? 'premium-row-archived' : ''}`}
                                     onClick={() => handleRowClick(hospital.id)}
                                 >
                                     <div className="premium-mobile-header">
@@ -304,9 +318,14 @@ const OnboardedHospitals: React.FC = () => {
                                                 {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
                                             </p>
                                         </div>
-                                        <span className={`premium-status premium-status-${hospital.status.toLowerCase()}`}>
-                                            {hospital.status}
-                                        </span>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                                            <span className={`premium-status premium-status-${hospital.status.toLowerCase()}`}>
+                                                {hospital.status}
+                                            </span>
+                                            {hospital.isArchived && (
+                                                <span className="premium-status premium-status-archived">Archived</span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="premium-mobile-details">

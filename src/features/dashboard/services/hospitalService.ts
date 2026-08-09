@@ -76,6 +76,9 @@ export interface Hospital {
     totalPatients: number;
     registeredOn: string;
     status: string;
+    // Soft-delete — separate from `status` above (which reflects onboarding, not archiving).
+    isArchived: boolean;
+    archivedAt: string | null;
     // Subscription summary (list + detail)
     subscriptionPlanName?: string | null;
     subscriptionStatus?: string | null; // Trial, Active, Expired, Blocked, Rejected, Pending, PendingApproval
@@ -120,7 +123,8 @@ export const getHospitals = async (
     sortBy?: string,
     sortDir?: 'asc' | 'desc',
     status?: string,
-    subscriptionStatus?: string
+    subscriptionStatus?: string,
+    includeArchived: boolean = false
 ): Promise<HospitalsResponse> => {
     try {
         const response = await api.get<HospitalsResponse>(API_ENDPOINTS.HOSPITALS.GET_ALL, {
@@ -130,7 +134,8 @@ export const getHospitals = async (
                 sortBy: sortBy || undefined,
                 sortDir: sortDir || undefined,
                 status: status || undefined,
-                subscriptionStatus: subscriptionStatus || undefined
+                subscriptionStatus: subscriptionStatus || undefined,
+                includeArchived: includeArchived || undefined
             }
         });
         return response.data;
@@ -146,6 +151,14 @@ export const getHospitalById = async (id: string): Promise<Hospital> => {
     } catch (error) {
         throw error;
     }
+};
+
+export const archiveHospital = async (id: string): Promise<void> => {
+    await api.patch(`${API_ENDPOINTS.HOSPITALS.ARCHIVE}/${id}/archive`);
+};
+
+export const restoreHospital = async (id: string): Promise<void> => {
+    await api.patch(`${API_ENDPOINTS.HOSPITALS.RESTORE}/${id}/restore`);
 };
 
 // from/to are "yyyy-MM-dd" (inclusive). Omit both for all-time; pass the same date for both for
