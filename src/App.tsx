@@ -14,6 +14,7 @@ import SubscriptionManagementPage from './features/subscriptions/SubscriptionMan
 import PartnersPage from './features/partners/pages/PartnersPage';
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import UsersAccess from './features/admin/pages/UsersAccess';
+import MarketingPage from './features/marketing/pages/MarketingPage';
 import RequirePermission from './components/RequirePermission';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -91,6 +92,7 @@ function App() {
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
+            <Route path="marketing" element={<RequirePermission perm="marketing.view"><MarketingPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
             <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport /></RequirePermission>} />
             <Route path="users" element={<RequirePermission perm="user-management.view"><UsersAccess /></RequirePermission>} />

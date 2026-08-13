@@ -47,6 +47,9 @@ export const API_ENDPOINTS = {
         BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
         SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
     },
+    MARKETING: {
+        DEMO_LOGINS: '/marketing/demo-logins',        // ?page=&limit=
+    },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
         FEEDBACK_LOG: '/symptom-router/feedback-log',             // ?page=&limit=&from=&to=&correctionsOnly=
