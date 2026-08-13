@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { QrCode, Download } from 'lucide-react';
-import { getDemoLoginLeads, type DemoLoginLeadItem } from '../services/marketingService';
+import { QrCode, Download, Users, Eye, MapPin } from 'lucide-react';
+import { getDemoLoginLeads, getDemoLoginStats, type DemoLoginLeadItem, type DemoLoginStats, type DemoLocationCount } from '../services/marketingService';
 import '../../settings/pages/Settings.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import '../../insights/components/Insights.css';
@@ -9,14 +9,19 @@ import './Marketing.css';
 const DEMO_LOGIN_URL = 'https://1hms-dev.nexeagle.com/login?demo=true';
 const DEMO_LOGIN_EMAIL = 'info@nexeagle.com';
 
-const formatDateTime = (iso: string): string => {
+// Always shown in IST regardless of the viewer's own system/browser timezone -- this is a
+// India-only demo funnel, and a CMS admin checking from a different timezone should still see
+// "when, IST" rather than their own local time.
+const formatDateTimeIST = (iso: string): string => {
     const d = new Date(iso);
-    return `${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}, ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+    const datePart = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+    const timePart = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+    return `${datePart}, ${timePart}`;
 };
 
-const formatLocation = (item: DemoLoginLeadItem): string => {
+const formatLocation = (item: { city: string | null; region: string | null; country: string | null }): string => {
     const parts = [item.city, item.region, item.country].filter(Boolean);
-    return parts.length > 0 ? parts.join(', ') : '—';
+    return parts.length > 0 ? parts.join(', ') : 'Unknown';
 };
 
 const MarketingPage: React.FC = () => {
@@ -25,6 +30,7 @@ const MarketingPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
+    const [stats, setStats] = useState<DemoLoginStats | null>(null);
     const itemsPerPage = 10;
 
     const fetchLeads = useCallback(async () => {
@@ -42,6 +48,10 @@ const MarketingPage: React.FC = () => {
     }, [currentPage]);
 
     useEffect(() => { fetchLeads(); }, [fetchLeads]);
+
+    useEffect(() => {
+        getDemoLoginStats().then(setStats).catch(() => setStats(null));
+    }, [totalItems]);
 
     const handleDownload = () => {
         const link = document.createElement('a');
@@ -88,16 +98,44 @@ const MarketingPage: React.FC = () => {
             <section className="settings-section">
                 <h2 className="section-title">Demo Logins</h2>
                 <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: -8, marginBottom: 16 }}>
-                    Everyone who has scanned the QR and landed in the demo — {totalItems} so far. Name and mobile
-                    only appear when a visitor filled in the optional callback form after logging in.
+                    Everyone who has scanned the QR and landed in the demo. Name and mobile only appear when a
+                    visitor filled in the optional callback form after logging in — location is approximate,
+                    resolved from the visitor's IP address (not device GPS).
                 </p>
+
+                {stats && (
+                    <>
+                        <div className="insights-stat-grid" style={{ marginBottom: 16 }}>
+                            <div className="insights-stat-card">
+                                <div className="insights-stat-value">{stats.totalLogins.toLocaleString()}</div>
+                                <div className="insights-stat-label"><Eye size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />Total Demo Logins</div>
+                            </div>
+                            <div className="insights-stat-card">
+                                <div className="insights-stat-value">{stats.uniqueVisitors.toLocaleString()}</div>
+                                <div className="insights-stat-label"><Users size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />Unique Visitors</div>
+                            </div>
+                        </div>
+
+                        {stats.topLocations.length > 0 && (
+                            <div className="insights-mini-table-card" style={{ marginBottom: 16 }}>
+                                <h3 className="insights-mini-table-title"><MapPin size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />Top Locations</h3>
+                                {stats.topLocations.map((loc: DemoLocationCount, i: number) => (
+                                    <div key={i} className="insights-mini-row">
+                                        <span className="insights-mini-row-label">{formatLocation(loc)}</span>
+                                        <span className="insights-mini-row-value">{loc.count.toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
 
                 <div className="premium-table-card">
                     <div className="premium-responsive-wrapper">
                         <table className="premium-table">
                             <thead>
                                 <tr>
-                                    <th>When</th>
+                                    <th>When (IST)</th>
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>Location</th>
@@ -110,7 +148,7 @@ const MarketingPage: React.FC = () => {
                                     <tr><td colSpan={4} style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>No demo logins recorded yet.</td></tr>
                                 ) : items.map((item) => (
                                     <tr key={item.leadId} className="premium-row">
-                                        <td>{formatDateTime(item.occurredAt)}</td>
+                                        <td>{formatDateTimeIST(item.occurredAt)}</td>
                                         <td>{item.patientName || '—'}</td>
                                         <td style={{ fontFamily: 'monospace' }}>{item.mobile || '—'}</td>
                                         <td>{formatLocation(item)}</td>

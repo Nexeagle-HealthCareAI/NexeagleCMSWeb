@@ -30,3 +30,21 @@ export const getDemoLoginLeads = async (
     });
     return response.data;
 };
+
+export interface DemoLocationCount {
+    country: string | null;
+    region: string | null;
+    city: string | null;
+    count: number;
+}
+
+export interface DemoLoginStats {
+    totalLogins: number;
+    uniqueVisitors: number;
+    topLocations: DemoLocationCount[];
+}
+
+export const getDemoLoginStats = async (): Promise<DemoLoginStats> => {
+    const response = await api.get<DemoLoginStats>(API_ENDPOINTS.MARKETING.DEMO_LOGINS_STATS);
+    return response.data;
+};

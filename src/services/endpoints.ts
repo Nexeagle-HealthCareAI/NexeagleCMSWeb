@@ -48,7 +48,8 @@ export const API_ENDPOINTS = {
         SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
     },
     MARKETING: {
-        DEMO_LOGINS: '/marketing/demo-logins',        // ?page=&limit=
+        DEMO_LOGINS: '/marketing/demo-logins',              // ?page=&limit=
+        DEMO_LOGINS_STATS: '/marketing/demo-logins/stats',
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
