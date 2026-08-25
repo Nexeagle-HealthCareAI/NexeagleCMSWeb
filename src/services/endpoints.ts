@@ -22,6 +22,14 @@ export const API_ENDPOINTS = {
         ARCHIVE: '/hospitals', // Usage: /hospitals/:id/archive (PATCH)
         RESTORE: '/hospitals', // Usage: /hospitals/:id/restore (PATCH)
     },
+    DATA_MIGRATION: {
+        BATCHES: '/data-migration/batches',
+        // Usage: /data-migration/batches/:id (GET)
+        //        /data-migration/batches/:id/column-mapping (PUT)
+        //        /data-migration/batches/:id/transform (POST)
+        //        /data-migration/batches/:id/rows?page=&limit=&status= (GET)
+        //        /data-migration/batches/:id/doctor-map (PUT)
+    },
     DOCTORS: {
         GET_ALL: '/doctors',
         GET_DETAIL: '/doctors', // Usage: /doctors/:doctorId (GET)

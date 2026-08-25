@@ -12,6 +12,7 @@ export interface User {
 }
 
 export interface Doctor {
+    id: string;
     name: string;
     departments: string[];
     speciality: string;
