@@ -79,6 +79,18 @@ export const LeadsPipeline: React.FC = () => {
         return () => clearTimeout(timer);
     }, [search, stage, priority]);
 
+    // Real-time Hot Lead Refresh
+    useEffect(() => {
+        const handleNewHotLead = () => {
+            // Auto refresh the first page when a new hot lead arrives
+            loadLeads(1);
+        };
+        window.addEventListener('crm-hot-lead-received', handleNewHotLead);
+        return () => {
+            window.removeEventListener('crm-hot-lead-received', handleNewHotLead);
+        };
+    }, [loadLeads]);
+
     const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
     return (

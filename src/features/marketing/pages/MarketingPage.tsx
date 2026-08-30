@@ -4,6 +4,7 @@ import { getDemoLoginLeads, getDemoLoginStats, type DemoLoginLeadItem, type Demo
 import { LeadsPipeline } from '../components/LeadsPipeline';
 import { CrmKanbanPage } from '../components/CrmKanbanPage';
 import { SocialCampaignsPage } from '../components/SocialCampaignsPage';
+import { MarketingDashboard } from '../components/MarketingDashboard';
 import '../../settings/pages/Settings.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import '../../insights/components/Insights.css';
@@ -25,7 +26,7 @@ const formatLocation = (item: { city: string | null; region: string | null; coun
 };
 
 const MarketingPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'pipeline' | 'demoLogins' | 'aiCrm' | 'social'>('aiCrm');
+    const [activeTab, setActiveTab] = useState<'pipeline' | 'demoLogins' | 'aiCrm' | 'social' | 'analytics'>('aiCrm');
 
     const [items, setItems] = useState<DemoLoginLeadItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -96,6 +97,12 @@ const MarketingPage: React.FC = () => {
                         className={`marketing-tab ${activeTab === 'social' ? 'active' : ''}`}
                     >
                         <Share2 size={16} /> Social Autopilot
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('analytics')}
+                        className={`marketing-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+                    >
+                        <Target size={16} /> ROI & Analytics
                     </button>
                 </div>
             </header>
@@ -217,6 +224,10 @@ const MarketingPage: React.FC = () => {
 
                 {activeTab === 'social' && (
                     <SocialCampaignsPage />
+                )}
+
+                {activeTab === 'analytics' && (
+                    <MarketingDashboard />
                 )}
             </div>
         </div>
