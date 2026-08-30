@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    X, Phone, Mail, MapPin, User, Loader2, Plus, Edit2, Check,
+    X, Phone, Mail, MapPin, User, Loader2, Plus, Edit2,
     PhoneCall, MessageCircle, AtSign, Users, FileText, Clock, Sparkles, Wand2
 } from 'lucide-react';
 import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
