@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, MessageCircle, MoreVertical, Loader2 } from 'lucide-react';
 import { type CrmLead } from '../types/crm';
 import { crmService } from '../services/crmService';
+import { LeadDetailDrawer } from './LeadDetailDrawer';
+import { adminService, type UserSummary } from '../../admin/services/adminService';
 import '../pages/Marketing.css';
 import '../../settings/pages/Settings.css';
 
@@ -10,6 +12,9 @@ const STAGES = ['NEW', 'CONTACTED', 'DEMO_SCHEDULED', 'NEGOTIATION', 'WON', 'LOS
 export const CrmKanbanPage: React.FC = () => {
     const [leads, setLeads] = useState<CrmLead[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [users, setUsers] = useState<UserSummary[]>([]);
+    const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
     const loadLeads = async () => {
         try {
@@ -25,6 +30,13 @@ export const CrmKanbanPage: React.FC = () => {
 
     useEffect(() => {
         loadLeads();
+        adminService.getUsers().then(res => setUsers(res)).catch(console.error);
+
+        const handleNewHotLead = () => {
+            loadLeads();
+        };
+        window.addEventListener('crm-hot-lead-received', handleNewHotLead);
+        return () => window.removeEventListener('crm-hot-lead-received', handleNewHotLead);
     }, []);
 
     const handleDragStart = (e: React.DragEvent, leadId: string) => {
@@ -87,8 +99,9 @@ export const CrmKanbanPage: React.FC = () => {
                                         <div 
                                             key={lead.id} 
                                             draggable
+                                            onClick={() => setSelectedLeadId(lead.id)}
                                             onDragStart={(e) => handleDragStart(e, lead.id)}
-                                            style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', cursor: 'grab' }}
+                                            style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', cursor: 'pointer' }}
                                         >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                                             <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{lead.facilityName}</span>
@@ -114,6 +127,14 @@ export const CrmKanbanPage: React.FC = () => {
                     })
                 )}
             </div>
+
+            <LeadDetailDrawer
+                leadId={selectedLeadId}
+                isOpen={selectedLeadId !== null}
+                onClose={() => setSelectedLeadId(null)}
+                users={users}
+                onUpdated={() => loadLeads()}
+            />
         </div>
     );
 };

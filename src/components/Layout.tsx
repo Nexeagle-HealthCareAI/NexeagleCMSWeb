@@ -4,8 +4,9 @@ import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Gr
 import Sidebar from './Sidebar';
 import { useSupportStore } from '../store/useSupportStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { syncManager } from '../utils/syncManager';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import './Layout.css';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -131,6 +132,50 @@ const Layout: React.FC = () => {
     // Refresh the current user's permissions on app load so route/menu gating stays current.
     useEffect(() => {
         void useAuthStore.getState().fetchMe();
+    }, []);
+
+    // SignalR for Hot Leads
+    useEffect(() => {
+        const playBeep = () => {
+            try {
+                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            } catch (e) {
+                console.error("Audio beep failed", e);
+            }
+        };
+
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1';
+        const hubUrl = apiUrl.replace('/api/v1', '/hubs/crm');
+
+        const connection = new HubConnectionBuilder()
+            .withUrl(hubUrl)
+            .configureLogging(LogLevel.Warning)
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveHotLead", (lead: any) => {
+            playBeep();
+            toast.success(`🔥 HOT LEAD ALERT: ${lead.facilityName} (${lead.aiIntentScore}/100)`, {
+                description: `Phone: ${lead.phoneNumber} | City: ${lead.city}`,
+                duration: 10000,
+            });
+            window.dispatchEvent(new CustomEvent('crm-hot-lead-received', { detail: lead }));
+        });
+
+        connection.start().catch(err => console.error("SignalR CRM connection failed:", err));
+
+        return () => {
+            connection.stop();
+        };
     }, []);
 
     const toggleSidebar = () => {

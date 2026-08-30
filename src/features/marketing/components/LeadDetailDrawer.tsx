@@ -83,6 +83,9 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
     const [aiResponse, setAiResponse] = useState('');
     const [resolvingObjection, setResolvingObjection] = useState(false);
 
+    // Meta Templates
+    const [sendingTemplate, setSendingTemplate] = useState<string | null>(null);
+
     useEffect(() => {
         if (!leadId || !isOpen) return;
         setLoading(true);
@@ -161,6 +164,33 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
             setAiResponse("Failed to connect to Groq AI. Please try again.");
         } finally {
             setResolvingObjection(false);
+        }
+    };
+
+    const handleSendTemplate = async (templateName: string) => {
+        if (!lead) return;
+        try {
+            setSendingTemplate(templateName);
+            await salesLeadService.sendWhatsAppTemplate(lead.leadId, templateName);
+            toast.success(`WhatsApp template '${templateName}' sent successfully!`);
+            
+            // Add follow-up locally to refresh timeline immediately
+            const activityType: ActivityType = 'WhatsApp';
+            setLead(prev => prev ? {
+                ...prev,
+                followUps: [{
+                    followUpId: Math.random().toString(),
+                    activityType: activityType,
+                    notes: `Sent Meta Template: ${templateName}`,
+                    authorName: 'SYSTEM',
+                    createdAt: new Date().toISOString()
+                }, ...prev.followUps]
+            } : prev);
+        } catch (error) {
+            console.error("Failed to send template", error);
+            toast.error("Failed to send WhatsApp template. Please ensure the lead has a valid phone number and the API is configured.");
+        } finally {
+            setSendingTemplate(null);
         }
     };
 
@@ -307,7 +337,7 @@ Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
                             {/* Quick Update: Stage / Priority / Assignee */}
                             <div style={{ marginBottom: 20 }}>
                                 <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' }}>Update Pipeline</p>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                                <div className="stage-priority-grid">
                                     <div>
                                         <label style={{ display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>Stage</label>
                                         <select style={inputStyle} value={editStage} onChange={e => setEditStage(e.target.value as LeadStage)}
@@ -395,6 +425,37 @@ Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
                                 </div>
                             </div>
 
+                            {/* 1-Click Meta Templates */}
+                            <div style={{ marginBottom: 20 }}>
+                                <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' }}>1-Click Meta Templates</p>
+                                <div className="meta-templates-grid">
+                                    <button 
+                                        onClick={() => handleSendTemplate('day1_intro_pitch')}
+                                        disabled={sendingTemplate !== null}
+                                        style={{ padding: '8px', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+                                    >
+                                        {sendingTemplate === 'day1_intro_pitch' ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <MessageCircle size={16} />}
+                                        Day 1: Video Pitch
+                                    </button>
+                                    <button 
+                                        onClick={() => handleSendTemplate('day3_roi_case_study')}
+                                        disabled={sendingTemplate !== null}
+                                        style={{ padding: '8px', background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+                                    >
+                                        {sendingTemplate === 'day3_roi_case_study' ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <FileText size={16} />}
+                                        Day 3: ROI PDF
+                                    </button>
+                                    <button 
+                                        onClick={() => handleSendTemplate('day7_demo_invite')}
+                                        disabled={sendingTemplate !== null}
+                                        style={{ padding: '8px', background: '#ede9fe', color: '#6d28d9', border: '1px solid #ddd6fe', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+                                    >
+                                        {sendingTemplate === 'day7_demo_invite' ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={16} />}
+                                        Day 7: Demo Invite
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Follow-up Timeline */}
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -412,7 +473,7 @@ Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
                                 {/* Add Follow-up Form */}
                                 {showFuForm && (
                                     <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 16, border: '1px solid #e2e8f0' }}>
-                                        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
                                             {ACTIVITY_TYPES.map(t => (
                                                 <button
                                                     key={t}
