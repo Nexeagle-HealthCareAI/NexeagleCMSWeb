@@ -5,11 +5,12 @@ import { OnlineAppointmentsPanel } from './OnlineAppointmentsPanel';
 import { AuthFunnelPanel } from './AuthFunnelPanel';
 import { BookingFunnelPanel } from './BookingFunnelPanel';
 import { SearchLogPanel } from './SearchLogPanel';
-import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search } from 'lucide-react';
+import { PredictiveRoiPanel } from './PredictiveRoiPanel';
+import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search, LineChart } from 'lucide-react';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './Insights.css';
 
-type InsightsSubTab = 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'bookingFunnel' | 'searches';
+type InsightsSubTab = 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'bookingFunnel' | 'searches' | 'roi';
 
 export const InsightsTab: React.FC = () => {
     const [activeSubTab, setActiveSubTab] = useState<InsightsSubTab>('visits');
@@ -21,6 +22,7 @@ export const InsightsTab: React.FC = () => {
         { key: 'authFunnel', label: 'Auth Funnel', icon: <KeyRound size={16} /> },
         { key: 'bookingFunnel', label: 'Booking Funnel', icon: <Filter size={16} /> },
         { key: 'searches', label: 'All Searches', icon: <Search size={16} /> },
+        { key: 'roi', label: 'Predictive ROI', icon: <LineChart size={16} /> },
     ];
 
     return (
@@ -45,6 +47,7 @@ export const InsightsTab: React.FC = () => {
                 {activeSubTab === 'authFunnel' && <AuthFunnelPanel />}
                 {activeSubTab === 'bookingFunnel' && <BookingFunnelPanel />}
                 {activeSubTab === 'searches' && <SearchLogPanel />}
+                {activeSubTab === 'roi' && <PredictiveRoiPanel />}
             </div>
         </div>
     );

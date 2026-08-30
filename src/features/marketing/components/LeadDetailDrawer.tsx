@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
-    X, Phone, Mail, MapPin, User, Loader2, Plus,
-    PhoneCall, MessageCircle, AtSign, Users, FileText, Clock,
+    X, Phone, Mail, MapPin, User, Loader2, Plus, Edit2,
+    PhoneCall, MessageCircle, AtSign, Users, FileText, Clock, Sparkles, Wand2
 } from 'lucide-react';
 import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
+import { crmService } from '../services/crmService';
 import type { UserSummary } from '../../admin/services/adminService';
 import { formatDateTimeIST } from '../utils/formatters';
 
@@ -59,16 +60,27 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(false);
 
-    // Inline edit
+    // Inline edit stage/priority
     const [editStage, setEditStage] = useState<LeadStage>('New');
     const [editPriority, setEditPriority] = useState<LeadPriority>('Medium');
     const [editAssignee, setEditAssignee] = useState('');
+
+    // Inline edit details
+    const [isEditingDetails, setIsEditingDetails] = useState(false);
+    const [editDetails, setEditDetails] = useState({ hospitalName: '', contactName: '', mobile: '', email: '', city: '', state: '' });
 
     // Follow-up form
     const [fuType, setFuType] = useState<ActivityType>('Call');
     const [fuNotes, setFuNotes] = useState('');
     const [savingFu, setSavingFu] = useState(false);
     const [showFuForm, setShowFuForm] = useState(false);
+
+    // AI Co-Pilot State
+    const [aiPitch, setAiPitch] = useState('');
+    const [generatingPitch, setGeneratingPitch] = useState(false);
+    const [objection, setObjection] = useState('');
+    const [aiResponse, setAiResponse] = useState('');
+    const [resolvingObjection, setResolvingObjection] = useState(false);
 
     useEffect(() => {
         if (!leadId || !isOpen) return;
@@ -80,6 +92,15 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                 setEditStage(d.stage);
                 setEditPriority(d.priority);
                 setEditAssignee(d.assignedToUserId || '');
+                setEditDetails({ 
+                    hospitalName: d.hospitalName, 
+                    contactName: d.contactName || '', 
+                    mobile: d.mobile || '', 
+                    email: d.email || '', 
+                    city: d.city || '', 
+                    state: d.state || '' 
+                });
+                setIsEditingDetails(false);
             })
             .catch(() => setLead(null))
             .finally(() => setLoading(false));
@@ -111,6 +132,34 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
             onUpdated();
         } finally {
             setSavingFu(false);
+        }
+    };
+
+    const handleGeneratePitch = async () => {
+        if (!lead) return;
+        try {
+            setGeneratingPitch(true);
+            const generatedPitch = await crmService.generatePitch(lead.leadId);
+            setAiPitch(generatedPitch);
+        } catch (error) {
+            console.error("Failed to generate pitch", error);
+            setAiPitch("Failed to connect to Groq AI. Please try again.");
+        } finally {
+            setGeneratingPitch(false);
+        }
+    };
+
+    const handleResolveObjection = async () => {
+        if (!objection.trim() || !lead) return;
+        try {
+            setResolvingObjection(true);
+            const response = await crmService.resolveObjection(lead.leadId, objection);
+            setAiResponse(response);
+        } catch (error) {
+            console.error("Failed to resolve objection", error);
+            setAiResponse("Failed to connect to Groq AI. Please try again.");
+        } finally {
+            setResolvingObjection(false);
         }
     };
 
@@ -159,27 +208,57 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                     ) : (
                         <>
                             {/* Contact Info */}
-                            <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-                                {lead.contactName && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13 }}>
-                                        <User size={13} color="#6366f1" /> <span style={{ fontWeight: 600 }}>{lead.contactName}</span>
-                                    </div>
-                                )}
-                                {lead.mobile && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
-                                        <Phone size={13} color="#94a3b8" /> {lead.mobile}
-                                    </div>
-                                )}
-                                {lead.email && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
-                                        <Mail size={13} color="#94a3b8" /> {lead.email}
-                                    </div>
-                                )}
-                                {(lead.city || lead.state) && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#475569' }}>
-                                        <MapPin size={13} color="#94a3b8" /> {[lead.city, lead.state].filter(Boolean).join(', ')}
-                                    </div>
-                                )}
+                            <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 16, position: 'relative' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: isEditingDetails ? 12 : 0 }}>
+                                    {isEditingDetails ? (
+                                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                            <input style={inputStyle} placeholder="Hospital Name" value={editDetails.hospitalName} onChange={e => setEditDetails({...editDetails, hospitalName: e.target.value})} />
+                                            <input style={inputStyle} placeholder="Contact Name" value={editDetails.contactName} onChange={e => setEditDetails({...editDetails, contactName: e.target.value})} />
+                                            <input style={inputStyle} placeholder="Mobile" value={editDetails.mobile} onChange={e => setEditDetails({...editDetails, mobile: e.target.value})} />
+                                            <input style={inputStyle} placeholder="Email" value={editDetails.email} onChange={e => setEditDetails({...editDetails, email: e.target.value})} />
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <input style={inputStyle} placeholder="City" value={editDetails.city} onChange={e => setEditDetails({...editDetails, city: e.target.value})} />
+                                                <input style={inputStyle} placeholder="State" value={editDetails.state} onChange={e => setEditDetails({...editDetails, state: e.target.value})} />
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                                <button onClick={() => { setIsEditingDetails(false); setEditDetails({ hospitalName: lead.hospitalName, contactName: lead.contactName || '', mobile: lead.mobile || '', email: lead.email || '', city: lead.city || '', state: lead.state || '' }); }} style={{ flex: 1, padding: '6px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 12 }}>Cancel</button>
+                                                <button onClick={() => { handlePatch(editDetails); setIsEditingDetails(false); }} disabled={updating || !editDetails.hospitalName.trim()} style={{ flex: 1, padding: '6px', borderRadius: 6, border: 'none', background: '#6366f1', color: 'white', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Save</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ flex: 1 }}>
+                                            {lead.contactName && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13 }}>
+                                                    <User size={13} color="#6366f1" /> <span style={{ fontWeight: 600 }}>{lead.contactName}</span>
+                                                </div>
+                                            )}
+                                            {lead.mobile && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
+                                                    <Phone size={13} color="#94a3b8" /> {lead.mobile}
+                                                </div>
+                                            )}
+                                            {lead.email && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
+                                                    <Mail size={13} color="#94a3b8" /> {lead.email}
+                                                </div>
+                                            )}
+                                            {(lead.city || lead.state) && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#475569' }}>
+                                                    <MapPin size={13} color="#94a3b8" /> {[lead.city, lead.state].filter(Boolean).join(', ')}
+                                                </div>
+                                            )}
+                                            {!lead.contactName && !lead.mobile && !lead.email && !lead.city && !lead.state && (
+                                                <span style={{ fontSize: 12, color: '#94a3b8' }}>No contact info provided.</span>
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    {!isEditingDetails && (
+                                        <button onClick={() => setIsEditingDetails(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}>
+                                            <Edit2 size={14} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Quick Update: Stage / Priority / Assignee */}
@@ -222,6 +301,56 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                                     {lead.notes}
                                 </div>
                             )}
+
+                            {/* AI Co-Pilot Section */}
+                            <div style={{ marginBottom: 20, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: 14 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#15803d', fontWeight: 700, fontSize: 13, marginBottom: 12 }}>
+                                    <Sparkles size={16} /> Groq 70B AI Sales Co-Pilot
+                                </div>
+                                
+                                <div style={{ marginBottom: 16 }}>
+                                    <button
+                                        onClick={handleGeneratePitch}
+                                        disabled={generatingPitch}
+                                        style={{ width: '100%', padding: '8px', background: 'white', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#15803d', fontWeight: 600, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                                    >
+                                        {generatingPitch ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MessageCircle size={14} />}
+                                        Generate Hyper-Personalized WhatsApp Pitch
+                                    </button>
+                                    {aiPitch && (
+                                        <div style={{ marginTop: 8, padding: 10, background: 'white', borderRadius: 8, fontSize: 12, color: '#334155', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap' }}>
+                                            {aiPitch}
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                                                <button style={{ padding: '4px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '4px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>Send via WhatsApp API</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <input 
+                                            value={objection}
+                                            onChange={e => setObjection(e.target.value)}
+                                            placeholder="e.g. It's too expensive..."
+                                            style={{ flex: 1, padding: '8px 12px', border: '1px solid #bbf7d0', borderRadius: '8px', fontSize: 12, outline: 'none' }}
+                                        />
+                                        <button
+                                            onClick={handleResolveObjection}
+                                            disabled={resolvingObjection || !objection.trim()}
+                                            style={{ padding: '8px 12px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                                        >
+                                            {resolvingObjection ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={14} />}
+                                            Handle Objection
+                                        </button>
+                                    </div>
+                                    {aiResponse && (
+                                        <div style={{ marginTop: 8, padding: 10, background: 'white', borderRadius: 8, fontSize: 12, color: '#334155', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap' }}>
+                                            {aiResponse}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
                             {/* Follow-up Timeline */}
                             <div>

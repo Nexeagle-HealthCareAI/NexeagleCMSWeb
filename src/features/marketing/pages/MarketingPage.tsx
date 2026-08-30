@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { QrCode, Download, Users, Eye, MapPin, Target } from 'lucide-react';
+import { QrCode, Download, Users, Eye, MapPin, Target, Sparkles, Share2 } from 'lucide-react';
 import { getDemoLoginLeads, getDemoLoginStats, type DemoLoginLeadItem, type DemoLoginStats, type DemoLocationCount } from '../services/marketingService';
 import { LeadsPipeline } from '../components/LeadsPipeline';
+import { CrmKanbanPage } from '../components/CrmKanbanPage';
+import { SocialCampaignsPage } from '../components/SocialCampaignsPage';
 import '../../settings/pages/Settings.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import '../../insights/components/Insights.css';
@@ -23,7 +25,7 @@ const formatLocation = (item: { city: string | null; region: string | null; coun
 };
 
 const MarketingPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'pipeline' | 'demoLogins'>('pipeline');
+    const [activeTab, setActiveTab] = useState<'pipeline' | 'demoLogins' | 'aiCrm' | 'social'>('aiCrm');
 
     const [items, setItems] = useState<DemoLoginLeadItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -94,6 +96,30 @@ const MarketingPage: React.FC = () => {
                         }}
                     >
                         <QrCode size={16} /> Demo Logins
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('aiCrm')}
+                        style={{
+                            padding: '0 0 12px 0', border: 'none', background: 'transparent', cursor: 'pointer',
+                            fontSize: 14, fontWeight: activeTab === 'aiCrm' ? 700 : 500,
+                            color: activeTab === 'aiCrm' ? '#6366f1' : '#64748b',
+                            borderBottom: activeTab === 'aiCrm' ? '2px solid #6366f1' : '2px solid transparent',
+                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
+                        }}
+                    >
+                        <Sparkles size={16} /> AI Growth CRM
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('social')}
+                        style={{
+                            padding: '0 0 12px 0', border: 'none', background: 'transparent', cursor: 'pointer',
+                            fontSize: 14, fontWeight: activeTab === 'social' ? 700 : 500,
+                            color: activeTab === 'social' ? '#6366f1' : '#64748b',
+                            borderBottom: activeTab === 'social' ? '2px solid #6366f1' : '2px solid transparent',
+                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
+                        }}
+                    >
+                        <Share2 size={16} /> Social Autopilot
                     </button>
                 </div>
             </header>
@@ -207,6 +233,14 @@ const MarketingPage: React.FC = () => {
                             </div>
                         </section>
                     </div>
+                )}
+
+                {activeTab === 'aiCrm' && (
+                    <CrmKanbanPage />
+                )}
+
+                {activeTab === 'social' && (
+                    <SocialCampaignsPage />
                 )}
             </div>
         </div>
