@@ -140,4 +140,8 @@ export const salesLeadService = {
         );
         return res.data;
     },
+
+    sendWhatsAppTemplate: async (leadId: string, templateName: string): Promise<void> => {
+        await api.post(`/api/v1/crm/leads/${leadId}/whatsapp-template`, { templateName });
+    },
 };
