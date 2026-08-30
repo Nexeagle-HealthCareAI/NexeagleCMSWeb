@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "../NexEagleWebsite"
+		},
+		{
+			"path": "../easyHMSAPI"
+		},
+		{
+			"path": "../easyHMSDatabase"
+		},
+		{
+			"path": "../easyHMSWeb"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../CMSAPI"
+		},
+		{
+			"path": "../CMSDatabase"
+		}
+	],
+	"settings": {}
+}

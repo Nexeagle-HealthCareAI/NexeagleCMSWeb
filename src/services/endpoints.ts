@@ -58,6 +58,9 @@ export const API_ENDPOINTS = {
     MARKETING: {
         DEMO_LOGINS: '/marketing/demo-logins',              // ?page=&limit=
         DEMO_LOGINS_STATS: '/marketing/demo-logins/stats',
+        LEADS: '/marketing/leads',                          // GET ?stage=&priority=&assignedToUserId=&search=&page=&limit= | POST
+        LEAD_DETAIL: '/marketing/leads',                    // Usage: /marketing/leads/:id  (GET | PUT | DELETE)
+        LEAD_FOLLOWUPS: '/marketing/leads',                 // Usage: /marketing/leads/:id/followups (POST)
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
