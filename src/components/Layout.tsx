@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, Activity, UserCheck, LogOut, Home, Download, X, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, UserCheck, LogOut, Home, Download, X, Stethoscope } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useSupportStore } from '../store/useSupportStore';
 import { useAuthStore } from '../store/useAuthStore';
