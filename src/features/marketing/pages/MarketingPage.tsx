@@ -72,52 +72,28 @@ const MarketingPage: React.FC = () => {
                 <p className="settings-subtitle">Manage B2B sales pipeline and track live demo logins.</p>
 
                 {/* Tabs */}
-                <div style={{ display: 'flex', gap: 32, marginTop: 24, borderBottom: '1px solid #e2e8f0' }}>
+                <div className="marketing-tabs-container">
                     <button
                         onClick={() => setActiveTab('pipeline')}
-                        style={{
-                            padding: '0 0 12px 0', border: 'none', background: 'transparent', cursor: 'pointer',
-                            fontSize: 14, fontWeight: activeTab === 'pipeline' ? 700 : 500,
-                            color: activeTab === 'pipeline' ? '#6366f1' : '#64748b',
-                            borderBottom: activeTab === 'pipeline' ? '2px solid #6366f1' : '2px solid transparent',
-                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
-                        }}
+                        className={`marketing-tab ${activeTab === 'pipeline' ? 'active' : ''}`}
                     >
                         <Target size={16} /> Leads Pipeline
                     </button>
                     <button
                         onClick={() => setActiveTab('demoLogins')}
-                        style={{
-                            padding: '0 0 12px 0', border: 'none', background: 'transparent', cursor: 'pointer',
-                            fontSize: 14, fontWeight: activeTab === 'demoLogins' ? 700 : 500,
-                            color: activeTab === 'demoLogins' ? '#6366f1' : '#64748b',
-                            borderBottom: activeTab === 'demoLogins' ? '2px solid #6366f1' : '2px solid transparent',
-                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
-                        }}
+                        className={`marketing-tab ${activeTab === 'demoLogins' ? 'active' : ''}`}
                     >
                         <QrCode size={16} /> Demo Logins
                     </button>
                     <button
                         onClick={() => setActiveTab('aiCrm')}
-                        style={{
-                            padding: '0 0 12px 0', border: 'none', background: 'transparent', cursor: 'pointer',
-                            fontSize: 14, fontWeight: activeTab === 'aiCrm' ? 700 : 500,
-                            color: activeTab === 'aiCrm' ? '#6366f1' : '#64748b',
-                            borderBottom: activeTab === 'aiCrm' ? '2px solid #6366f1' : '2px solid transparent',
-                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
-                        }}
+                        className={`marketing-tab ${activeTab === 'aiCrm' ? 'active' : ''}`}
                     >
                         <Sparkles size={16} /> AI Growth CRM
                     </button>
                     <button
                         onClick={() => setActiveTab('social')}
-                        style={{
-                            padding: '0 0 12px 0', border: 'none', background: 'transparent', cursor: 'pointer',
-                            fontSize: 14, fontWeight: activeTab === 'social' ? 700 : 500,
-                            color: activeTab === 'social' ? '#6366f1' : '#64748b',
-                            borderBottom: activeTab === 'social' ? '2px solid #6366f1' : '2px solid transparent',
-                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
-                        }}
+                        className={`marketing-tab ${activeTab === 'social' ? 'active' : ''}`}
                     >
                         <Share2 size={16} /> Social Autopilot
                     </button>

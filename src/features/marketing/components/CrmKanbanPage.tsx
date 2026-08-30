@@ -53,7 +53,7 @@ export const CrmKanbanPage: React.FC = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '20px', background: '#f8fafc', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: '20px' }}>
                 <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0 }}>AI CRM Pipeline</h2>
                     <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>Drag and drop leads to update stages. Powered by Groq 70B AI.</p>
