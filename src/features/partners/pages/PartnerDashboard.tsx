@@ -105,7 +105,7 @@ const PartnerDashboard: React.FC = () => {
           <span className="pd-brand-text">NexEagle</span>
         </div>
         <h2 className="pd-nav-title">Partner Workspace</h2>
-        <div style={{ width: '100px' }}></div> {/* Spacer for center alignment */}
+        <div style={{ width: '100%', maxWidth: '100px' }}></div> {/* Spacer for center alignment */}
       </nav>
 
       <div className="pd-content">

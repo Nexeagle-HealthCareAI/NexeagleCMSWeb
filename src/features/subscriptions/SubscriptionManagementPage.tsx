@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { PlansTab } from './PlansTab';
 import { ApprovalsTab } from './ApprovalsTab';
+import { ReferralCodesTab } from './ReferralCodesTab';
 import '../dashboard/pages/PremiumHospitals.css';
 import './SubscriptionManagementPage.css';
 
-type MainTab = 'plans' | 'approvals';
+type MainTab = 'plans' | 'approvals' | 'referral-codes';
 
 const SubscriptionManagementPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<MainTab>('plans');
@@ -31,9 +32,15 @@ const SubscriptionManagementPage: React.FC = () => {
                 >
                     Approvals
                 </button>
+                <button
+                    className={`subscription-mgmt-tab-btn ${activeTab === 'referral-codes' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('referral-codes')}
+                >
+                    Referral Codes
+                </button>
             </div>
 
-            {activeTab === 'plans' ? <PlansTab /> : <ApprovalsTab />}
+            {activeTab === 'plans' ? <PlansTab /> : activeTab === 'approvals' ? <ApprovalsTab /> : <ReferralCodesTab />}
         </div>
     );
 };

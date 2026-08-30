@@ -22,6 +22,14 @@ export const API_ENDPOINTS = {
         ARCHIVE: '/hospitals', // Usage: /hospitals/:id/archive (PATCH)
         RESTORE: '/hospitals', // Usage: /hospitals/:id/restore (PATCH)
     },
+    DATA_MIGRATION: {
+        BATCHES: '/data-migration/batches',
+        // Usage: /data-migration/batches/:id (GET)
+        //        /data-migration/batches/:id/column-mapping (PUT)
+        //        /data-migration/batches/:id/transform (POST)
+        //        /data-migration/batches/:id/rows?page=&limit=&status= (GET)
+        //        /data-migration/batches/:id/doctor-map (PUT)
+    },
     DOCTORS: {
         GET_ALL: '/doctors',
         GET_DETAIL: '/doctors', // Usage: /doctors/:doctorId (GET)
@@ -46,6 +54,13 @@ export const API_ENDPOINTS = {
         AUTH_FUNNEL_ATTEMPTS: '/insights/auth-funnel/attempts',   // ?page=&limit=&from=&to=&search=
         BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
         SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
+    },
+    MARKETING: {
+        DEMO_LOGINS: '/marketing/demo-logins',              // ?page=&limit=
+        DEMO_LOGINS_STATS: '/marketing/demo-logins/stats',
+        LEADS: '/marketing/leads',                          // GET ?stage=&priority=&assignedToUserId=&search=&page=&limit= | POST
+        LEAD_DETAIL: '/marketing/leads',                    // Usage: /marketing/leads/:id  (GET | PUT | DELETE)
+        LEAD_FOLLOWUPS: '/marketing/leads',                 // Usage: /marketing/leads/:id/followups (POST)
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id

@@ -143,8 +143,6 @@ const Layout: React.FC = () => {
         { path: '/subscriptions', label: 'Verify Payments', icon: <Wallet size={22} /> },
         { path: '/manage-plans', label: 'Manage Plans', icon: <Calculator size={22} /> },
         { path: '/hospital-subscriptions', label: 'Subscriptions', icon: <CreditCard size={22} /> },
-        { path: '/application-health', label: 'App Health', icon: <Activity size={22} /> },
-        { path: '/radai-cost', label: 'RadAI Cost', icon: <Calculator size={22} /> },
         { path: '/users', label: 'Users & Access', icon: <UserCheck size={22} /> },
     ];
 
