@@ -1,0 +1,265 @@
+/* Data Migration feature styles. Reuses .premium-table-card/.premium-table/.premium-row/
+   .premium-status from PremiumHospitals.css (imported alongside this file) for visual
+   consistency with the rest of CMS; everything below is specific to this feature. */
+
+.dm-wizard-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* ── Stepper ───────────────────────────────────────────────────────────── */
+.dm-stepper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.dm-stepper-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.dm-stepper-step.active { color: #4f46e5; }
+.dm-stepper-step.complete { color: #059669; }
+
+.dm-stepper-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    font-size: 13px;
+}
+
+.dm-stepper-step.active .dm-stepper-dot { background: #eef2ff; border-color: #4f46e5; }
+.dm-stepper-step.complete .dm-stepper-dot { background: #ecfdf5; border-color: #059669; }
+
+.dm-stepper-line {
+    flex: 1;
+    height: 2px;
+    background: #e2e8f0;
+    margin: 0 12px;
+}
+
+/* ── Upload step ───────────────────────────────────────────────────────── */
+.dm-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    color: #64748b;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dm-dropzone:hover, .dm-dropzone.dragging {
+    border-color: #4f46e5;
+    background: #f8fafc;
+}
+
+.dm-field-group {
+    margin-bottom: 20px;
+}
+
+.dm-field-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.dm-field-group select,
+.dm-field-group input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* ── Detect step (column mapping table) ───────────────────────────────── */
+.dm-mapping-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.dm-mapping-table th, .dm-mapping-table td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+}
+
+.dm-badge-ai {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7c3aed;
+    background: #f5f3ff;
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-left: 6px;
+}
+
+.dm-warning-list {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    color: #92400e;
+    font-size: 13px;
+}
+
+/* ── Transform step (staged checklist) ────────────────────────────────── */
+.dm-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 0;
+}
+
+.dm-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.dm-checklist-item.done { color: #059669; }
+.dm-checklist-item.active { color: #4f46e5; }
+
+/* ── Preview step ──────────────────────────────────────────────────────── */
+.dm-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.dm-summary-card {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+
+.dm-summary-card .value { font-size: 22px; font-weight: 700; color: #1e293b; }
+.dm-summary-card .label { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+.dm-narrative-card {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.dm-narrative-card .dm-narrative-title {
+    font-weight: 700;
+    color: #5b21b6;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.dm-narrative-card .dm-narrative-disclaimer {
+    font-size: 11px;
+    color: #7c3aed;
+    margin-top: 10px;
+    font-style: italic;
+}
+
+.dm-flag-chip {
+    display: inline-block;
+    font-size: 11px;
+    background: #fef2f2;
+    color: #b91c1c;
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin: 2px 4px 2px 0;
+}
+
+.dm-status-chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 10px;
+    text-transform: uppercase;
+}
+
+.dm-status-chip.Ready { background: #ecfdf5; color: #059669; }
+.dm-status-chip.Flagged { background: #fffbeb; color: #b45309; }
+.dm-status-chip.Excluded { background: #f1f5f9; color: #64748b; }
+.dm-status-chip.Pending { background: #eff6ff; color: #2563eb; }
+
+/* Batch-level statuses (DataMigrationPage list + wizard resume) */
+.dm-status-chip.Uploaded,
+.dm-status-chip.Detected { background: #eff6ff; color: #2563eb; }
+.dm-status-chip.Transforming,
+.dm-status-chip.Committing { background: #fff7ed; color: #c2410c; }
+.dm-status-chip.Committed { background: #ecfdf5; color: #059669; }
+.dm-status-chip.Failed { background: #fef2f2; color: #b91c1c; }
+.dm-status-chip.RolledBack { background: #f1f5f9; color: #64748b; }
+
+.dm-doctor-map-panel {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.dm-doctor-map-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #fef3e2;
+}
+
+.dm-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.dm-btn-primary {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.dm-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.dm-btn-secondary {
+    background: #fff;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}

@@ -12,8 +12,11 @@ import SettingsPage from './features/settings/pages/Settings';
 import LiveSupport from './features/support/pages/LiveSupport';
 import SubscriptionManagementPage from './features/subscriptions/SubscriptionManagementPage';
 import PartnersPage from './features/partners/pages/PartnersPage';
+import DataMigrationPage from './features/dataMigration/pages/DataMigrationPage';
+import NewMigrationWizard from './features/dataMigration/pages/NewMigrationWizard';
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import UsersAccess from './features/admin/pages/UsersAccess';
+import MarketingPage from './features/marketing/pages/MarketingPage';
 import RequirePermission from './components/RequirePermission';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -88,9 +91,13 @@ function App() {
             <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
             <Route path="partners" element={<RequirePermission perm="partners.manage"><PartnersPage /></RequirePermission>} />
+            <Route path="data-migration" element={<RequirePermission perm="data-migration.manage"><DataMigrationPage /></RequirePermission>} />
+            <Route path="data-migration/new" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
+            <Route path="data-migration/:id" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
+            <Route path="marketing" element={<RequirePermission perm="marketing.view"><MarketingPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
             <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport /></RequirePermission>} />
             <Route path="users" element={<RequirePermission perm="user-management.view"><UsersAccess /></RequirePermission>} />
