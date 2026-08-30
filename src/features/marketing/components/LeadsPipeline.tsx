@@ -141,7 +141,7 @@ export const LeadsPipeline: React.FC = () => {
             )}
 
             {/* List */}
-            <div style={{ flex: 1, overflowY: 'auto', background: 'white', borderRadius: 12, border: '1px solid #e2e8f0', position: 'relative' }}>
+            <div style={{ flex: 1, overflow: 'auto', background: 'white', borderRadius: 12, border: '1px solid #e2e8f0', position: 'relative' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 900 }}>
                     <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', borderBottom: '1px solid #e2e8f0', zIndex: 1 }}>
                         <tr>
@@ -229,7 +229,7 @@ export const LeadsPipeline: React.FC = () => {
 
             {/* Pagination */}
             {totalItems > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0 0', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, padding: '16px 0 0', marginTop: 'auto' }}>
                     <div style={{ fontSize: 13, color: '#64748b' }}>
                         Showing <strong>{((page - 1) * limit) + 1}</strong> to <strong>{Math.min(page * limit, totalItems)}</strong> of <strong>{totalItems}</strong> leads
                     </div>
