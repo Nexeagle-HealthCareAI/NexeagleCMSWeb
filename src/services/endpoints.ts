@@ -56,11 +56,11 @@ export const API_ENDPOINTS = {
         SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
     },
     MARKETING: {
-        DEMO_LOGINS: '/crm/demo-logins',              // ?page=&limit=
-        DEMO_LOGINS_STATS: '/crm/demo-logins/stats',
-        LEADS: '/crm/leads',                          // GET ?stage=&priority=&assignedToUserId=&search=&page=&limit= | POST
-        LEAD_DETAIL: '/crm/leads',                    // Usage: /crm/leads/:id  (GET | PUT | DELETE)
-        LEAD_FOLLOWUPS: '/crm/leads',                 // Usage: /crm/leads/:id/followups (POST)
+        DEMO_LOGINS: '/marketing/demo-logins',              // ?page=&limit=
+        DEMO_LOGINS_STATS: '/marketing/demo-logins/stats',
+        LEADS: '/marketing/leads',                          // GET ?stage=&priority=&assignedToUserId=&search=&page=&limit= | POST
+        LEAD_DETAIL: '/marketing/leads',                    // Usage: /marketing/leads/:id  (GET | PUT | DELETE)
+        LEAD_FOLLOWUPS: '/marketing/leads',                 // Usage: /marketing/leads/:id/followups (POST)
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
