@@ -41,7 +41,7 @@ export const SocialCampaignsPage: React.FC = () => {
                     <Sparkles size={20} /> AI Social Campaign Generator
                 </div>
                 <p style={{ margin: '0 0 16px 0', color: '#713f12', fontSize: '14px' }}>Enter a topic (e.g., "offline billing", "patient queues") and Groq 70B will generate optimized posts for all platforms.</p>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div className="social-input-group">
                     <input 
                         value={topic}
                         onChange={e => setTopic(e.target.value)}
@@ -51,8 +51,8 @@ export const SocialCampaignsPage: React.FC = () => {
                     <button 
                         onClick={handleGenerate}
                         disabled={generating || !topic.trim()}
-                        className="btn btn-primary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eab308', color: 'white', border: 'none', padding: '0 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, opacity: (generating || !topic.trim()) ? 0.6 : 1 }}
+                        className="btn btn-primary social-generate-btn"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#eab308', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, opacity: (generating || !topic.trim()) ? 0.6 : 1 }}
                     >
                         {generating ? 'Generating...' : 'Generate Campaign'}
                     </button>

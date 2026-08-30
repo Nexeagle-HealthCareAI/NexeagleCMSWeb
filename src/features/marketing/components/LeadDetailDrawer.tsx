@@ -337,7 +337,7 @@ Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
                             {/* Quick Update: Stage / Priority / Assignee */}
                             <div style={{ marginBottom: 20 }}>
                                 <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' }}>Update Pipeline</p>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                                <div className="stage-priority-grid">
                                     <div>
                                         <label style={{ display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>Stage</label>
                                         <select style={inputStyle} value={editStage} onChange={e => setEditStage(e.target.value as LeadStage)}
@@ -428,7 +428,7 @@ Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
                             {/* 1-Click Meta Templates */}
                             <div style={{ marginBottom: 20 }}>
                                 <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' }}>1-Click Meta Templates</p>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                                <div className="meta-templates-grid">
                                     <button 
                                         onClick={() => handleSendTemplate('day1_intro_pitch')}
                                         disabled={sendingTemplate !== null}
@@ -473,7 +473,7 @@ Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
                                 {/* Add Follow-up Form */}
                                 {showFuForm && (
                                     <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 16, border: '1px solid #e2e8f0' }}>
-                                        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
                                             {ACTIVITY_TYPES.map(t => (
                                                 <button
                                                     key={t}
