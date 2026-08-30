@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { X, Building2, User, Phone, Mail, MapPin, Loader2, Check } from 'lucide-react';
+import { X, Building2, User, Loader2, Check } from 'lucide-react';
 import {
     salesLeadService,
-    CreateSalesLeadRequest,
-    LeadStage,
-    LeadPriority,
-    LeadSource,
+    type CreateSalesLeadRequest,
+    type LeadStage,
+    type LeadPriority,
+    type LeadSource,
 } from '../services/salesLeadService';
 import type { UserSummary } from '../../admin/services/adminService';
 
@@ -19,12 +19,6 @@ interface AddLeadDrawerProps {
 const STAGES: LeadStage[] = ['New', 'Contacted', 'Demo Scheduled', 'Demo Done', 'Negotiation', 'Closed Won', 'Closed Lost'];
 const PRIORITIES: LeadPriority[] = ['High', 'Medium', 'Low'];
 const SOURCES: LeadSource[] = ['Cold Call', 'WhatsApp', 'Website', 'Referral', 'Event', 'Partner', 'Manual', 'Other'];
-
-const PRIORITY_COLORS: Record<LeadPriority, string> = {
-    High:   'background:#fee2e2;color:#b91c1c',
-    Medium: 'background:#fef9c3;color:#92400e',
-    Low:    'background:#dcfce7;color:#166534',
-};
 
 const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',

@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Search, Plus, Filter, LayoutGrid, List, AlertCircle, Building2, User, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { salesLeadService, SalesLeadSummary, SalesLeadFilter, LeadStage, LeadPriority } from '../../marketing/services/salesLeadService';
-import { adminService, UserSummary } from '../../admin/services/adminService';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Search, Plus, AlertCircle, Building2, User, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { salesLeadService, type SalesLeadSummary, type SalesLeadFilter, type LeadStage, type LeadPriority } from '../../marketing/services/salesLeadService';
+import { adminService, type UserSummary } from '../../admin/services/adminService';
 import { AddLeadDrawer } from './AddLeadDrawer';
 import { LeadDetailDrawer } from './LeadDetailDrawer';
 import { formatDateTimeIST } from '../utils/formatters';
@@ -46,8 +46,8 @@ export const LeadsPipeline: React.FC = () => {
 
     // Initial load for users
     useEffect(() => {
-        adminService.getUsers(1, 100)
-            .then(res => setUsers(res.users))
+        adminService.getUsers()
+            .then(res => setUsers(res))
             .catch(console.error);
     }, []);
 

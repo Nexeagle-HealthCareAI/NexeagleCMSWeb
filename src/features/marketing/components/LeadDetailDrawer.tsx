@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-    X, Phone, Mail, MapPin, User, Building2, ChevronDown, Loader2, Plus,
+    X, Phone, Mail, MapPin, User, Loader2, Plus,
     PhoneCall, MessageCircle, AtSign, Users, FileText, Clock,
 } from 'lucide-react';
-import { salesLeadService, SalesLeadDetail, SalesLeadFollowUp, LeadStage, LeadPriority, ActivityType, UpdateSalesLeadRequest } from '../services/salesLeadService';
+import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
 import type { UserSummary } from '../../admin/services/adminService';
 import { formatDateTimeIST } from '../utils/formatters';
 
