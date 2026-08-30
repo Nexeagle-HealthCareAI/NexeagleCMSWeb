@@ -90,3 +90,38 @@
         min-width: 100%;
     }
 }
+.social-input-group {
+    display: flex;
+    gap: 12px;
+}
+@media (max-width: 768px) {
+    .social-input-group {
+        flex-direction: column;
+    }
+    .social-generate-btn {
+        width: 100%;
+    }
+}
+
+.meta-templates-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 480px) {
+    .meta-templates-grid {
+        grid-template-columns: 1fr;
+    }
+    .stage-priority-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stage-priority-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
