@@ -142,6 +142,7 @@ const PreviewStep: React.FC<Props> = ({ batch, doctorMap, onBatchUpdated }) => {
             </div>
 
             <div className="premium-table-card">
+                <div className="premium-responsive-wrapper">
                 <table className="premium-table">
                     <thead>
                         <tr>
@@ -170,6 +171,7 @@ const PreviewStep: React.FC<Props> = ({ batch, doctorMap, onBatchUpdated }) => {
                         ))}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {totalPages > 1 && (
