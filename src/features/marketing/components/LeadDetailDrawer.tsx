@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    X, Phone, Mail, MapPin, User, Loader2, Plus,
+    X, Phone, Mail, MapPin, User, Loader2, Plus, Edit2, Check,
     PhoneCall, MessageCircle, AtSign, Users, FileText, Clock, Sparkles, Wand2
 } from 'lucide-react';
 import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
@@ -60,10 +60,14 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(false);
 
-    // Inline edit
+    // Inline edit stage/priority
     const [editStage, setEditStage] = useState<LeadStage>('New');
     const [editPriority, setEditPriority] = useState<LeadPriority>('Medium');
     const [editAssignee, setEditAssignee] = useState('');
+
+    // Inline edit details
+    const [isEditingDetails, setIsEditingDetails] = useState(false);
+    const [editDetails, setEditDetails] = useState({ hospitalName: '', contactName: '', mobile: '', email: '', city: '', state: '' });
 
     // Follow-up form
     const [fuType, setFuType] = useState<ActivityType>('Call');
@@ -88,6 +92,15 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                 setEditStage(d.stage);
                 setEditPriority(d.priority);
                 setEditAssignee(d.assignedToUserId || '');
+                setEditDetails({ 
+                    hospitalName: d.hospitalName, 
+                    contactName: d.contactName || '', 
+                    mobile: d.mobile || '', 
+                    email: d.email || '', 
+                    city: d.city || '', 
+                    state: d.state || '' 
+                });
+                setIsEditingDetails(false);
             })
             .catch(() => setLead(null))
             .finally(() => setLoading(false));
@@ -195,27 +208,57 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                     ) : (
                         <>
                             {/* Contact Info */}
-                            <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-                                {lead.contactName && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13 }}>
-                                        <User size={13} color="#6366f1" /> <span style={{ fontWeight: 600 }}>{lead.contactName}</span>
-                                    </div>
-                                )}
-                                {lead.mobile && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
-                                        <Phone size={13} color="#94a3b8" /> {lead.mobile}
-                                    </div>
-                                )}
-                                {lead.email && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
-                                        <Mail size={13} color="#94a3b8" /> {lead.email}
-                                    </div>
-                                )}
-                                {(lead.city || lead.state) && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#475569' }}>
-                                        <MapPin size={13} color="#94a3b8" /> {[lead.city, lead.state].filter(Boolean).join(', ')}
-                                    </div>
-                                )}
+                            <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 16, position: 'relative' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: isEditingDetails ? 12 : 0 }}>
+                                    {isEditingDetails ? (
+                                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                            <input style={inputStyle} placeholder="Hospital Name" value={editDetails.hospitalName} onChange={e => setEditDetails({...editDetails, hospitalName: e.target.value})} />
+                                            <input style={inputStyle} placeholder="Contact Name" value={editDetails.contactName} onChange={e => setEditDetails({...editDetails, contactName: e.target.value})} />
+                                            <input style={inputStyle} placeholder="Mobile" value={editDetails.mobile} onChange={e => setEditDetails({...editDetails, mobile: e.target.value})} />
+                                            <input style={inputStyle} placeholder="Email" value={editDetails.email} onChange={e => setEditDetails({...editDetails, email: e.target.value})} />
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <input style={inputStyle} placeholder="City" value={editDetails.city} onChange={e => setEditDetails({...editDetails, city: e.target.value})} />
+                                                <input style={inputStyle} placeholder="State" value={editDetails.state} onChange={e => setEditDetails({...editDetails, state: e.target.value})} />
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                                <button onClick={() => { setIsEditingDetails(false); setEditDetails({ hospitalName: lead.hospitalName, contactName: lead.contactName || '', mobile: lead.mobile || '', email: lead.email || '', city: lead.city || '', state: lead.state || '' }); }} style={{ flex: 1, padding: '6px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 12 }}>Cancel</button>
+                                                <button onClick={() => { handlePatch(editDetails); setIsEditingDetails(false); }} disabled={updating || !editDetails.hospitalName.trim()} style={{ flex: 1, padding: '6px', borderRadius: 6, border: 'none', background: '#6366f1', color: 'white', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Save</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ flex: 1 }}>
+                                            {lead.contactName && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13 }}>
+                                                    <User size={13} color="#6366f1" /> <span style={{ fontWeight: 600 }}>{lead.contactName}</span>
+                                                </div>
+                                            )}
+                                            {lead.mobile && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
+                                                    <Phone size={13} color="#94a3b8" /> {lead.mobile}
+                                                </div>
+                                            )}
+                                            {lead.email && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13, color: '#475569' }}>
+                                                    <Mail size={13} color="#94a3b8" /> {lead.email}
+                                                </div>
+                                            )}
+                                            {(lead.city || lead.state) && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#475569' }}>
+                                                    <MapPin size={13} color="#94a3b8" /> {[lead.city, lead.state].filter(Boolean).join(', ')}
+                                                </div>
+                                            )}
+                                            {!lead.contactName && !lead.mobile && !lead.email && !lead.city && !lead.state && (
+                                                <span style={{ fontSize: 12, color: '#94a3b8' }}>No contact info provided.</span>
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    {!isEditingDetails && (
+                                        <button onClick={() => setIsEditingDetails(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}>
+                                            <Edit2 size={14} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Quick Update: Stage / Priority / Assignee */}
