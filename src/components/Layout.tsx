@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, Activity, UserCheck, LogOut, Home, Download, X, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, CreditCard, LifeBuoy, Settings, WifiOff, RefreshCw, Grid, Building2, Users, Wallet, Calculator, UserCheck, LogOut, Home, Download, X, Stethoscope, QrCode } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useSupportStore } from '../store/useSupportStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -21,6 +21,8 @@ const Layout: React.FC = () => {
     const location = useLocation();
     const logout = useAuthStore((s) => s.logout);
     const user = useAuthStore((s) => s.user);
+    const permissions = useAuthStore((s) => s.permissions) || [];
+    const can = (key: string) => permissions.includes(key);
     const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -143,6 +145,7 @@ const Layout: React.FC = () => {
         { path: '/subscriptions', label: 'Verify Payments', icon: <Wallet size={22} /> },
         { path: '/manage-plans', label: 'Manage Plans', icon: <Calculator size={22} /> },
         { path: '/hospital-subscriptions', label: 'Subscriptions', icon: <CreditCard size={22} /> },
+        ...(can('marketing.view') ? [{ path: '/marketing', label: 'Marketing', icon: <QrCode size={22} /> }] : []),
         { path: '/users', label: 'Users & Access', icon: <UserCheck size={22} /> },
     ];
 

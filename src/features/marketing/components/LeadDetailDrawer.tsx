@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
     X, Phone, Mail, MapPin, User, Loader2, Plus, Edit2,
-    PhoneCall, MessageCircle, AtSign, Users, FileText, Clock, Sparkles, Wand2
+    PhoneCall, MessageCircle, AtSign, Users, FileText, Clock, Sparkles, Wand2, Copy
 } from 'lucide-react';
 import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
 import { crmService } from '../services/crmService';
 import type { UserSummary } from '../../admin/services/adminService';
 import { formatDateTimeIST } from '../utils/formatters';
+import { toast } from 'sonner';
 
 interface LeadDetailDrawerProps {
     leadId: string | null;
@@ -163,6 +164,33 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
         }
     };
 
+    const formatLeadForShare = () => {
+        if (!lead) return '';
+        return `*Lead Profile: ${lead.hospitalName}*
+Stage: ${lead.stage}
+Priority: ${lead.priority}
+Contact: ${lead.contactName || 'N/A'}
+Mobile: ${lead.mobile || 'N/A'}
+Email: ${lead.email || 'N/A'}
+Location: ${[lead.city, lead.state].filter(Boolean).join(', ') || 'N/A'}`;
+    };
+
+    const handleShareWhatsApp = () => {
+        const text = encodeURIComponent(formatLeadForShare());
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    };
+
+    const handleShareEmail = () => {
+        const subject = encodeURIComponent(`Lead Profile: ${lead?.hospitalName}`);
+        const body = encodeURIComponent(formatLeadForShare());
+        window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
+    };
+
+    const handleCopyLead = () => {
+        navigator.clipboard.writeText(formatLeadForShare());
+        toast.success("Lead details copied to clipboard!");
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -191,9 +219,24 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                                 </div>
                             )}
                         </div>
-                        <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: 'white', display: 'flex' }}>
-                            <X size={16} />
-                        </button>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            {lead && (
+                                <>
+                                    <button onClick={handleShareWhatsApp} title="Share via WhatsApp" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#22c55e', display: 'flex' }}>
+                                        <MessageCircle size={16} />
+                                    </button>
+                                    <button onClick={handleShareEmail} title="Share via Email" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#60a5fa', display: 'flex' }}>
+                                        <Mail size={16} />
+                                    </button>
+                                    <button onClick={handleCopyLead} title="Copy Lead Details" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: 'white', display: 'flex' }}>
+                                        <Copy size={16} />
+                                    </button>
+                                </>
+                            )}
+                            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: 'white', display: 'flex' }}>
+                                <X size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
