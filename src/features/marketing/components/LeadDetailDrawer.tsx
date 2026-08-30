@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
     X, Phone, Mail, MapPin, User, Loader2, Plus,
-    PhoneCall, MessageCircle, AtSign, Users, FileText, Clock,
+    PhoneCall, MessageCircle, AtSign, Users, FileText, Clock, Sparkles, Wand2
 } from 'lucide-react';
 import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
+import { crmService } from '../services/crmService';
 import type { UserSummary } from '../../admin/services/adminService';
 import { formatDateTimeIST } from '../utils/formatters';
 
@@ -70,6 +71,13 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
     const [savingFu, setSavingFu] = useState(false);
     const [showFuForm, setShowFuForm] = useState(false);
 
+    // AI Co-Pilot State
+    const [aiPitch, setAiPitch] = useState('');
+    const [generatingPitch, setGeneratingPitch] = useState(false);
+    const [objection, setObjection] = useState('');
+    const [aiResponse, setAiResponse] = useState('');
+    const [resolvingObjection, setResolvingObjection] = useState(false);
+
     useEffect(() => {
         if (!leadId || !isOpen) return;
         setLoading(true);
@@ -111,6 +119,34 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
             onUpdated();
         } finally {
             setSavingFu(false);
+        }
+    };
+
+    const handleGeneratePitch = async () => {
+        if (!lead) return;
+        try {
+            setGeneratingPitch(true);
+            const generatedPitch = await crmService.generatePitch(lead.leadId);
+            setAiPitch(generatedPitch);
+        } catch (error) {
+            console.error("Failed to generate pitch", error);
+            setAiPitch("Failed to connect to Groq AI. Please try again.");
+        } finally {
+            setGeneratingPitch(false);
+        }
+    };
+
+    const handleResolveObjection = async () => {
+        if (!objection.trim() || !lead) return;
+        try {
+            setResolvingObjection(true);
+            const response = await crmService.resolveObjection(lead.leadId, objection);
+            setAiResponse(response);
+        } catch (error) {
+            console.error("Failed to resolve objection", error);
+            setAiResponse("Failed to connect to Groq AI. Please try again.");
+        } finally {
+            setResolvingObjection(false);
         }
     };
 
@@ -222,6 +258,56 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({ leadId, isOp
                                     {lead.notes}
                                 </div>
                             )}
+
+                            {/* AI Co-Pilot Section */}
+                            <div style={{ marginBottom: 20, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: 14 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#15803d', fontWeight: 700, fontSize: 13, marginBottom: 12 }}>
+                                    <Sparkles size={16} /> Groq 70B AI Sales Co-Pilot
+                                </div>
+                                
+                                <div style={{ marginBottom: 16 }}>
+                                    <button
+                                        onClick={handleGeneratePitch}
+                                        disabled={generatingPitch}
+                                        style={{ width: '100%', padding: '8px', background: 'white', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#15803d', fontWeight: 600, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                                    >
+                                        {generatingPitch ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MessageCircle size={14} />}
+                                        Generate Hyper-Personalized WhatsApp Pitch
+                                    </button>
+                                    {aiPitch && (
+                                        <div style={{ marginTop: 8, padding: 10, background: 'white', borderRadius: 8, fontSize: 12, color: '#334155', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap' }}>
+                                            {aiPitch}
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                                                <button style={{ padding: '4px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '4px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>Send via WhatsApp API</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <input 
+                                            value={objection}
+                                            onChange={e => setObjection(e.target.value)}
+                                            placeholder="e.g. It's too expensive..."
+                                            style={{ flex: 1, padding: '8px 12px', border: '1px solid #bbf7d0', borderRadius: '8px', fontSize: 12, outline: 'none' }}
+                                        />
+                                        <button
+                                            onClick={handleResolveObjection}
+                                            disabled={resolvingObjection || !objection.trim()}
+                                            style={{ padding: '8px 12px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                                        >
+                                            {resolvingObjection ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={14} />}
+                                            Handle Objection
+                                        </button>
+                                    </div>
+                                    {aiResponse && (
+                                        <div style={{ marginTop: 8, padding: 10, background: 'white', borderRadius: 8, fontSize: 12, color: '#334155', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap' }}>
+                                            {aiResponse}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
                             {/* Follow-up Timeline */}
                             <div>
