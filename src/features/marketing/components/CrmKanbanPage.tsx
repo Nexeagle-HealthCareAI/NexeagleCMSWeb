@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, MessageCircle, MoreVertical, Loader2 } from 'lucide-react';
-import { type CrmLead } from '../types/crm';
-import { crmService } from '../services/crmService';
+import { salesLeadService, type SalesLeadSummary, type LeadStage } from '../services/salesLeadService';
 import { LeadDetailDrawer } from './LeadDetailDrawer';
 import { adminService, type UserSummary } from '../../admin/services/adminService';
 import '../pages/Marketing.css';
 import '../../settings/pages/Settings.css';
 
-const STAGES = ['NEW', 'CONTACTED', 'DEMO_SCHEDULED', 'NEGOTIATION', 'WON', 'LOST'] as const;
+const STAGES: LeadStage[] = ['New', 'Contacted', 'Demo Scheduled', 'Demo Done', 'Negotiation', 'Closed Won', 'Closed Lost'];
 
 export const CrmKanbanPage: React.FC = () => {
-    const [leads, setLeads] = useState<CrmLead[]>([]);
+    const [leads, setLeads] = useState<SalesLeadSummary[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [users, setUsers] = useState<UserSummary[]>([]);
@@ -19,8 +18,8 @@ export const CrmKanbanPage: React.FC = () => {
     const loadLeads = async () => {
         try {
             setLoading(true);
-            const data = await crmService.getLeads();
-            setLeads(data);
+            const res = await salesLeadService.getLeads();
+            setLeads(res.data);
         } catch (error) {
             console.error("Failed to load CRM leads", error);
         } finally {
@@ -43,16 +42,16 @@ export const CrmKanbanPage: React.FC = () => {
         e.dataTransfer.setData('leadId', leadId);
     };
 
-    const handleDrop = async (e: React.DragEvent, targetStage: string) => {
+    const handleDrop = async (e: React.DragEvent, targetStage: LeadStage) => {
         const leadId = e.dataTransfer.getData('leadId');
         if (!leadId) return;
 
         // Optimistic UI update
         const originalLeads = [...leads];
-        setLeads(leads.map(l => l.id === leadId ? { ...l, status: targetStage as any } : l));
+        setLeads(leads.map(l => l.leadId === leadId ? { ...l, stage: targetStage } : l));
 
         try {
-            await crmService.updateLeadStage(leadId, targetStage);
+            await salesLeadService.updateLead(leadId, { stage: targetStage });
         } catch (error) {
             console.error("Failed to update lead stage", error);
             setLeads(originalLeads); // Revert on failure
@@ -82,7 +81,7 @@ export const CrmKanbanPage: React.FC = () => {
                     </div>
                 ) : (
                     STAGES.map(stage => {
-                        const stageLeads = leads.filter(l => l.status === stage);
+                        const stageLeads = leads.filter(l => l.stage === stage);
                         return (
                             <div 
                                 key={stage} 
@@ -91,20 +90,20 @@ export const CrmKanbanPage: React.FC = () => {
                                 className="crm-kanban-column"
                             >
                                 <div className="crm-kanban-column-header">
-                                    <span className="crm-kanban-column-title">{stage.replace('_', ' ')}</span>
+                                    <span className="crm-kanban-column-title">{stage}</span>
                                     <span className="crm-kanban-column-count">{stageLeads.length}</span>
                                 </div>
                                 <div className="crm-kanban-column-body">
                                     {stageLeads.map(lead => (
                                         <div 
-                                            key={lead.id} 
+                                            key={lead.leadId} 
                                             draggable
-                                            onClick={() => setSelectedLeadId(lead.id)}
-                                            onDragStart={(e) => handleDragStart(e, lead.id)}
+                                            onClick={() => setSelectedLeadId(lead.leadId)}
+                                            onDragStart={(e) => handleDragStart(e, lead.leadId)}
                                             className="crm-kanban-card"
                                         >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                                            <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{lead.facilityName}</span>
+                                            <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{lead.hospitalName}</span>
                                             <MoreVertical size={16} color="#94a3b8" style={{ cursor: 'pointer' }} />
                                         </div>
                                         <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>{lead.contactName} • {lead.city}</div>
@@ -114,7 +113,7 @@ export const CrmKanbanPage: React.FC = () => {
                                         </div>
 
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#10b981' }}>₹{(lead.dealValue/1000).toFixed(0)}k</span>
+                                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#10b981' }}>₹{((lead.dealValue || 0)/1000).toFixed(0)}k</span>
                                             <button style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#059669', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
                                                 <MessageCircle size={12} /> WhatsApp
                                             </button>

@@ -35,7 +35,6 @@ export const SocialCampaignsPage: React.FC = () => {
     };
 
     return (
-    return (
         <div className="social-campaign-container">
             <div className="social-generator-card">
                 <div className="social-generator-title">
