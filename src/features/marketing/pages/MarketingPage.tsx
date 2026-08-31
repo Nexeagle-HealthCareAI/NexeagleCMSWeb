@@ -68,42 +68,57 @@ const MarketingPage: React.FC = () => {
 
     return (
         <div className="settings-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <header className="settings-header" style={{ paddingBottom: 0, marginBottom: 20 }}>
-                <h1 className="settings-title">Marketing</h1>
-                <p className="settings-subtitle">Manage B2B sales pipeline and track live demo logins.</p>
+            <header className="marketing-header-card">
+                <div className="marketing-header-flare" />
+                <div className="marketing-header-content">
+                    <div className="marketing-header-title-wrapper">
+                        <div className="marketing-header-icon">
+                            <Target size={20} color="white" />
+                        </div>
+                        <div className="marketing-header-text">
+                            <h1>Marketing</h1>
+                            <p>Manage B2B sales pipeline and track live demo logins.</p>
+                        </div>
+                    </div>
 
-                {/* Tabs */}
-                <div className="marketing-tabs-container">
-                    <button
-                        onClick={() => setActiveTab('pipeline')}
-                        className={`marketing-tab ${activeTab === 'pipeline' ? 'active' : ''}`}
-                    >
-                        <Target size={16} /> Leads Pipeline
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('demoLogins')}
-                        className={`marketing-tab ${activeTab === 'demoLogins' ? 'active' : ''}`}
-                    >
-                        <QrCode size={16} /> Demo Logins
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('aiCrm')}
-                        className={`marketing-tab ${activeTab === 'aiCrm' ? 'active' : ''}`}
-                    >
-                        <Sparkles size={16} /> AI Growth CRM
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('social')}
-                        className={`marketing-tab ${activeTab === 'social' ? 'active' : ''}`}
-                    >
-                        <Share2 size={16} /> Social Autopilot
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('analytics')}
-                        className={`marketing-tab ${activeTab === 'analytics' ? 'active' : ''}`}
-                    >
-                        <Target size={16} /> ROI & Analytics
-                    </button>
+                    {/* Tabs */}
+                    <div className="marketing-capsule-tabs">
+                        <button
+                            onClick={() => setActiveTab('pipeline')}
+                            className={`marketing-capsule-tab ${activeTab === 'pipeline' ? 'active' : ''}`}
+                        >
+                            <Target size={20} />
+                            <span>LEADS PIPELINE</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('demoLogins')}
+                            className={`marketing-capsule-tab ${activeTab === 'demoLogins' ? 'active' : ''}`}
+                        >
+                            <QrCode size={20} />
+                            <span>DEMO LOGINS</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('aiCrm')}
+                            className={`marketing-capsule-tab ${activeTab === 'aiCrm' ? 'active' : ''}`}
+                        >
+                            <Sparkles size={20} />
+                            <span>GROWTH CRM</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('social')}
+                            className={`marketing-capsule-tab ${activeTab === 'social' ? 'active' : ''}`}
+                        >
+                            <Share2 size={20} />
+                            <span>SOCIAL PILOT</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('analytics')}
+                            className={`marketing-capsule-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+                        >
+                            <Target size={20} />
+                            <span>ROI ANALYTICS</span>
+                        </button>
+                    </div>
                 </div>
             </header>
 
