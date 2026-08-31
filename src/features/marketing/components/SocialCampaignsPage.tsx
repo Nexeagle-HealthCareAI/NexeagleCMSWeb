@@ -35,85 +35,85 @@ export const SocialCampaignsPage: React.FC = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px', background: '#f8fafc', borderRadius: '12px' }}>
-            <div style={{ background: '#fefce8', border: '1px solid #fde047', padding: '20px', borderRadius: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a16207', fontWeight: 700, fontSize: '16px', marginBottom: '12px' }}>
+    return (
+        <div className="social-campaign-container">
+            <div className="social-generator-card">
+                <div className="social-generator-title">
                     <Sparkles size={20} /> AI Social Campaign Generator
                 </div>
-                <p style={{ margin: '0 0 16px 0', color: '#713f12', fontSize: '14px' }}>Enter a topic (e.g., "offline billing", "patient queues") and Groq 70B will generate optimized posts for all platforms.</p>
-                <div className="social-input-group">
+                <p className="social-generator-desc">Enter a topic (e.g., "offline billing", "patient queues") and Groq 70B will generate optimized posts for all platforms.</p>
+                <div className="social-input-wrapper">
                     <input 
                         value={topic}
                         onChange={e => setTopic(e.target.value)}
                         placeholder="e.g. Benefits of cloud prescriptions..."
-                        style={{ flex: 1, padding: '12px 16px', border: '1px solid #fde047', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
+                        className="marketing-input"
                     />
                     <button 
                         onClick={handleGenerate}
                         disabled={generating || !topic.trim()}
-                        className="btn btn-primary social-generate-btn"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#eab308', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, opacity: (generating || !topic.trim()) ? 0.6 : 1 }}
+                        className="marketing-btn-primary"
                     >
                         {generating ? 'Generating...' : 'Generate Campaign'}
                     </button>
                 </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {campaigns.map((c: any, i: number) => (
-                    <div key={i} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#0f172a' }}>Generated Campaign</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                    <div key={i} className="social-result-card">
+                        <h3 className="social-result-title">Generated Campaign</h3>
+                        <div className="social-platforms-grid">
                             {/* Instagram */}
-                            <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: '8px', padding: '12px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e1306c', fontWeight: 600, fontSize: '13px' }}>
+                            <div className="platform-card platform-ig">
+                                <div className="platform-header">
+                                    <div className="platform-name">
                                         <Instagram size={16} /> Instagram Carousel
                                     </div>
                                     <button onClick={() => copyToClipboard(c.instagramCarousel, `${i}-ig`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
                                         {copied === `${i}-ig` ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                                     </button>
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap' }}>{c.instagramCarousel}</div>
+                                <div className="platform-content">{c.instagramCarousel}</div>
                             </div>
                             
                             {/* Facebook */}
-                            <div style={{ background: '#f0f9ff', border: '1px solid #e0f2fe', borderRadius: '8px', padding: '12px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1877f2', fontWeight: 600, fontSize: '13px' }}>
+                            <div className="platform-card platform-fb">
+                                <div className="platform-header">
+                                    <div className="platform-name">
                                         <Facebook size={16} /> Facebook Ad
                                     </div>
                                     <button onClick={() => copyToClipboard(c.facebookAdCopy, `${i}-fb`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
                                         {copied === `${i}-fb` ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                                     </button>
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap' }}>{c.facebookAdCopy}</div>
+                                <div className="platform-content">{c.facebookAdCopy}</div>
                             </div>
 
                             {/* YouTube */}
-                            <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '12px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff0000', fontWeight: 600, fontSize: '13px' }}>
+                            <div className="platform-card platform-yt">
+                                <div className="platform-header">
+                                    <div className="platform-name">
                                         <Youtube size={16} /> YT Shorts Script
                                     </div>
                                     <button onClick={() => copyToClipboard(c.youtubeShortsScript, `${i}-yt`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
                                         {copied === `${i}-yt` ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                                     </button>
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap' }}>{c.youtubeShortsScript}</div>
+                                <div className="platform-content">{c.youtubeShortsScript}</div>
                             </div>
 
                             {/* Twitter */}
-                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1da1f2', fontWeight: 600, fontSize: '13px' }}>
+                            <div className="platform-card platform-tw">
+                                <div className="platform-header">
+                                    <div className="platform-name">
                                         <Twitter size={16} /> X / Twitter Thread
                                     </div>
                                     <button onClick={() => copyToClipboard(c.twitterThread, `${i}-tw`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
                                         {copied === `${i}-tw` ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                                     </button>
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#334155', whiteSpace: 'pre-wrap' }}>{c.twitterThread}</div>
+                                <div className="platform-content">{c.twitterThread}</div>
                             </div>
                         </div>
                     </div>

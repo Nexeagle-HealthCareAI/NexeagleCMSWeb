@@ -64,18 +64,18 @@ export const CrmKanbanPage: React.FC = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '20px', background: '#f8fafc', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: '20px' }}>
+        <div className="crm-kanban-container">
+            <div className="crm-kanban-header">
                 <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0 }}>AI CRM Pipeline</h2>
                     <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>Drag and drop leads to update stages. Powered by Groq 70B AI.</p>
                 </div>
-                <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#6366f1', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                <button className="marketing-btn-primary">
                     <Sparkles size={16} /> Auto-Pilot Outreach
                 </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', flex: 1, paddingBottom: '16px' }}>
+            <div className="crm-kanban-board">
                 {loading && leads.length === 0 ? (
                     <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', gap: '8px' }}>
                         <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading Pipeline...
@@ -88,20 +88,20 @@ export const CrmKanbanPage: React.FC = () => {
                                 key={stage} 
                                 onDragOver={handleDragOver}
                                 onDrop={(e) => handleDrop(e, stage)}
-                                style={{ minWidth: '300px', maxWidth: '300px', background: '#e2e8f0', borderRadius: '12px', display: 'flex', flexDirection: 'column', maxHeight: '100%' }}
+                                className="crm-kanban-column"
                             >
-                                <div style={{ padding: '12px 16px', borderBottom: '1px solid #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#475569' }}>{stage.replace('_', ' ')}</span>
-                                    <span style={{ background: '#cbd5e1', color: '#334155', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>{stageLeads.length}</span>
+                                <div className="crm-kanban-column-header">
+                                    <span className="crm-kanban-column-title">{stage.replace('_', ' ')}</span>
+                                    <span className="crm-kanban-column-count">{stageLeads.length}</span>
                                 </div>
-                                <div style={{ padding: '12px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div className="crm-kanban-column-body">
                                     {stageLeads.map(lead => (
                                         <div 
                                             key={lead.id} 
                                             draggable
                                             onClick={() => setSelectedLeadId(lead.id)}
                                             onDragStart={(e) => handleDragStart(e, lead.id)}
-                                            style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', cursor: 'pointer' }}
+                                            className="crm-kanban-card"
                                         >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                                             <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{lead.facilityName}</span>

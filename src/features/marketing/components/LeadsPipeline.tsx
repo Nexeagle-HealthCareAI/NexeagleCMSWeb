@@ -96,13 +96,14 @@ export const LeadsPipeline: React.FC = () => {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Header & Filters */}
-            <div style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div className="pipeline-filter-container" style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', flex: 1 }}>
                     {/* Search */}
-                    <div style={{ position: 'relative' }}>
+                    <div className="pipeline-search-wrapper">
                         <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: 12, top: 10 }} />
                         <input
-                            style={{ padding: '8px 12px 8px 32px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, minWidth: 200, outline: 'none' }}
+                            className="marketing-input"
+                            style={{ paddingLeft: 32 }}
                             placeholder="Search hospital or contact..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -110,7 +111,8 @@ export const LeadsPipeline: React.FC = () => {
                     </div>
                     {/* Stage Filter */}
                     <select
-                        style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, background: 'white', color: stage ? '#0f172a' : '#94a3b8', outline: 'none', cursor: 'pointer' }}
+                        className="marketing-input"
+                        style={{ width: 'auto', color: stage ? '#0f172a' : '#94a3b8', cursor: 'pointer' }}
                         value={stage}
                         onChange={e => setStage(e.target.value as LeadStage | '')}
                     >
@@ -119,7 +121,8 @@ export const LeadsPipeline: React.FC = () => {
                     </select>
                     {/* Priority Filter */}
                     <select
-                        style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, background: 'white', color: priority ? '#0f172a' : '#94a3b8', outline: 'none', cursor: 'pointer' }}
+                        className="marketing-input"
+                        style={{ width: 'auto', color: priority ? '#0f172a' : '#94a3b8', cursor: 'pointer' }}
                         value={priority}
                         onChange={e => setPriority(e.target.value as LeadPriority | '')}
                     >
@@ -139,7 +142,7 @@ export const LeadsPipeline: React.FC = () => {
 
                 <button
                     onClick={() => setIsAddOpen(true)}
-                    style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#6366f1', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)' }}
+                    className="marketing-btn-primary"
                 >
                     <Plus size={16} /> Add Lead
                 </button>
@@ -153,16 +156,16 @@ export const LeadsPipeline: React.FC = () => {
             )}
 
             {/* List */}
-            <div style={{ flex: 1, overflow: 'auto', background: 'white', borderRadius: 12, border: '1px solid #e2e8f0', position: 'relative' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 900 }}>
-                    <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', borderBottom: '1px solid #e2e8f0', zIndex: 1 }}>
+            <div className="pipeline-table-container">
+                <table className="pipeline-table">
+                    <thead>
                         <tr>
-                            <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hospital</th>
-                            <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contact</th>
-                            <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Stage</th>
-                            <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Priority</th>
-                            <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Owner</th>
-                            <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'right' }}>Follow-ups</th>
+                            <th>Hospital</th>
+                            <th>Contact</th>
+                            <th>Stage</th>
+                            <th>Priority</th>
+                            <th>Owner</th>
+                            <th style={{ textAlign: 'right' }}>Follow-ups</th>
                         </tr>
                     </thead>
                     <tbody>
