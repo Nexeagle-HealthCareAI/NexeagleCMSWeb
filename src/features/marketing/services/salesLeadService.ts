@@ -21,6 +21,11 @@ export interface SalesLeadFollowUp {
     activityType: ActivityType;
     notes: string;
     authorName: string | null;
+    direction?: string;
+    templateName?: string;
+    mediaUrl?: string;
+    whatsappMessageId?: string;
+    status?: string;
     createdAt: string;
 }
 
@@ -40,12 +45,23 @@ export interface SalesLeadSummary {
     lastFollowUpAt: string | null;
     createdAt: string;
     updatedAt: string;
+    leadNumber?: string | null;
+    aiIntentScore: number;
+    dealValue: number;
 }
 
 export interface SalesLeadDetail extends SalesLeadSummary {
     email: string | null;
     notes: string | null;
     createdByUserId: string | null;
+    facilityType?: string;
+    bedCount?: number;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmAdId?: string;
+    aiPersonaSummary?: string;
+    lostReason?: string;
     followUps: SalesLeadFollowUp[];
 }
 
@@ -68,6 +84,17 @@ export interface CreateSalesLeadRequest {
     priority: LeadPriority;
     notes?: string;
     assignedToUserId?: string;
+    leadNumber?: string;
+    facilityType?: string;
+    bedCount?: number;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmAdId?: string;
+    aiIntentScore?: number;
+    aiPersonaSummary?: string;
+    dealValue?: number;
+    lostReason?: string;
 }
 
 export interface UpdateSalesLeadRequest {
@@ -82,11 +109,20 @@ export interface UpdateSalesLeadRequest {
     priority?: LeadPriority;
     notes?: string;
     assignedToUserId?: string;
+    facilityType?: string;
+    bedCount?: number;
+    aiIntentScore?: number;
+    aiPersonaSummary?: string;
+    dealValue?: number;
+    lostReason?: string;
 }
 
 export interface AddFollowUpRequest {
     activityType: ActivityType;
     notes: string;
+    direction?: string;
+    templateName?: string;
+    mediaUrl?: string;
 }
 
 export interface SalesLeadFilter {
@@ -142,6 +178,6 @@ export const salesLeadService = {
     },
 
     sendWhatsAppTemplate: async (leadId: string, templateName: string): Promise<void> => {
-        await api.post(`/api/v1/crm/leads/${leadId}/whatsapp-template`, { templateName });
+        await api.post(`${API_ENDPOINTS.MARKETING.LEAD_DETAIL}/${leadId}/whatsapp-template`, { templateName });
     },
 };
