@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Activity } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
@@ -93,6 +93,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 {(!collapsed || isMobile) && <span>Doctor Dekho</span>}
               </NavLink>
             </li>
+            {can('dashboard.view') && (
+              <li>
+                <NavLink
+                  to="/hospital-operations"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Hospital Operations" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Activity size={22} />
+                  {(!collapsed || isMobile) && <span>Hospital Operations</span>}
+                </NavLink>
+              </li>
+            )}
             {can('data-migration.manage') && (
               <li>
                 <NavLink

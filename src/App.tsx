@@ -17,6 +17,7 @@ import NewMigrationWizard from './features/dataMigration/pages/NewMigrationWizar
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import UsersAccess from './features/admin/pages/UsersAccess';
 import MarketingPage from './features/marketing/pages/MarketingPage';
+import HospitalOperationsPage from './features/operations/pages/HospitalOperationsPage';
 import RequirePermission from './components/RequirePermission';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -98,6 +99,7 @@ function App() {
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
             <Route path="marketing" element={<RequirePermission perm="marketing.view"><MarketingPage /></RequirePermission>} />
+            <Route path="hospital-operations" element={<RequirePermission perm="dashboard.view"><HospitalOperationsPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
             <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport /></RequirePermission>} />
             <Route path="users" element={<RequirePermission perm="user-management.view"><UsersAccess /></RequirePermission>} />

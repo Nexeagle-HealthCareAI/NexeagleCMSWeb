@@ -39,6 +39,13 @@ export const API_ENDPOINTS = {
     DASHBOARD: {
         STATS: '/dashboard/stats',
     },
+    HOSPITAL_OPERATIONS: {
+        SUMMARY: '/hospital-operations/summary', // ?fromDate=&toDate=
+    },
+    FREE_TIER_SETTINGS: {
+        GLOBAL: '/free-tier-settings/global',           // GET | PUT
+        HOSPITALS: '/free-tier-settings/hospitals',      // GET | PUT /:hospitalId
+    },
     SUBSCRIPTIONS: {
         GET_ALL_REQUESTS: '/subscriptions/admin/payment-requests',
         APPROVE: '/subscriptions/approve-payment', // Usage: /subscriptions/approve-payment/:id
