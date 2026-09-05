@@ -74,6 +74,7 @@ export const DoctorDetailModal: React.FC<DoctorDetailModalProps> = ({ doctorId, 
         setVerifying(true);
         try {
             await updateDoctorMarketing(detail.doctorId, {
+                isPubliclyListed: detail.isPubliclyListed,
                 isFeatured: detail.isFeatured,
                 isDelistedByAdmin: detail.isDelistedByAdmin,
                 isRegistrationVerified: nextVerified,

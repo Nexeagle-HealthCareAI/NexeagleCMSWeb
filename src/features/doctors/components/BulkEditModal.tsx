@@ -12,6 +12,7 @@ type TriState = 'nochange' | 'true' | 'false';
 const fromLocalInputValue = (local: string): string | null => (local ? new Date(local).toISOString() : null);
 
 export const BulkEditModal: React.FC<BulkEditModalProps> = ({ doctorIds, onClose, onSaved }) => {
+    const [listed, setListed] = useState<TriState>('nochange');
     const [featured, setFeatured] = useState<TriState>('nochange');
     const [delisted, setDelisted] = useState<TriState>('nochange');
     const [updateDiscount, setUpdateDiscount] = useState(false);
@@ -21,7 +22,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({ doctorIds, onClose
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
 
-    const hasAnyChange = featured !== 'nochange' || delisted !== 'nochange' || updateDiscount;
+    const hasAnyChange = listed !== 'nochange' || featured !== 'nochange' || delisted !== 'nochange' || updateDiscount;
 
     const handleSave = async () => {
         if (!hasAnyChange) {
@@ -43,6 +44,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({ doctorIds, onClose
 
         const payload: BulkUpdateDoctorMarketingPayload = {
             doctorIds,
+            isPubliclyListed: listed === 'nochange' ? undefined : listed === 'true',
             isFeatured: featured === 'nochange' ? undefined : featured === 'true',
             isDelistedByAdmin: delisted === 'nochange' ? undefined : delisted === 'true',
             updateDiscount,
@@ -72,6 +74,17 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({ doctorIds, onClose
                 <p style={{ color: '#64748b', fontSize: 13, margin: '0 0 16px 0' }}>
                     Only the changes you pick below are applied — anything left as "No change" stays exactly as it is for every selected doctor.
                 </p>
+
+                <div style={{ marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
+                        Listed on Doctor Dekho
+                    </label>
+                    <select className="doctor-form-input" value={listed} onChange={e => setListed(e.target.value as TriState)}>
+                        <option value="nochange">No change</option>
+                        <option value="true">List directly</option>
+                        <option value="false">Un-list</option>
+                    </select>
+                </div>
 
                 <div style={{ marginBottom: 14 }}>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 6 }}>

@@ -78,6 +78,7 @@ export interface DoctorDetail {
 }
 
 export interface UpdateDoctorMarketingPayload {
+    isPubliclyListed: boolean;
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
     isRegistrationVerified: boolean;
@@ -90,6 +91,7 @@ export interface UpdateDoctorMarketingPayload {
 // doctor. Mirrors CMSAPI's BulkUpdateDoctorMarketingRequest opt-in-per-field semantics.
 export interface BulkUpdateDoctorMarketingPayload {
     doctorIds: string[];
+    isPubliclyListed?: boolean | null;
     isFeatured?: boolean | null;
     isDelistedByAdmin?: boolean | null;
     updateDiscount: boolean;

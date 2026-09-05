@@ -46,6 +46,7 @@ const isDiscountActive = (doctor: DoctorListItem): boolean => {
 };
 
 interface EditFormState {
+    isPubliclyListed: boolean;
     isFeatured: boolean;
     isDelistedByAdmin: boolean;
     isRegistrationVerified: boolean;
@@ -134,6 +135,7 @@ const DoctorsPage: React.FC = () => {
         setEditingDoctor(doctor);
         setSaveError(null);
         setForm({
+            isPubliclyListed: doctor.isPubliclyListed,
             isFeatured: doctor.isFeatured,
             isDelistedByAdmin: doctor.isDelistedByAdmin,
             isRegistrationVerified: doctor.isRegistrationVerified,
@@ -168,6 +170,7 @@ const DoctorsPage: React.FC = () => {
             setSaving(true);
             setSaveError(null);
             await updateDoctorMarketing(editingDoctor.doctorId, {
+                isPubliclyListed: form.isPubliclyListed,
                 isFeatured: form.isFeatured,
                 isDelistedByAdmin: form.isDelistedByAdmin,
                 isRegistrationVerified: form.isRegistrationVerified,
@@ -329,6 +332,9 @@ const DoctorsPage: React.FC = () => {
                                                     {doctor.isRegistrationVerified && (
                                                         <span className="doctor-badge doctor-badge-verified" title={`Verified on ${formatLastLogin(doctor.registrationVerifiedAt)}`}><BadgeCheck size={12} /> Verified</span>
                                                     )}
+                                                    {doctor.isPubliclyListed && !doctor.isDelistedByAdmin && (
+                                                        <span className="doctor-badge doctor-badge-listed" title="Listed on Doctor Dekho"><Eye size={12} /> Listed</span>
+                                                    )}
                                                     {doctor.isFeatured && (
                                                         <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>
                                                     )}
@@ -338,7 +344,7 @@ const DoctorsPage: React.FC = () => {
                                                     {doctor.isDelistedByAdmin && (
                                                         <span className="doctor-badge doctor-badge-delisted"><EyeOff size={12} /> Delisted</span>
                                                     )}
-                                                    {!doctor.isRegistrationVerified && !doctor.isFeatured && !isDiscountActive(doctor) && !doctor.isDelistedByAdmin && (
+                                                    {!doctor.isPubliclyListed && !doctor.isRegistrationVerified && !doctor.isFeatured && !isDiscountActive(doctor) && !doctor.isDelistedByAdmin && (
                                                         <span style={{ color: '#94a3b8', fontSize: 13 }}>—</span>
                                                     )}
                                                 </div>
@@ -387,6 +393,9 @@ const DoctorsPage: React.FC = () => {
                                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px', paddingLeft: '32px' }}>
                                         {doctor.isRegistrationVerified && (
                                             <span className="doctor-badge doctor-badge-verified" title="Registration verified"><BadgeCheck size={12} /> Verified</span>
+                                        )}
+                                        {doctor.isPubliclyListed && !doctor.isDelistedByAdmin && (
+                                            <span className="doctor-badge doctor-badge-listed" title="Listed on Doctor Dekho"><Eye size={12} /> Listed</span>
                                         )}
                                         {doctor.isFeatured && (
                                             <span className="doctor-badge doctor-badge-featured" title="Featured"><Star size={12} /> Featured</span>
@@ -493,7 +502,25 @@ const DoctorsPage: React.FC = () => {
 
                         <div className="premium-edit-section">
                             <h4 className="premium-edit-section-title">Visibility & Ranking</h4>
-                            
+
+                            <label className={`premium-toggle-card ${form.isPubliclyListed ? 'active' : ''}`}>
+                                <div className="premium-toggle-card-content">
+                                    <div className="premium-toggle-card-title">Listed on Doctor Dekho</div>
+                                    <div className="premium-toggle-card-desc">
+                                        List this doctor directly, without waiting for the hospital to opt in from easyHMSWeb.
+                                        Still hidden if "Delisted by Admin" below is on.
+                                    </div>
+                                </div>
+                                <div className="premium-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.isPubliclyListed}
+                                        onChange={e => setForm({ ...form, isPubliclyListed: e.target.checked })}
+                                    />
+                                    <span className="premium-slider"></span>
+                                </div>
+                            </label>
+
                             <label className={`premium-toggle-card ${form.isFeatured ? 'active' : ''}`}>
                                 <div className="premium-toggle-card-content">
                                     <div className="premium-toggle-card-title">Featured Profile</div>
