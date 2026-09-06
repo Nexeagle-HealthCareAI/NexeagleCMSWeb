@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getHospitals, type Hospital } from '../services/hospitalService';
+import { HospitalOperationsTab } from '../../operations/components/HospitalOperationsTab';
 import './Dashboard.css';
 import './PremiumHospitals.css';
+import '../../doctors/pages/DoctorsPage.css';
 
 const getGradientClass = (name: string) => {
     if (!name) return 'gradient-1';
@@ -38,6 +40,7 @@ const SubscriptionCell: React.FC<{ hospital: Hospital }> = ({ hospital }) => {
 
 const OnboardedHospitals: React.FC = () => {
     const navigate = useNavigate();
+    const [pageTab, setPageTab] = useState<'hospitals' | 'operations'>('hospitals');
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -122,6 +125,24 @@ const OnboardedHospitals: React.FC = () => {
                 </div>
             </header>
 
+            <div className="doctor-page-tabs">
+                <button
+                    className={`doctor-page-tab-btn ${pageTab === 'hospitals' ? 'active' : ''}`}
+                    onClick={() => setPageTab('hospitals')}
+                >
+                    Hospitals
+                </button>
+                <button
+                    className={`doctor-page-tab-btn ${pageTab === 'operations' ? 'active' : ''}`}
+                    onClick={() => setPageTab('operations')}
+                >
+                    Hospital Operations
+                </button>
+            </div>
+
+            {pageTab === 'operations' && <HospitalOperationsTab />}
+
+            {pageTab === 'hospitals' && (
             <div className="premium-table-card">
                 <div className="premium-controls">
                     <h2 className="premium-table-title">
@@ -403,6 +424,7 @@ const OnboardedHospitals: React.FC = () => {
                     </>
                 )}
             </div>
+            )}
         </div>
     );
 };

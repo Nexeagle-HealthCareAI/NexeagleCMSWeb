@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Activity, TestTube2, Pill, CalendarClock, Loader2 } from 'lucide-react';
 import { getHospitalOperationsSummary, type HospitalOperationsSummaryItem } from '../services/hospitalOperationsService';
-import { FreeTierLimitsPanel } from '../components/FreeTierLimitsPanel';
-import '../../dashboard/pages/Dashboard.css';
-import '../../dashboard/pages/PremiumHospitals.css';
+import { FreeTierLimitsPanel } from './FreeTierLimitsPanel';
 
 type DateFilterMode = 'today' | 'custom';
 
@@ -24,7 +22,10 @@ const inputStyle = (extra: React.CSSProperties): React.CSSProperties => ({
     ...extra,
 });
 
-const HospitalOperationsPage: React.FC = () => {
+// Embedded as a tab inside OnboardedHospitals.tsx (not its own sidebar page/route) --
+// per-hospital IPD/pathology/pharmacy/online-appointment activity report + the free-tier
+// monthly limit admin settings.
+export const HospitalOperationsTab: React.FC = () => {
     const today = toDateInputValue(new Date());
     const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('today');
     const [customFrom, setCustomFrom] = useState(today);
@@ -70,14 +71,7 @@ const HospitalOperationsPage: React.FC = () => {
     );
 
     return (
-        <div className="premium-container">
-            <header className="premium-header">
-                <div>
-                    <h1 className="premium-title">Hospital Operations</h1>
-                    <p className="premium-subtitle">IPD admissions, pathology orders, pharmacy sales, and online appointment requests across every hospital.</p>
-                </div>
-            </header>
-
+        <>
             <FreeTierLimitsPanel />
 
             <div className="premium-table-card">
@@ -129,55 +123,53 @@ const HospitalOperationsPage: React.FC = () => {
                         <Loader2 className="animate-spin" size={24} color="#94a3b8" />
                     </div>
                 ) : (
-                    <>
-                        <div className="premium-responsive-wrapper">
-                            <table className="premium-table">
-                                <thead>
-                                    <tr>
-                                        <th>Hospital</th>
-                                        <th><Activity size={14} style={{ marginRight: 4, verticalAlign: -2 }} />IPD Admissions</th>
-                                        <th><TestTube2 size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Pathology Orders</th>
-                                        <th><Pill size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Pharmacy Invoices</th>
-                                        <th>Pharmacy Revenue</th>
-                                        <th><CalendarClock size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Online Appointments</th>
+                    <div className="premium-responsive-wrapper">
+                        <table className="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>Hospital</th>
+                                    <th><Activity size={14} style={{ marginRight: 4, verticalAlign: -2 }} />IPD Admissions</th>
+                                    <th><TestTube2 size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Pathology Orders</th>
+                                    <th><Pill size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Pharmacy Invoices</th>
+                                    <th>Pharmacy Revenue</th>
+                                    <th><CalendarClock size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Online Appointments</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {hospitals.map(h => (
+                                    <tr key={h.hospitalId} className="premium-row">
+                                        <td className="premium-hospital-name">{h.hospitalName}</td>
+                                        <td>{h.admissionsCount}</td>
+                                        <td>{h.pathologyOrdersCount}</td>
+                                        <td>{h.pharmacyInvoiceCount}</td>
+                                        <td>₹{h.pharmacyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td>{h.onlineAppointmentsCount}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {hospitals.map(h => (
-                                        <tr key={h.hospitalId} className="premium-row">
-                                            <td className="premium-hospital-name">{h.hospitalName}</td>
-                                            <td>{h.admissionsCount}</td>
-                                            <td>{h.pathologyOrdersCount}</td>
-                                            <td>{h.pharmacyInvoiceCount}</td>
-                                            <td>₹{h.pharmacyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td>{h.onlineAppointmentsCount}</td>
-                                        </tr>
-                                    ))}
-                                    {hospitals.length === 0 && (
-                                        <tr>
-                                            <td colSpan={6} style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>No activity in this range.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                                {hospitals.length > 0 && (
-                                    <tfoot>
-                                        <tr style={{ fontWeight: 700, background: '#f8fafc' }}>
-                                            <td>Total</td>
-                                            <td>{totals.admissions}</td>
-                                            <td>{totals.pathology}</td>
-                                            <td>{totals.pharmacyInvoices}</td>
-                                            <td>₹{totals.pharmacyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td>{totals.onlineAppts}</td>
-                                        </tr>
-                                    </tfoot>
+                                ))}
+                                {hospitals.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>No activity in this range.</td>
+                                    </tr>
                                 )}
-                            </table>
-                        </div>
-                    </>
+                            </tbody>
+                            {hospitals.length > 0 && (
+                                <tfoot>
+                                    <tr style={{ fontWeight: 700, background: '#f8fafc' }}>
+                                        <td>Total</td>
+                                        <td>{totals.admissions}</td>
+                                        <td>{totals.pathology}</td>
+                                        <td>{totals.pharmacyInvoices}</td>
+                                        <td>₹{totals.pharmacyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td>{totals.onlineAppts}</td>
+                                    </tr>
+                                </tfoot>
+                            )}
+                        </table>
+                    </div>
                 )}
             </div>
-        </div>
+        </>
     );
 };
 
-export default HospitalOperationsPage;
+export default HospitalOperationsTab;
