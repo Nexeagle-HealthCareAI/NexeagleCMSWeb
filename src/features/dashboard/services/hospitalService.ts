@@ -162,6 +162,31 @@ export const restoreHospital = async (id: string): Promise<void> => {
     await api.patch(`${API_ENDPOINTS.HOSPITALS.RESTORE}/${id}/restore`);
 };
 
+// CMS-initiated renewal (subscriptions.manage) — independent of the hospital's own in-app
+// payment submission, for offline payments and manual corrections. Backend computes the new end
+// date from the plan's billing cycle unless subscriptionEndDate is given explicitly.
+export interface RenewSubscriptionRequest {
+    subscriptionEndDate?: string; // ISO date; omit to use the plan's normal billing cycle
+    reference: string;            // required — doubles as the audit note
+    amount?: number;
+    paymentMode?: string;
+    allowOverLimit?: boolean;     // set true to proceed after an over-limit warning
+}
+
+export interface OverLimitError {
+    overLimit: true;
+    message: string;
+    details: string[];
+}
+
+export const renewHospitalSubscription = async (
+    hospitalId: string,
+    request: RenewSubscriptionRequest,
+): Promise<{ message: string; subscriptionEndDate: string }> => {
+    const response = await api.post(`/SubscriptionApproval/${hospitalId}/renew`, request);
+    return response.data;
+};
+
 // from/to are "yyyy-MM-dd" (inclusive). Omit both for all-time; pass the same date for both for
 // "today". Backend distinguishes online vs hospital-booked via Appointments.BookingSource.
 export const getHospitalAppointmentStats = async (

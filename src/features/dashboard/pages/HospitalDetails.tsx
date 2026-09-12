@@ -4,14 +4,14 @@ import {
     ArrowLeft, MapPin, Phone, Mail, Building2, ChevronDown, ChevronUp,
     Users, Stethoscope, CreditCard, Calendar, Activity, GraduationCap,
     FileText, Shield, TrendingUp, Receipt, UserCog, Globe, Building,
-    AlertTriangle, ArchiveRestore, Archive as ArchiveIcon
+    AlertTriangle, ArchiveRestore, Archive as ArchiveIcon, RefreshCw
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
+import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, renewHospitalSubscription, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
 import './HospitalDetails.css';
 import '../../partners/pages/PartnersPage.css';
 
@@ -52,6 +52,17 @@ const HospitalDetails: React.FC = () => {
     const [archiveConfirmText, setArchiveConfirmText] = useState('');
     const [isArchiving, setIsArchiving] = useState(false);
     const [isRestoring, setIsRestoring] = useState(false);
+
+    const canManageSubscription = useAuthStore((s) => s.hasAccess('subscriptions.manage'));
+    const [showRenewModal, setShowRenewModal] = useState(false);
+    const [renewEndDate, setRenewEndDate] = useState('');
+    const [renewReference, setRenewReference] = useState('');
+    const [renewAmount, setRenewAmount] = useState('');
+    const [renewPaymentMode, setRenewPaymentMode] = useState('');
+    const [isRenewing, setIsRenewing] = useState(false);
+    // Set when the backend flags the hospital's current doctor/bed count as over the plan's
+    // limit — shows a distinct "renew anyway?" confirmation instead of a bare error toast.
+    const [renewOverLimitDetails, setRenewOverLimitDetails] = useState<string[] | null>(null);
 
     React.useEffect(() => {
         const fetchHospital = async () => {
@@ -115,6 +126,45 @@ const HospitalDetails: React.FC = () => {
             toast.error('Failed to restore hospital');
         } finally {
             setIsRestoring(false);
+        }
+    };
+
+    const closeRenewModal = () => {
+        setShowRenewModal(false);
+        setRenewEndDate('');
+        setRenewReference('');
+        setRenewAmount('');
+        setRenewPaymentMode('');
+        setRenewOverLimitDetails(null);
+    };
+
+    const handleRenewSubmit = async (allowOverLimit = false) => {
+        if (!hospital || !renewReference.trim()) {
+            toast.error('A reference / reason is required to renew.');
+            return;
+        }
+        setIsRenewing(true);
+        try {
+            await renewHospitalSubscription(hospital.id, {
+                subscriptionEndDate: renewEndDate || undefined,
+                reference: renewReference.trim(),
+                amount: renewAmount ? parseFloat(renewAmount) : undefined,
+                paymentMode: renewPaymentMode.trim() || undefined,
+                allowOverLimit,
+            });
+            toast.success('Subscription renewed');
+            closeRenewModal();
+            const fresh = await getHospitalById(hospital.id);
+            setHospital(fresh);
+        } catch (err: any) {
+            if (err?.response?.status === 409 && err.response.data?.overLimit) {
+                // Over-limit warning — keep the modal open and switch to the override confirmation.
+                setRenewOverLimitDetails(err.response.data.details ?? []);
+            } else {
+                toast.error(err?.response?.data?.message || err?.response?.data || 'Could not renew the subscription.');
+            }
+        } finally {
+            setIsRenewing(false);
         }
     };
 
@@ -704,6 +754,19 @@ const HospitalDetails: React.FC = () => {
                         </div>
                     </div>
 
+                    {canManageSubscription && (
+                        <div style={{ marginBottom: '1.25rem' }}>
+                            <button
+                                onClick={() => setShowRenewModal(true)}
+                                className="btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                            >
+                                <RefreshCw size={16} />
+                                Renew Subscription
+                            </button>
+                        </div>
+                    )}
+
                     <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
                         Payment History
                     </div>
@@ -802,6 +865,113 @@ const HospitalDetails: React.FC = () => {
                                 onClick={handleArchive}
                             >
                                 {isArchiving ? 'Archiving…' : 'Archive Hospital'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Renew Subscription Modal */}
+            {showRenewModal && (
+                <div className="modal-backdrop">
+                    <div className="modal-content" style={{ maxWidth: '440px' }}>
+                        <div className="modal-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ padding: '8px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '50%' }}>
+                                    <RefreshCw size={20} />
+                                </div>
+                                <h2 className="modal-title" style={{ margin: 0, color: '#0f172a' }}>Renew Subscription</h2>
+                            </div>
+                            <button className="modal-close" onClick={closeRenewModal}>&times;</button>
+                        </div>
+
+                        <div className="modal-body" style={{ marginTop: '16px' }}>
+                            {renewOverLimitDetails ? (
+                                <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '8px', padding: '12px 14px', marginBottom: '16px' }}>
+                                    <div style={{ fontWeight: 700, color: '#92400e', fontSize: '13px', marginBottom: '4px' }}>
+                                        This hospital exceeds the plan's limits
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#92400e' }}>
+                                        {renewOverLimitDetails.join(' and ')}. You can renew anyway, or ask the hospital
+                                        to reduce their count first.
+                                    </div>
+                                </div>
+                            ) : (
+                                <p style={{ color: '#475569', fontSize: '14px', marginBottom: '16px' }}>
+                                    Renews <strong>{hospital.name}</strong>'s current plan
+                                    {hospital.subscriptionPlanName ? <> (<strong>{hospital.subscriptionPlanName}</strong>)</> : ''}.
+                                    Leave the end date blank to use the plan's normal billing cycle.
+                                </p>
+                            )}
+
+                            <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
+                                    Custom end date (optional)
+                                </label>
+                                <input
+                                    type="date"
+                                    className="form-input"
+                                    value={renewEndDate}
+                                    onChange={(e) => setRenewEndDate(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
+                                    Reference / reason <span style={{ color: '#ef4444' }}>*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={renewReference}
+                                    onChange={(e) => setRenewReference(e.target.value)}
+                                    placeholder="e.g. Cash payment received at front desk"
+                                    autoComplete="off"
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
+                                        Amount (optional)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={renewAmount}
+                                        onChange={(e) => setRenewAmount(e.target.value)}
+                                        placeholder="₹"
+                                    />
+                                </div>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
+                                        Payment mode (optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={renewPaymentMode}
+                                        onChange={(e) => setRenewPaymentMode(e.target.value)}
+                                        placeholder="Cash / Cheque / UPI / Bank Transfer"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button className="btn-secondary" onClick={closeRenewModal} disabled={isRenewing}>
+                                Cancel
+                            </button>
+                            <button
+                                className="btn-primary"
+                                disabled={!renewReference.trim() || isRenewing}
+                                onClick={() => handleRenewSubmit(renewOverLimitDetails !== null)}
+                            >
+                                {isRenewing
+                                    ? 'Renewing…'
+                                    : renewOverLimitDetails
+                                        ? 'Renew Anyway'
+                                        : 'Renew Subscription'}
                             </button>
                         </div>
                     </div>
