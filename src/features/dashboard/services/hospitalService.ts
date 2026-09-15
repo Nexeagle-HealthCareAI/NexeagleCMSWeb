@@ -70,6 +70,11 @@ export interface Hospital {
     address: string;
     city: string;
     state: string;
+    // GPS pin, set by the hospital via easyHMSWeb's HospitalBrandingConfig.tsx -- null until
+    // they've set one. Detail-only (HospitalRepository.GetHospitalByIdAsync); the list endpoint
+    // doesn't project these.
+    latitude?: number | null;
+    longitude?: number | null;
     contactNumber: string;
     email: string;
     hospitalType?: string; // Optional in API response

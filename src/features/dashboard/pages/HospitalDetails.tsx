@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
+import HospitalLocationMap from '../components/HospitalLocationMap';
 import './HospitalDetails.css';
 import '../../partners/pages/PartnersPage.css';
 
@@ -747,6 +748,22 @@ const HospitalDetails: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
+                </CollapsibleCard>
+
+                {/* Location */}
+                <CollapsibleCard title="Location" icon={<MapPin size={20} />}>
+                    {hospital.latitude != null && hospital.longitude != null ? (
+                        <HospitalLocationMap
+                            latitude={hospital.latitude}
+                            longitude={hospital.longitude}
+                            label={hospital.name}
+                        />
+                    ) : (
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                            This hospital hasn't set a GPS location yet — they can set one from the "GPS Location" section
+                            of their Hospital Branding settings in easyHMSWeb.
+                        </div>
+                    )}
                 </CollapsibleCard>
 
             </div>

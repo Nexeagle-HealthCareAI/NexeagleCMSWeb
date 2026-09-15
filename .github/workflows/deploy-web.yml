@@ -87,6 +87,7 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=${{ vars.DEV_API_URL || 'http://151.185.45.77:5002/api/v1' }}
+            VITE_MAPBOX_TOKEN=${{ secrets.VITE_MAPBOX_TOKEN }}
           tags: |
             ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
             ${{ steps.vars.outputs.image }}:develop
@@ -164,6 +165,7 @@ jobs:
           # Requires cms-api.nexeagle.com reverse-proxied to this VM's :5002 with a valid TLS cert.
           build-args: |
             VITE_API_URL=${{ vars.PROD_API_URL || 'https://cms-api.nexeagle.com/api/v1' }}
+            VITE_MAPBOX_TOKEN=${{ secrets.VITE_MAPBOX_TOKEN }}
           tags: |
             ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
             ${{ steps.vars.outputs.image }}:latest
