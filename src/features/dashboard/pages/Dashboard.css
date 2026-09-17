@@ -385,7 +385,7 @@
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .dashboard-container {
         padding: var(--spacing-md);
         padding-bottom: 90px !important;
@@ -520,7 +520,7 @@
     min-height: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .analytics-grid {
         grid-template-columns: 1fr;
     }
@@ -568,7 +568,7 @@
     display: block;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .hospitals-desktop-table {
         display: none !important;
     }

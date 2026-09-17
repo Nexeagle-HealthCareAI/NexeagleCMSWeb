@@ -24,8 +24,8 @@ const Layout: React.FC = () => {
     const user = useAuthStore((s) => s.user);
     const permissions = useAuthStore((s) => s.permissions) || [];
     const can = (key: string) => permissions.includes(key);
-    const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [pendingCount, setPendingCount] = useState(0);
     const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing'>('idle');
@@ -83,7 +83,7 @@ const Layout: React.FC = () => {
 
     useEffect(() => {
         const handleResize = () => {
-            const mobile = window.innerWidth <= 768;
+            const mobile = window.innerWidth <= 1024;
             setIsMobile(mobile);
             if (!mobile) {
                 setSidebarOpen(true); // Auto expand on desktop
@@ -197,7 +197,9 @@ const Layout: React.FC = () => {
     return (
         <div className="app-layout">
             <Toaster position="top-right" richColors />
-            <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar} isMobile={isMobile} />
+            {!isMobile && (
+                <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar} isMobile={isMobile} />
+            )}
 
             <div className="content-wrapper">
                 {/* Mobile Header (PWA Styled) */}
