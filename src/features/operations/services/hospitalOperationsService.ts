@@ -8,6 +8,9 @@ export interface HospitalOperationsSummaryItem {
     pathologyOrdersCount: number;
     pharmacyInvoiceCount: number;
     pharmacyRevenue: number;
+    // Total OPD appointments (walk-in AND online) for the date range. onlineAppointmentsCount
+    // below is the NEXEAGLE_PUBLIC-only subset of this.
+    opdAppointmentsCount: number;
     onlineAppointmentsCount: number;
 }
 
