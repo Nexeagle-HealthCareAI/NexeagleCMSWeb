@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Activity, TestTube2, Pill, CalendarClock, Loader2 } from 'lucide-react';
+import { Activity, TestTube2, Pill, CalendarClock, Loader2, Stethoscope } from 'lucide-react';
 import { getHospitalOperationsSummary, type HospitalOperationsSummaryItem } from '../services/hospitalOperationsService';
 import { FreeTierLimitsPanel } from './FreeTierLimitsPanel';
 
@@ -65,9 +65,10 @@ export const HospitalOperationsTab: React.FC = () => {
             pathology: acc.pathology + h.pathologyOrdersCount,
             pharmacyInvoices: acc.pharmacyInvoices + h.pharmacyInvoiceCount,
             pharmacyRevenue: acc.pharmacyRevenue + h.pharmacyRevenue,
+            opdAppts: acc.opdAppts + h.opdAppointmentsCount,
             onlineAppts: acc.onlineAppts + h.onlineAppointmentsCount,
         }),
-        { admissions: 0, pathology: 0, pharmacyInvoices: 0, pharmacyRevenue: 0, onlineAppts: 0 }
+        { admissions: 0, pathology: 0, pharmacyInvoices: 0, pharmacyRevenue: 0, opdAppts: 0, onlineAppts: 0 }
     );
 
     return (
@@ -129,6 +130,7 @@ export const HospitalOperationsTab: React.FC = () => {
                                 <tr>
                                     <th>Hospital</th>
                                     <th><Activity size={14} style={{ marginRight: 4, verticalAlign: -2 }} />IPD Admissions</th>
+                                    <th><Stethoscope size={14} style={{ marginRight: 4, verticalAlign: -2 }} />OPD Count</th>
                                     <th><TestTube2 size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Pathology Orders</th>
                                     <th><Pill size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Pharmacy Invoices</th>
                                     <th>Pharmacy Revenue</th>
@@ -140,6 +142,7 @@ export const HospitalOperationsTab: React.FC = () => {
                                     <tr key={h.hospitalId} className="premium-row">
                                         <td className="premium-hospital-name">{h.hospitalName}</td>
                                         <td>{h.admissionsCount}</td>
+                                        <td>{h.opdAppointmentsCount}</td>
                                         <td>{h.pathologyOrdersCount}</td>
                                         <td>{h.pharmacyInvoiceCount}</td>
                                         <td>₹{h.pharmacyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -148,7 +151,7 @@ export const HospitalOperationsTab: React.FC = () => {
                                 ))}
                                 {hospitals.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>No activity in this range.</td>
+                                        <td colSpan={7} style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>No activity in this range.</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -157,6 +160,7 @@ export const HospitalOperationsTab: React.FC = () => {
                                     <tr style={{ fontWeight: 700, background: '#f8fafc' }}>
                                         <td>Total</td>
                                         <td>{totals.admissions}</td>
+                                        <td>{totals.opdAppts}</td>
                                         <td>{totals.pathology}</td>
                                         <td>{totals.pharmacyInvoices}</td>
                                         <td>₹{totals.pharmacyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
