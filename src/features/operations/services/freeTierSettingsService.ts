@@ -11,6 +11,10 @@ export interface HospitalFreeTierLimitItem {
     // null = no override -- this hospital uses the global default.
     monthlyLimit: number | null;
     effectiveLimit: number;
+    // "Trial" (or no subscription row) = free tier; anything else (e.g. "Active") = paid, no limit.
+    subscriptionStatus: string;
+    // false = a paid plan; effectiveLimit doesn't actually apply to this hospital.
+    isGated: boolean;
 }
 
 export interface UpdateFreeTierLimitResult {
