@@ -143,7 +143,7 @@ export const FreeTierLimitsPanel: React.FC = () => {
                                         {hospitals.map(h => (
                                             <tr key={h.hospitalId} className="premium-row">
                                                 <td className="premium-hospital-name">{h.hospitalName}</td>
-                                                <td><PlanBadge status={h.subscriptionStatus} /></td>
+                                                <td><PlanBadge status={h.subscriptionStatus} usedCount={h.isGated ? h.usedCount : null} limit={h.isGated ? h.effectiveLimit : null} /></td>
                                                 <td>
                                                     <input
                                                         type="number"

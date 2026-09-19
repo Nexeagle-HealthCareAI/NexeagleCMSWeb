@@ -143,7 +143,7 @@ export const HospitalOperationsTab: React.FC = () => {
                                 {hospitals.map(h => (
                                     <tr key={h.hospitalId} className="premium-row">
                                         <td className="premium-hospital-name">{h.hospitalName}</td>
-                                        <td><PlanBadge status={h.subscriptionStatus} /></td>
+                                        <td><PlanBadge status={h.subscriptionStatus} usedCount={h.freeTierUsedCount} limit={h.freeTierLimit} /></td>
                                         <td>{h.admissionsCount}</td>
                                         <td>{h.opdAppointmentsCount}</td>
                                         <td>{h.admissionsCount + h.opdAppointmentsCount}</td>

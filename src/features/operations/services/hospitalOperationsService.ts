@@ -13,6 +13,10 @@ export interface HospitalOperationsSummaryItem {
     onlineAppointmentsCount: number;
     // "Trial" (or no subscription row) = free tier; anything else (e.g. "Active") = paid, no limit.
     subscriptionStatus: string;
+    // Current-month free-tier usage -- only set when subscriptionStatus === 'Trial' (null for a
+    // paid plan, which has no cap at all).
+    freeTierUsedCount: number | null;
+    freeTierLimit: number | null;
 }
 
 export interface HospitalOperationsSummaryResponse {

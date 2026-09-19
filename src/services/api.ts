@@ -36,7 +36,6 @@ const getCacheKey = (config: any) => {
 const getMutationDescription = (config: any) => {
     const url = config.url || '';
     if (url.includes('/status')) return 'Update Subscription Status';
-    if (url.includes('/trial')) return 'Set Trial Period';
     if (url.includes('/validity')) return 'Set Subscription Validity';
     if (url.includes('/plan')) return 'Assign Subscription Plan';
     if (url.includes('/approve-payment')) return 'Approve Payment Request';

@@ -21,14 +21,27 @@ const SubscriptionCell: React.FC<{ hospital: Hospital }> = ({ hospital }) => {
         return <span style={{ color: '#94a3b8', fontSize: '13px' }}>No subscription</span>;
     }
     const planLabel = hospital.subscriptionIsEnterprise ? 'Enterprise' : (hospital.subscriptionPlanName || 'No Plan Selected');
+    const isTrial = hospital.subscriptionStatus === 'Trial';
+    const isOverLimit = isTrial && hospital.freeTierUsedCount != null && hospital.freeTierLimit != null
+        && hospital.freeTierUsedCount >= hospital.freeTierLimit;
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div className="premium-sub-plan">{planLabel}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span className={`premium-sub-badge premium-status-${hospital.subscriptionStatus.toLowerCase()}`}>
                     {hospital.subscriptionStatus}
                 </span>
-                {hospital.subscriptionDaysRemaining != null && (
+                {isOverLimit && (
+                    <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 700 }}>
+                        Over limit exceeded
+                    </span>
+                )}
+                {isTrial && !isOverLimit && hospital.freeTierUsedCount != null && hospital.freeTierLimit != null && (
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
+                        {hospital.freeTierUsedCount}/{hospital.freeTierLimit} used
+                    </span>
+                )}
+                {hospital.subscriptionStatus === 'Active' && hospital.subscriptionDaysRemaining != null && (
                     <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
                         {hospital.subscriptionDaysRemaining}d left
                     </span>

@@ -683,26 +683,31 @@ const HospitalDetails: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="info-item">
-                            <Calendar size={16} className="info-icon" />
-                            <div>
-                                <div className="info-label">Trial Started</div>
-                                <div className="info-value">
-                                    {hospital.trialStartDate ? new Date(hospital.trialStartDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        {hospital.subscriptionStatus === 'Trial' ? (
+                            <div className="info-item">
+                                <Activity size={16} className="info-icon" />
+                                <div>
+                                    <div className="info-label">Free Tier Usage This Month</div>
+                                    <div className="info-value">
+                                        {hospital.freeTierUsedCount != null && hospital.freeTierLimit != null
+                                            ? `${hospital.freeTierUsedCount} / ${hospital.freeTierLimit}${hospital.freeTierUsedCount >= hospital.freeTierLimit ? ' — over limit' : ''}`
+                                            : '—'}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="info-item">
-                            <Calendar size={16} className="info-icon" />
-                            <div>
-                                <div className="info-label">{hospital.subscriptionStatus === 'Active' ? 'Subscription Ends' : 'Trial Ends'}</div>
-                                <div className="info-value">
-                                    {(hospital.subscriptionEndDate || hospital.trialEndDate)
-                                        ? new Date((hospital.subscriptionEndDate || hospital.trialEndDate)!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                                        : '—'}
+                        ) : (
+                            <div className="info-item">
+                                <Calendar size={16} className="info-icon" />
+                                <div>
+                                    <div className="info-label">Subscription Ends</div>
+                                    <div className="info-value">
+                                        {hospital.subscriptionEndDate
+                                            ? new Date(hospital.subscriptionEndDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                            : '—'}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
