@@ -7,11 +7,12 @@ export interface HospitalOperationsSummaryItem {
     admissionsCount: number;
     pathologyOrdersCount: number;
     pharmacyInvoiceCount: number;
-    pharmacyRevenue: number;
     // Total OPD appointments (walk-in AND online) for the date range. onlineAppointmentsCount
     // below is the NEXEAGLE_PUBLIC-only subset of this.
     opdAppointmentsCount: number;
     onlineAppointmentsCount: number;
+    // "Trial" (or no subscription row) = free tier; anything else (e.g. "Active") = paid, no limit.
+    subscriptionStatus: string;
 }
 
 export interface HospitalOperationsSummaryResponse {

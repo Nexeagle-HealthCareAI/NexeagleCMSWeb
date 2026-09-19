@@ -6,6 +6,7 @@ import {
     getHospitalFreeTierOverrides, setHospitalFreeTierOverride,
     type HospitalFreeTierLimitItem,
 } from '../services/freeTierSettingsService';
+import { PlanBadge } from './PlanBadge';
 
 const inputStyle: React.CSSProperties = {
     height: 36,
@@ -132,6 +133,7 @@ export const FreeTierLimitsPanel: React.FC = () => {
                                     <thead>
                                         <tr>
                                             <th>Hospital</th>
+                                            <th>Plan</th>
                                             <th>Override (blank = global default)</th>
                                             <th>Effective Limit</th>
                                             <th></th>
@@ -141,6 +143,7 @@ export const FreeTierLimitsPanel: React.FC = () => {
                                         {hospitals.map(h => (
                                             <tr key={h.hospitalId} className="premium-row">
                                                 <td className="premium-hospital-name">{h.hospitalName}</td>
+                                                <td><PlanBadge status={h.subscriptionStatus} /></td>
                                                 <td>
                                                     <input
                                                         type="number"
@@ -151,7 +154,12 @@ export const FreeTierLimitsPanel: React.FC = () => {
                                                         onChange={e => setOverrideInputs(prev => ({ ...prev, [h.hospitalId]: e.target.value }))}
                                                     />
                                                 </td>
-                                                <td>{h.effectiveLimit}</td>
+                                                <td>
+                                                    {h.effectiveLimit}
+                                                    {!h.isGated && (
+                                                        <span style={{ marginLeft: 6, fontSize: 11, color: '#94a3b8' }}>(not applied — paid plan)</span>
+                                                    )}
+                                                </td>
                                                 <td>
                                                     <button
                                                         onClick={() => handleSaveOverride(h.hospitalId)}
@@ -164,7 +172,7 @@ export const FreeTierLimitsPanel: React.FC = () => {
                                             </tr>
                                         ))}
                                         {hospitals.length === 0 && (
-                                            <tr><td colSpan={4} style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8' }}>No hospitals found.</td></tr>
+                                            <tr><td colSpan={5} style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8' }}>No hospitals found.</td></tr>
                                         )}
                                     </tbody>
                                 </table>
