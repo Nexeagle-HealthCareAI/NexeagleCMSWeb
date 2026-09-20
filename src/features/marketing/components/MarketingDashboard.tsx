@@ -21,7 +21,7 @@ export const MarketingDashboard: React.FC = () => {
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
-                const res = await api.get('/api/v1/crm/analytics/financial');
+                const res = await api.get('/crm/analytics/financial');
                 setData(res.data);
             } catch (err) {
                 console.error("Failed to fetch analytics", err);

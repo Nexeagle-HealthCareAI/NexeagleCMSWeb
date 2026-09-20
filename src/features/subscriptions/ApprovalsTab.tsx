@@ -11,8 +11,6 @@ interface PaymentRequest {
     planName: string;
     applicationName: string;
     status: string;
-    trialStartDate: string | null;
-    trialEndDate: string | null;
     subscriptionEndDate: string | null;
     paymentAmount: number | null;
     paymentReference: string | null;
@@ -205,15 +203,14 @@ export const ApprovalsTab: React.FC = () => {
                                         <th>Plan Details</th>
                                         <th>Payment Submitted</th>
                                         <th>Status</th>
-                                        <th>Trial End Date</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {loading ? (
-                                        <tr><td colSpan={7} style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</td></tr>
+                                        <tr><td colSpan={6} style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Loading...</td></tr>
                                     ) : requests.length === 0 ? (
-                                        <tr><td colSpan={7} style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No pending payment approvals.</td></tr>
+                                        <tr><td colSpan={6} style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No pending payment approvals.</td></tr>
                                     ) : (
                                         requests.map((req) => (
                                             <tr key={req.hospitalSubscriptionId} className="premium-row">
@@ -263,11 +260,6 @@ export const ApprovalsTab: React.FC = () => {
                                                     {getStatusIcon(req.status)}
                                                     {req.status}
                                                 </div>
-                                            </td>
-                                            <td>
-                                                {req.trialEndDate ? new Date(req.trialEndDate).toLocaleDateString('en-IN', {
-                                                    year: 'numeric', month: 'short', day: 'numeric'
-                                                }) : 'N/A'}
                                             </td>
                                             <td>
                                                 {req.status !== 'Active' && (
@@ -322,14 +314,6 @@ export const ApprovalsTab: React.FC = () => {
                                             <span className="premium-mobile-detail-label">Plan Details</span>
                                             <span className="premium-mobile-detail-value" style={{fontWeight: 600, color: 'var(--primary)'}}>{req.planName || 'Unknown Plan'}</span>
                                             <ReferralHint code={req.referralCode} rewardKind={req.referralCodeRewardKind} rewardValue={req.referralCodeRewardValue} />
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Trial End Date</span>
-                                            <span className="premium-mobile-detail-value">
-                                                {req.trialEndDate ? new Date(req.trialEndDate).toLocaleDateString('en-IN', {
-                                                    year: 'numeric', month: 'short', day: 'numeric'
-                                                }) : 'N/A'}
-                                            </span>
                                         </div>
                                         <div className="premium-mobile-detail-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', borderTop: '1px dashed rgba(226, 232, 240, 0.8)', paddingTop: '12px', marginTop: '8px' }}>
                                             <span className="premium-mobile-detail-label">Payment Submitted:</span>

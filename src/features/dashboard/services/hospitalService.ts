@@ -88,11 +88,15 @@ export interface Hospital {
     // Subscription summary (list + detail)
     subscriptionPlanName?: string | null;
     subscriptionStatus?: string | null; // Trial, Active, Expired, Blocked, Rejected, Pending, PendingApproval
+    // Only set for an Active (paid) plan's real billing-cycle end date -- Trial has no calendar
+    // expiry any more, so this is null for Trial/Blocked/Rejected.
     subscriptionDaysRemaining?: number | null;
     subscriptionIsEnterprise?: boolean;
+    // Current-month free-tier usage -- only set when subscriptionStatus === 'Trial' (null for a
+    // paid plan, which has no cap at all).
+    freeTierUsedCount?: number | null;
+    freeTierLimit?: number | null;
     // Detail-only
-    trialStartDate?: string | null;
-    trialEndDate?: string | null;
     subscriptionStartDate?: string | null;
     subscriptionEndDate?: string | null;
     paymentHistory?: HospitalPaymentHistoryItem[];
