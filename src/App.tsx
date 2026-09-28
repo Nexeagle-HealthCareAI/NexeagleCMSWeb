@@ -7,6 +7,7 @@ import Login from './features/login/pages/Login';
 import ChangePassword from './features/login/pages/ChangePassword';
 import HospitalDetails from './features/dashboard/pages/HospitalDetails';
 import OnboardedHospitals from './features/dashboard/pages/OnboardedHospitals';
+import RadCentersPage from './features/radCenters/pages/RadCentersPage';
 import DoctorsPage from './features/doctors/pages/DoctorsPage';
 import SettingsPage from './features/settings/pages/Settings';
 import LiveSupport from './features/support/pages/LiveSupport';
@@ -89,6 +90,7 @@ function App() {
           }>
             <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
             <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
+            <Route path="rad-centers" element={<RequirePermission perm="dashboard.view"><RadCentersPage /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
             <Route path="partners" element={<RequirePermission perm="partners.manage"><PartnersPage /></RequirePermission>} />
             <Route path="data-migration" element={<RequirePermission perm="data-migration.manage"><DataMigrationPage /></RequirePermission>} />

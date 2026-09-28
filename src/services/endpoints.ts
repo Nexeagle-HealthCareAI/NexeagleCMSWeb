@@ -46,6 +46,9 @@ export const API_ENDPOINTS = {
         GLOBAL: '/free-tier-settings/global',           // GET | PUT
         HOSPITALS: '/free-tier-settings/hospitals',      // GET | PUT /:hospitalId
     },
+    RAD_HOSPITALS: {
+        LIST: '/rad-hospitals',                          // GET
+    },
     NIGHT_JOBS: {
         LIST: '/night-jobs',                             // GET
         SET_ACTIVE: '/night-jobs',                        // PUT /:jobName/active
