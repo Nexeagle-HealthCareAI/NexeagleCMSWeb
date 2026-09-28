@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Activity, TestTube2, Pill, CalendarClock, Loader2, Stethoscope, Users } from 'lucide-react';
 import { getHospitalOperationsSummary, type HospitalOperationsSummaryItem } from '../services/hospitalOperationsService';
 import { FreeTierLimitsPanel } from './FreeTierLimitsPanel';
+import { NightJobsPanel } from './NightJobsPanel';
 import { PlanBadge } from './PlanBadge';
 
 type DateFilterMode = 'today' | 'custom';
@@ -75,6 +76,7 @@ export const HospitalOperationsTab: React.FC = () => {
     return (
         <>
             <FreeTierLimitsPanel />
+            <NightJobsPanel />
 
             <div className="premium-table-card">
                 <div className="premium-controls" style={{ flexWrap: 'wrap', gap: 12 }}>
