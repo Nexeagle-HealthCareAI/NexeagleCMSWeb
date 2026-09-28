@@ -46,6 +46,15 @@ export const API_ENDPOINTS = {
         GLOBAL: '/free-tier-settings/global',           // GET | PUT
         HOSPITALS: '/free-tier-settings/hospitals',      // GET | PUT /:hospitalId
     },
+    RAD_HOSPITALS: {
+        LIST: '/rad-hospitals',                          // GET
+    },
+    NIGHT_JOBS: {
+        LIST: '/night-jobs',                             // GET
+        SET_ACTIVE: '/night-jobs',                        // PUT /:jobName/active
+        RUNS: '/night-jobs/runs',                          // GET ?take=
+        RUN_NOW: '/night-jobs',                            // POST /:jobName/run-now
+    },
     SUBSCRIPTIONS: {
         GET_ALL_REQUESTS: '/subscriptions/admin/payment-requests',
         APPROVE: '/subscriptions/approve-payment', // Usage: /subscriptions/approve-payment/:id

@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Scan } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import './Sidebar.css';
 
@@ -79,6 +79,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 >
                   <Building2 size={22} />
                   {(!collapsed || isMobile) && <span>Onboarded Hospitals</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('dashboard.view') && (
+              <li>
+                <NavLink
+                  to="/rad-centers"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "1Rad Centers" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Scan size={22} />
+                  {(!collapsed || isMobile) && <span>1Rad Centers</span>}
                 </NavLink>
               </li>
             )}
