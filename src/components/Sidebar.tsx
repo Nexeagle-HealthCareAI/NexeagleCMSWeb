@@ -1,7 +1,8 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Scan } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Scan, BookOpen } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
+import { canUseHealthWiki } from '../features/healthWiki/access';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -129,6 +130,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 >
                   <Handshake size={22} />
                   {(!collapsed || isMobile) && <span>Partner Network</span>}
+                </NavLink>
+              </li>
+            )}
+            {canUseHealthWiki(permissions) && (
+              <li>
+                <NavLink
+                  to="/health-wiki"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Health Wiki" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <BookOpen size={22} />
+                  {(!collapsed || isMobile) && <span>Health Wiki</span>}
                 </NavLink>
               </li>
             )}
