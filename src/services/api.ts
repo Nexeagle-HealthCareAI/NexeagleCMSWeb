@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { API_ENDPOINTS } from './endpoints';
 import { toast } from 'sonner';
+import { DEV_BYPASS } from '../devBypass';
 
 if (!import.meta.env.VITE_API_URL) {
     console.warn('[api] VITE_API_URL is not set – falling back to hard-coded dev URL.');
@@ -147,7 +148,8 @@ api.interceptors.response.use(
         const status = error.response?.status;
         const isAuthCall = typeof original?.url === 'string' && original.url.includes('/auth/');
 
-        if (status === 401 && original && !original._retry && !isAuthCall) {
+        // In the local login-bypass mode a 401 is expected; never refresh or sign out because of it.
+        if (status === 401 && original && !original._retry && !isAuthCall && !DEV_BYPASS) {
             original._retry = true;
             try {
                 const newToken = await (refreshPromise ??= doRefresh());
