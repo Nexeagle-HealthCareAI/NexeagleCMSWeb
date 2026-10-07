@@ -1,4 +1,4 @@
-import { STATUS_LABEL, TYPE_LABEL, contributorStatusLabel, type ArticleStatus, type ArticleType, type ContributorStatus, type ContributorType } from '../types';
+import { STATUS_LABEL, TOPIC_STATUS_LABEL, TYPE_LABEL, contributorStatusLabel, type ArticleStatus, type ArticleType, type ContributorStatus, type ContributorType, type TopicStatus } from '../types';
 
 export default function StatusPill({ status }: { status: ArticleStatus }) {
   return <span className={`hw-pill hw-pill-${status}`}>{STATUS_LABEL[status]}</span>;
@@ -10,4 +10,8 @@ export function TypePill({ type }: { type: ArticleType }) {
 
 export function ContributorStatusPill({ type, status }: { type: ContributorType; status: ContributorStatus }) {
   return <span className={`hw-pill hw-pill-c-${status}`}>{contributorStatusLabel(type, status)}</span>;
+}
+
+export function TopicStatusPill({ status }: { status: TopicStatus }) {
+  return <span className={`hw-pill hw-pill-t-${status}`}>{TOPIC_STATUS_LABEL[status]}</span>;
 }

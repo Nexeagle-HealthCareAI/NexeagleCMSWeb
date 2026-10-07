@@ -5,6 +5,7 @@ import { healthWikiService, errorMessage } from '../services/healthWikiService';
 import { CONTRIBUTOR_TYPE_LABEL, isDoctor, type Contributor, type ContributorStatus, type ContributorType } from '../types';
 import { ContributorStatusPill } from '../components/StatusPill';
 import SectionNav from '../components/SectionNav';
+import { refreshNavCounts } from '../components/navEvents';
 import VerifyDialog from '../components/VerifyDialog';
 import InviteDialog from '../components/InviteDialog';
 import '../healthWiki.css';
@@ -43,7 +44,6 @@ export default function ContributorsPage() {
   useEffect(() => { load(); }, [load]);
 
   const replace = (c: Contributor) => setPeople((list) => list.map((p) => (p.contributorId === c.contributorId ? c : p)));
-  const pending = people.filter((p) => p.status === 'PENDING').length;
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -71,7 +71,7 @@ export default function ContributorsPage() {
         </div>
         <button type="button" className="hw-btn hw-btn-primary" onClick={() => setInviting(true)}><UserPlus size={16} /> Invite contributor</button>
       </div>
-      <SectionNav pendingContributors={pending} />
+      <SectionNav />
 
       <div className="hw-panel">
         <div className="hw-bar hw-filters">
@@ -138,7 +138,7 @@ export default function ContributorsPage() {
         )}
       </div>
 
-      {verifying && <VerifyDialog contributor={verifying} onClose={() => setVerifying(null)} onDecided={(c) => { replace(c); setVerifying(null); }} />}
+      {verifying && <VerifyDialog contributor={verifying} onClose={() => setVerifying(null)} onDecided={(c) => { replace(c); setVerifying(null); refreshNavCounts(); }} />}
       {inviting && <InviteDialog onClose={() => setInviting(false)} onInvited={(c) => { setPeople((l) => [...l, c]); setInviting(false); }} />}
     </div>
   );

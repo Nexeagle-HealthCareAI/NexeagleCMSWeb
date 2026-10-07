@@ -45,7 +45,6 @@ export default function HealthWikiPage() {
   useEffect(() => { load(); }, [load]);
 
   const nameOf = (id: string | null) => people.find((p) => p.contributorId === id)?.fullName ?? null;
-  const pendingContributors = people.filter((p) => p.status === 'PENDING').length;
   const count = (t: Tab) => (t === 'ALL' ? articles.length : articles.filter((a) => a.status === t).length);
 
   const rows = useMemo(() => {
@@ -65,7 +64,7 @@ export default function HealthWikiPage() {
         </button>
       </div>
 
-      <SectionNav pendingContributors={pendingContributors} />
+      <SectionNav />
 
       <div className="hw-panel">
         <div className="hw-tabs" role="tablist">

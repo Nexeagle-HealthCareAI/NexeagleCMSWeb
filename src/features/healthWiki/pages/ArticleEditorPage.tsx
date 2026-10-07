@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { healthWikiService, errorMessage } from '../services/healthWikiService';
 import {
-  CONDITION_OPTIONS, SLUG_PATTERN, TYPE_LABEL, isDoctor,
+  RESERVED_SLUGS, SLUG_PATTERN, TYPE_LABEL, isDoctor,
   type ArticlePayload, type ArticleStatus, type ArticleType, type Contributor, type HealthArticle,
 } from '../types';
 import StatusPill from '../components/StatusPill';
@@ -13,6 +13,8 @@ import CoverImageField from '../components/CoverImageField';
 import ContributorPicker from '../components/ContributorPicker';
 import ArticlePagePreview from '../components/ArticlePagePreview';
 import SendLinkRow from '../components/SendLinkRow';
+import HistoryPanel from '../components/HistoryPanel';
+import Modal from '../components/Modal';
 import '../healthWiki.css';
 
 const slugify = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 200);
@@ -34,6 +36,12 @@ export default function ArticleEditorPage() {
   const [errors, setErrors] = useState<Errors>({});
   const [reason, setReason] = useState('');
   const [reasonError, setReasonError] = useState('');
+  const [conditions, setConditions] = useState<string[]>([]);
+  const [savedType, setSavedType] = useState<ArticleType | null>(null);
+  const [baseline, setBaseline] = useState('');
+  const [settled, setSettled] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   const [status, setStatus] = useState<ArticleStatus>('DRAFT');
   const [type, setType] = useState<ArticleType>('MEDICAL');
@@ -48,6 +56,8 @@ export default function ArticleEditorPage() {
   const [condition, setCondition] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [coverAlt, setCoverAlt] = useState('');
+  const [disclosure, setDisclosure] = useState('');
+  const [references, setReferences] = useState('');
   const [authorId, setAuthorId] = useState<string | null>(null);
   const [reviewerId, setReviewerId] = useState<string | null>(null);
 
@@ -55,15 +65,21 @@ export default function ArticleEditorPage() {
     let alive = true;
     (async () => {
       setLoading(true);
+      setSettled(false);
       setLoadError(null);
       try {
-        const [list, article] = await Promise.all([
+        const [list, conds, article] = await Promise.all([
           healthWikiService.listContributors(),
+          healthWikiService.listConditions(),
           isNew ? Promise.resolve<HealthArticle | null>(null) : healthWikiService.get(routeSlug!),
         ]);
         if (!alive) return;
         setPeople(list);
+        setConditions(conds);
         if (article) {
+          setSavedType(article.type);
+          setDisclosure(article.disclosure ?? '');
+          setReferences(article.references ?? '');
           setStatus(article.status);
           setType(article.type);
           setReviewerComment(article.reviewerComment ?? null);
@@ -81,11 +97,30 @@ export default function ArticleEditorPage() {
       } catch (e) {
         if (alive) setLoadError(errorMessage(e, 'Could not load this article.'));
       } finally {
-        if (alive) setLoading(false);
+        if (alive) { setLoading(false); setBaseline(''); }
       }
     })();
     return () => { alive = false; };
   }, [isNew, routeSlug, version]);
+
+  const snapshot = useMemo(
+    () => JSON.stringify([type, title, slug, description, contentMd, condition, coverUrl, coverAlt, disclosure, references, authorId, reviewerId]),
+    [type, title, slug, description, contentMd, condition, coverUrl, coverAlt, disclosure, references, authorId, reviewerId],
+  );
+  useEffect(() => {
+    // The editor reports its markdown once it mounts, so the baseline is taken after that settles.
+    if (settled && baseline === '') setBaseline(snapshot);
+  }, [settled, baseline, snapshot]);
+  const dirty = !loading && baseline !== '' && snapshot !== baseline && status === 'DRAFT';
+
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
+  const goBack = () => (dirty ? setLeaveOpen(true) : navigate('/health-wiki'));
 
   const locked = status !== 'DRAFT';
   const medical = type === 'MEDICAL';
@@ -112,6 +147,7 @@ export default function ArticleEditorPage() {
     const e: Errors = {};
     if (!title.trim()) e.title = 'Title is required.';
     if (isNew && !SLUG_PATTERN.test(slug)) e.slug = 'Use lowercase letters, numbers and single hyphens.';
+    else if (isNew && RESERVED_SLUGS.includes(slug)) e.slug = 'That address is used by the Health Wiki pages. Choose another slug.';
     if (!contentMd.trim()) e.content = 'Content cannot be empty.';
     if (coverUrl && !coverAlt.trim()) e.cover = 'Add alt text for the cover image.';
     if (medical && author?.type === 'WRITER') e.author = 'A writer can only write Sector updates.';
@@ -133,6 +169,8 @@ export default function ArticleEditorPage() {
       relatedConditionSlug: medical ? condition : null,
       coverImageUrl: coverUrl,
       coverImageAlt: coverUrl ? coverAlt.trim() : null,
+      disclosure: disclosure.trim() || null,
+      references: references.trim() || null,
       authorContributorId: authorId,
       reviewerContributorId: medical ? reviewerId : null,
       status: submit ? 'IN_REVIEW' : 'DRAFT',
@@ -141,6 +179,8 @@ export default function ArticleEditorPage() {
     try {
       const saved = isNew ? await healthWikiService.create(payload) : await healthWikiService.update(routeSlug!, payload);
       toast.success(submit ? (medical ? `Sent to ${reviewer?.fullName ?? 'the reviewer'} for review` : 'Sent for editor approval') : 'Draft saved');
+      setBaseline(snapshot);
+      setHistoryKey((k) => k + 1);
       if (isNew) navigate(`/health-wiki/${saved.slug}`, { replace: true });
       else {
         setStatus(saved.status);
@@ -158,6 +198,7 @@ export default function ArticleEditorPage() {
     try {
       await healthWikiService.approveArticle(routeSlug!);
       toast.success('Published on Doctor Dekho');
+      setHistoryKey((k) => k + 1);
       setVersion((v) => v + 1);
     } catch (err) {
       toast.error(errorMessage(err, 'Could not approve the article.'));
@@ -177,6 +218,7 @@ export default function ArticleEditorPage() {
       await healthWikiService.returnToDraft(routeSlug!, reason.trim());
       toast.success(status === 'PUBLISHED' ? 'Taken down and returned to draft' : 'Returned to draft');
       setReason('');
+      setHistoryKey((k) => k + 1);
       setVersion((v) => v + 1);
     } catch (err) {
       toast.error(errorMessage(err, 'Could not change the status.'));
@@ -203,7 +245,7 @@ export default function ArticleEditorPage() {
 
   return (
     <div className="hw-page">
-      <button type="button" className="hw-crumb" onClick={() => navigate('/health-wiki')}><ArrowLeft size={14} /> Health Wiki</button>
+      <button type="button" className="hw-crumb" onClick={goBack}><ArrowLeft size={14} /> Health Wiki</button>
       <div className="hw-top">
         <div>
           <h1 className="hw-h1">{isNew ? 'New article' : title || 'Untitled'}</h1>
@@ -231,7 +273,7 @@ export default function ArticleEditorPage() {
             </div>
           </div>
           <ArticlePagePreview type={type} title={title.trim()} description={description.trim()} coverUrl={coverUrl} coverAlt={coverAlt}
-            html={contentHtml} author={author} reviewer={reviewer} condition={condition} mobile={mobile} />
+            html={contentHtml} author={author} reviewer={reviewer} condition={condition} disclosure={disclosure.trim()} references={references.trim()} mobile={mobile} />
         </div>
       )}
 
@@ -243,6 +285,7 @@ export default function ArticleEditorPage() {
               <option value="MEDICAL">{TYPE_LABEL.MEDICAL}: a doctor reviews it</option>
               <option value="SECTOR_UPDATE">{TYPE_LABEL.SECTOR_UPDATE}: news and trends, an editor approves it</option>
             </select>
+            {!isNew && savedType && type !== savedType && <div className="hw-banner warn">Changing the type clears any approval. {type === 'MEDICAL' ? 'You will need to pick a reviewer.' : 'The reviewer and condition are removed.'}</div>}
             {!medical && <div className="hw-hint"><span>Must not give medical advice. Doctor Dekho shows "Written by" and a not-medical-advice notice, never the reviewer badge.</span></div>}
           </div>
           <div className="hw-field">
@@ -268,8 +311,18 @@ export default function ArticleEditorPage() {
           <div className="hw-field">
             <span className="hw-label" id="hw-content-label">Content</span>
             <TiptapEditor key={routeSlug ?? 'new'} initialMarkdown={initialMd} disabled={locked}
-              uploadImage={healthWikiService.uploadImage} onChange={(md, html) => { setContentMd(md); setContentHtml(html); }} />
+              uploadImage={healthWikiService.uploadImage} onChange={(md, html) => { setContentMd(md); setContentHtml(html); setSettled(true); }} />
             <div className="hw-hint"><span className="hw-err">{errors.content}</span><span>Saved as markdown.</span></div>
+          </div>
+          <div className="hw-field">
+            <label className="hw-label" htmlFor="hw-refs">References <span className="hw-muted">(optional)</span></label>
+            <textarea id="hw-refs" value={references} disabled={locked} placeholder="One source per line, for example a guideline or study" onChange={(e) => setReferences(e.target.value)} />
+            <div className="hw-hint"><span>Shown at the end of the article.</span></div>
+          </div>
+          <div className="hw-field">
+            <label className="hw-label" htmlFor="hw-disc">Disclosure <span className="hw-muted">(optional)</span></label>
+            <input id="hw-disc" type="text" value={disclosure} maxLength={300} disabled={locked} placeholder="Any payment, employer or product link relevant to this article" onChange={(e) => setDisclosure(e.target.value)} />
+            <div className="hw-hint"><span>If filled, Doctor Dekho shows it above the article text.</span></div>
           </div>
         </div>
 
@@ -279,7 +332,7 @@ export default function ArticleEditorPage() {
               <label className="hw-label" htmlFor="hw-cond">Related condition</label>
               <select id="hw-cond" value={condition ?? ''} disabled={locked} onChange={(e) => setCondition(e.target.value || null)}>
                 <option value="">None</option>
-                {CONDITION_OPTIONS.map((c) => <option key={c} value={c}>{c.replace(/-/g, ' ')}</option>)}
+                {conditions.map((c) => <option key={c} value={c}>{c.replace(/-/g, ' ')}</option>)}
               </select>
             </div>
           )}
@@ -313,6 +366,18 @@ export default function ArticleEditorPage() {
           )}
         </div>
       </div>
+
+      {!isNew && <HistoryPanel slug={routeSlug!} refreshKey={historyKey} />}
+
+      {leaveOpen && (
+        <Modal title="Leave without saving?" onClose={() => setLeaveOpen(false)}>
+          <p className="hw-sub">You have changes that are not saved. If you leave now they are lost.</p>
+          <div className="hw-modal-actions">
+            <button type="button" className="hw-btn" onClick={() => setLeaveOpen(false)}>Keep editing</button>
+            <button type="button" className="hw-btn hw-btn-primary" onClick={() => navigate('/health-wiki')}>Leave</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

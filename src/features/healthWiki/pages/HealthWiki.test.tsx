@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -6,9 +6,14 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 vi.mock('../access', () => ({ HEALTH_WIKI_MOCK: true, canUseHealthWiki: () => true }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+import { resetMockHealthWiki } from '../services/mockHealthWiki';
 import HealthWikiPage from './HealthWikiPage';
 import ArticleEditorPage from './ArticleEditorPage';
 import ContributorsPage from './ContributorsPage';
+import TopicRequestsPage from './TopicRequestsPage';
+import TopicRequestDetailPage from './TopicRequestDetailPage';
+
+beforeEach(() => resetMockHealthWiki());
 
 const renderAt = (path: string) =>
   render(
@@ -16,6 +21,8 @@ const renderAt = (path: string) =>
       <Routes>
         <Route path="/health-wiki" element={<HealthWikiPage />} />
         <Route path="/health-wiki/contributors" element={<ContributorsPage />} />
+        <Route path="/health-wiki/topics" element={<TopicRequestsPage />} />
+        <Route path="/health-wiki/topics/:id" element={<TopicRequestDetailPage />} />
         <Route path="/health-wiki/new" element={<ArticleEditorPage />} />
         <Route path="/health-wiki/:slug" element={<ArticleEditorPage />} />
       </Routes>
@@ -36,9 +43,10 @@ describe('Articles list', () => {
     expect(screen.queryByText('Thyroid Basics')).not.toBeInTheDocument();
   });
 
-  it('shows how many contributors wait for verification', async () => {
+  it('shows how much is waiting in the section tabs', async () => {
     renderAt('/health-wiki');
     expect(await screen.findByTitle('Waiting for verification or approval')).toHaveTextContent('2');
+    expect(await screen.findByTitle('Waiting for a decision')).toHaveTextContent('2');
   });
 });
 
@@ -169,5 +177,88 @@ describe('Contributors', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Send WhatsApp link' }));
     expect(await screen.findByText('Dr. Priya Menon')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
+describe('Editor extras', () => {
+  it('rejects a slug that clashes with a Health Wiki page', async () => {
+    renderAt('/health-wiki/new');
+    await userEvent.type(await screen.findByLabelText('Title'), 'Topics');
+    expect(screen.getByLabelText('Slug')).toHaveValue('topics');
+    await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+    expect(await screen.findByText(/used by the Health Wiki pages/)).toBeInTheDocument();
+  });
+
+  it('shows the history of a saved article', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    const history = await screen.findByRole('region', { name: 'History' });
+    expect(await within(history).findByText('Approved and published')).toBeInTheDocument();
+    expect(within(history).getByText('Created draft')).toBeInTheDocument();
+  });
+
+  it('offers the governance fields: references and a disclosure', async () => {
+    renderAt('/health-wiki/new');
+    expect(await screen.findByLabelText(/References/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Disclosure/)).toBeInTheDocument();
+  });
+
+  it('asks before leaving when there are unsaved changes', async () => {
+    renderAt('/health-wiki/new');
+    await userEvent.type(await screen.findByLabelText('Title'), 'Half written');
+    await userEvent.click(screen.getByRole('button', { name: /Health Wiki/ }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Leave without saving?')).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Keep editing' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('leaves straight away when nothing was changed', async () => {
+    renderAt('/health-wiki/thyroid-basics');
+    await screen.findByLabelText('Title');
+    await userEvent.click(screen.getByRole('button', { name: /Health Wiki/ }));
+    expect(await screen.findByText('Articles shown on Doctor Dekho after a doctor or an editor approves them.')).toBeInTheDocument();
+  });
+});
+
+describe('Topic requests', () => {
+  it('lists open requests first and filters by tab', async () => {
+    renderAt('/health-wiki/topics');
+    expect(await screen.findByText('Recognising a silent heart attack')).toBeInTheDocument();
+    expect(screen.getByText('Teleconsultation rules for hospitals in 2026')).toBeInTheDocument();
+    expect(screen.queryByText('Best apps for health')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: /Declined/ }));
+    expect(screen.getByText('Best apps for health')).toBeInTheDocument();
+  });
+
+  it('accepts a topic, which creates a draft for the contributor', async () => {
+    renderAt('/health-wiki/topics/t1');
+    await userEvent.click(await screen.findByRole('button', { name: 'Accept and create draft' }));
+    expect(await screen.findByText(/Draft created and assigned to the contributor/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open the draft' })).toHaveAttribute('href', '/health-wiki/recognising-a-silent-heart-attack');
+    expect(screen.queryByRole('button', { name: 'Accept and create draft' })).not.toBeInTheDocument();
+  });
+
+  it('needs a reason to decline and shows it afterwards', async () => {
+    renderAt('/health-wiki/topics/t2');
+    await userEvent.click(await screen.findByRole('button', { name: 'Decline' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Decline' }));
+    expect(await screen.findByText(/Add a reason so the contributor knows why/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Reason for declining'), 'Please add sources for the claims');
+    await userEvent.click(screen.getByRole('button', { name: 'Decline' }));
+    expect(await screen.findByText(/Please add sources for the claims/)).toBeInTheDocument();
+  });
+
+  it('asks the contributor for more detail', async () => {
+    renderAt('/health-wiki/topics/t1');
+    await userEvent.click(await screen.findByRole('button', { name: 'Ask for more detail' }));
+    await userEvent.type(screen.getByLabelText('What detail do you need?'), 'Which age group is this for?');
+    await userEvent.click(screen.getByRole('button', { name: 'Send request' }));
+    expect(await screen.findByText(/Waiting for the contributor to add detail/)).toBeInTheDocument();
+  });
+
+  it('shows a decided request read-only', async () => {
+    renderAt('/health-wiki/topics/t5');
+    expect(await screen.findByText(/Too broad and promotional/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Accept and create draft' })).not.toBeInTheDocument();
   });
 });

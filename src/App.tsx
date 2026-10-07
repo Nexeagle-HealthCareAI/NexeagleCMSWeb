@@ -21,6 +21,8 @@ import MarketingPage from './features/marketing/pages/MarketingPage';
 import HealthWikiPage from './features/healthWiki/pages/HealthWikiPage';
 import ArticleEditorPage from './features/healthWiki/pages/ArticleEditorPage';
 import ContributorsPage from './features/healthWiki/pages/ContributorsPage';
+import TopicRequestsPage from './features/healthWiki/pages/TopicRequestsPage';
+import TopicRequestDetailPage from './features/healthWiki/pages/TopicRequestDetailPage';
 import { canUseHealthWiki } from './features/healthWiki/access';
 import RequirePermission from './components/RequirePermission';
 import NoAccess from './components/NoAccess';
@@ -112,6 +114,8 @@ function App() {
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
+            <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />
+            <Route path="health-wiki/topics/:id" element={<RequireHealthWiki><TopicRequestDetailPage /></RequireHealthWiki>} />
             <Route path="health-wiki/new" element={<RequireHealthWiki><ArticleEditorPage key="new" /></RequireHealthWiki>} />
             <Route path="health-wiki/:slug" element={<RequireHealthWiki><ArticleEditorPage key="edit" /></RequireHealthWiki>} />
             <Route path="marketing" element={<RequirePermission perm="marketing.view"><MarketingPage /></RequirePermission>} />

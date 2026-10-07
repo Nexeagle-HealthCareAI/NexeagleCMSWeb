@@ -71,6 +71,10 @@ export interface HealthArticle {
   relatedConditionSlug: string | null;
   coverImageUrl: string | null;
   coverImageAlt: string | null;
+  /** Payment, employer or product link relevant to the article. Shown on the page when filled. */
+  disclosure: string | null;
+  /** Sources for claims, one per line. */
+  references: string | null;
   authorContributorId: string | null;
   reviewerContributorId: string | null;
   status: ArticleStatus;
@@ -90,24 +94,66 @@ export interface ArticlePayload {
   relatedConditionSlug: string | null;
   coverImageUrl: string | null;
   coverImageAlt: string | null;
+  disclosure: string | null;
+  references: string | null;
   authorContributorId: string | null;
   reviewerContributorId: string | null;
   status: ArticleStatus;
 }
 
-/** Condition slugs the "Need a Specialist?" card on Doctor Dekho can link to. */
-export const CONDITION_OPTIONS = [
-  'diabetes',
-  'hypertension',
-  'thyroid',
-  'asthma',
-  'pcos',
-  'heart-disease',
-  'arthritis',
-  'migraine',
-];
-
 export const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+/** Slugs that would clash with a Health Wiki page address. */
+export const RESERVED_SLUGS = ['new', 'contributors', 'topics'];
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export const NMC_REGISTER_URL = 'https://www.nmc.org.in/information-desk/indian-medical-register/';
+
+export type TopicStatus = 'SUBMITTED' | 'NEEDS_DETAIL' | 'ACCEPTED' | 'DECLINED' | 'ARTICLE_STARTED';
+
+export const TOPIC_STATUS_LABEL: Record<TopicStatus, string> = {
+  SUBMITTED: 'Submitted',
+  NEEDS_DETAIL: 'Needs detail',
+  ACCEPTED: 'Accepted',
+  DECLINED: 'Declined',
+  ARTICLE_STARTED: 'Article started',
+};
+
+/** Statuses where the team can still act. The others are final and shown read-only. */
+export const TOPIC_OPEN: TopicStatus[] = ['SUBMITTED'];
+
+/** A topic a contributor suggests for the team to commission. */
+export interface TopicRequest {
+  topicId: string;
+  contributorId: string;
+  title: string;
+  type: ArticleType;
+  outline: string;
+  whyItMatters: string;
+  conditionSlug: string | null;
+  references: string | null;
+  status: TopicStatus;
+  /** Why it was declined, or what detail the team asked for. */
+  decisionReason: string | null;
+  /** Draft created when the topic was accepted. */
+  articleSlug: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TopicDecision =
+  | { action: 'ACCEPT' }
+  | { action: 'DECLINE'; reason: string }
+  | { action: 'ASK_DETAIL'; message: string };
+
+export interface HistoryEntry {
+  at: string;
+  actor: string;
+  action: string;
+  detail: string | null;
+}
+
+/** Numbers shown on the Health Wiki section tabs. */
+export interface NavCounts {
+  pendingContributors: number;
+  openTopics: number;
+}

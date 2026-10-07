@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { HEALTH_WIKI_MOCK } from '../access';
-import type { ArticlePayload, Contributor, HealthArticle, InviteContributorPayload } from '../types';
+import type { ArticlePayload, Contributor, HealthArticle, HistoryEntry, InviteContributorPayload, NavCounts, TopicDecision, TopicRequest } from '../types';
 import { mockHealthWiki } from './mockHealthWiki';
 
 // Endpoints the CMS API will expose (not built yet; see VITE_HEALTH_WIKI_MOCK for local use).
@@ -26,6 +26,16 @@ const real = {
     (await api.post(`/health-wiki/contributors/${enc(id)}/reject`, { reason })).data.data as Contributor,
   sendLink: async (id: string, articleSlug?: string) =>
     (await api.post(`/health-wiki/contributors/${enc(id)}/send-link`, { articleSlug })).data.data as Contributor,
+  listConditions: async () => (await api.get('/health-wiki/conditions')).data.data as string[],
+  articleHistory: async (slug: string) => (await api.get(`/health-articles/${enc(slug)}/history`)).data.data as HistoryEntry[],
+  listTopicRequests: async () => (await api.get('/health-wiki/topic-requests')).data.data as TopicRequest[],
+  getTopicRequest: async (id: string) => (await api.get(`/health-wiki/topic-requests/${enc(id)}`)).data.data as TopicRequest,
+  decideTopicRequest: async (id: string, d: TopicDecision) => {
+    const path = d.action === 'ACCEPT' ? 'accept' : d.action === 'DECLINE' ? 'decline' : 'ask-detail';
+    const body = d.action === 'DECLINE' ? { reason: d.reason } : d.action === 'ASK_DETAIL' ? { message: d.message } : {};
+    return (await api.post(`/health-wiki/topic-requests/${enc(id)}/${path}`, body)).data.data as TopicRequest;
+  },
+  navCounts: async () => (await api.get('/health-wiki/summary')).data.data as NavCounts,
 };
 
 export const healthWikiService: typeof real = HEALTH_WIKI_MOCK ? mockHealthWiki : real;
