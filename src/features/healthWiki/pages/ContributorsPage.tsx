@@ -122,13 +122,15 @@ export default function ContributorsPage() {
                       <ContributorStatusPill type={c.type} status={c.status} />
                       {c.status === 'REJECTED' && c.rejectReason && <div className="hw-slug">{c.rejectReason}</div>}
                     </td>
-                    <td className="hw-actions-cell">
+                    <td>
+                      <div className="hw-actions-cell">
                       {c.status === 'PENDING' && <button type="button" className="hw-btn hw-btn-primary hw-sm" onClick={() => setVerifying(c)}>{isDoctor(c.type) ? 'Verify' : 'Approve'}</button>}
                       {(c.status === 'INVITED' || (c.type === 'INDEPENDENT_DOCTOR' && c.status !== 'REJECTED')) && (
                         <button type="button" className="hw-btn hw-sm" disabled={sendingTo === c.contributorId} onClick={() => resend(c)}>
                           {c.linkSentAt ? 'Resend link' : 'Send link'}
                         </button>
                       )}
+                      </div>
                     </td>
                   </tr>
                 ))}

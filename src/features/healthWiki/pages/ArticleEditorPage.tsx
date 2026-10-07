@@ -358,7 +358,7 @@ export default function ArticleEditorPage() {
               )}
               <div className="hw-field">
                 <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for taking it down' : 'Reason for returning it'}</label>
-                <input id="hw-reason" type="text" value={reason} placeholder="Shown to the author and kept in the audit trail" onChange={(e) => setReason(e.target.value)} />
+                <input id="hw-reason" type="text" value={reason} placeholder="Shown to the author" onChange={(e) => setReason(e.target.value)} />
                 {reasonError && <span className="hw-err">{reasonError}</span>}
               </div>
               <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>{status === 'PUBLISHED' ? 'Take down' : 'Return to draft'}</button>

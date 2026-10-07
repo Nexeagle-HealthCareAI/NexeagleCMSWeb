@@ -178,7 +178,7 @@
 .hw-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #eef0ff; color: var(--primary); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; vertical-align: middle; }
 .hw-tbl tr.hw-static { cursor: default; }
 .hw-tbl tr.hw-static:hover td { background: transparent; }
-.hw-actions-cell { white-space: nowrap; display: flex; gap: 6px; }
+.hw-actions-cell { white-space: nowrap; display: flex; gap: 6px; justify-content: flex-end; }
 .hw-pill-type-MEDICAL { background: #e0f2fe; color: #0369a1; }
 .hw-pill-type-SECTOR_UPDATE { background: #f3e8ff; color: #7e22ce; }
 .hw-pill-c-INVITED { background: #eef0ff; color: #4338ca; }
@@ -215,3 +215,8 @@
 .dd-refs { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--dd-line2); }
 .dd-refs h2 { font-weight: 700; font-size: 18px; color: var(--dd-ink); margin: 0 0 10px; }
 .dd-refs ol { margin: 0; padding-left: 20px; color: var(--dd-text); font-size: 14px; }
+
+@media (max-width: 900px) {
+  /* leave room for the CMS bottom tab bar on phones */
+  .hw-page { padding-bottom: 96px; }
+}
