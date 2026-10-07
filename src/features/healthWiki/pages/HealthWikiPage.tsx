@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Plus, Search, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { healthWikiService, errorMessage } from '../services/healthWikiService';
-import { STATUS_LABEL, type ArticleStatus, type DoctorOption, type HealthArticle } from '../types';
-import StatusPill from '../components/StatusPill';
+import { STATUS_LABEL, TYPE_LABEL, type ArticleStatus, type ArticleType, type Contributor, type HealthArticle } from '../types';
+import StatusPill, { TypePill } from '../components/StatusPill';
+import SectionNav from '../components/SectionNav';
 import '../healthWiki.css';
 
 type Tab = 'ALL' | ArticleStatus;
@@ -20,19 +21,20 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day
 export default function HealthWikiPage() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState<HealthArticle[]>([]);
-  const [doctors, setDoctors] = useState<DoctorOption[]>([]);
+  const [people, setPeople] = useState<Contributor[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [tab, setTab] = useState<Tab>('ALL');
   const [query, setQuery] = useState('');
+  const [type, setType] = useState<ArticleType | ''>('');
 
   const load = useCallback(async () => {
     setLoading(true);
     setFailed(false);
     try {
-      const [list, docs] = await Promise.all([healthWikiService.list(), healthWikiService.listDoctors()]);
+      const [list, contributors] = await Promise.all([healthWikiService.list(), healthWikiService.listContributors()]);
       setArticles(list);
-      setDoctors(docs);
+      setPeople(contributors);
     } catch (e) {
       setFailed(true);
       toast.error(errorMessage(e, 'Could not load the articles.'));
@@ -42,25 +44,28 @@ export default function HealthWikiPage() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const doctorName = (id: string | null) => doctors.find((d) => d.doctorId === id)?.fullName ?? null;
+  const nameOf = (id: string | null) => people.find((p) => p.contributorId === id)?.fullName ?? null;
+  const pendingContributors = people.filter((p) => p.status === 'PENDING').length;
   const count = (t: Tab) => (t === 'ALL' ? articles.length : articles.filter((a) => a.status === t).length);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return articles.filter((a) => (tab === 'ALL' || a.status === tab) && (!q || `${a.title} ${a.slug}`.toLowerCase().includes(q)));
-  }, [articles, tab, query]);
+    return articles.filter((a) => (tab === 'ALL' || a.status === tab) && (!type || a.type === type) && (!q || `${a.title} ${a.slug}`.toLowerCase().includes(q)));
+  }, [articles, tab, query, type]);
 
   return (
     <div className="hw-page">
       <div className="hw-top">
         <div>
           <h1 className="hw-h1"><BookOpen size={24} /> Health Wiki</h1>
-          <p className="hw-sub">Articles shown on Doctor Dekho once a doctor approves them.</p>
+          <p className="hw-sub">Articles shown on Doctor Dekho after a doctor or an editor approves them.</p>
         </div>
         <button type="button" className="hw-btn hw-btn-primary" onClick={() => navigate('/health-wiki/new')}>
           <Plus size={16} /> New article
         </button>
       </div>
+
+      <SectionNav pendingContributors={pendingContributors} />
 
       <div className="hw-panel">
         <div className="hw-tabs" role="tablist">
@@ -71,9 +76,14 @@ export default function HealthWikiPage() {
             </button>
           ))}
         </div>
-        <div className="hw-bar">
+        <div className="hw-bar hw-filters">
           <Search size={15} />
           <input type="text" value={query} placeholder="Search title or slug" aria-label="Search articles" onChange={(e) => setQuery(e.target.value)} />
+          <select aria-label="Filter by type" value={type} onChange={(e) => setType(e.target.value as ArticleType | '')}>
+            <option value="">All types</option>
+            <option value="MEDICAL">{TYPE_LABEL.MEDICAL}</option>
+            <option value="SECTOR_UPDATE">{TYPE_LABEL.SECTOR_UPDATE}</option>
+          </select>
         </div>
 
         {loading ? (
@@ -92,7 +102,7 @@ export default function HealthWikiPage() {
         ) : (
           <div className="hw-tbl">
             <table>
-              <thead><tr><th>Article</th><th>Status</th><th>Reviewer</th><th>Updated</th></tr></thead>
+              <thead><tr><th>Article</th><th>Type</th><th>Status</th><th>Author</th><th>Reviewer</th><th>Updated</th></tr></thead>
               <tbody>
                 {rows.map((a) => (
                   <tr key={a.slug} tabIndex={0} onClick={() => navigate(`/health-wiki/${a.slug}`)}
@@ -103,8 +113,10 @@ export default function HealthWikiPage() {
                         <div><div className="hw-title">{a.title}</div><div className="hw-slug">{a.slug}</div></div>
                       </div>
                     </td>
+                    <td><TypePill type={a.type} /></td>
                     <td><StatusPill status={a.status} /></td>
-                    <td>{doctorName(a.reviewerDoctorId) ?? <span className="hw-muted">Not assigned</span>}</td>
+                    <td>{nameOf(a.authorContributorId) ?? <span className="hw-muted">Not set</span>}</td>
+                    <td>{a.type === 'SECTOR_UPDATE' ? <span className="hw-muted">Editor approves</span> : (nameOf(a.reviewerContributorId) ?? <span className="hw-muted">Not assigned</span>)}</td>
                     <td>{fmtDate(a.updatedAt)}</td>
                   </tr>
                 ))}

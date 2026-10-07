@@ -1,21 +1,26 @@
-import type { DoctorOption } from '../types';
+import { CONTRIBUTOR_TYPE_LABEL, type ArticleType, type Contributor } from '../types';
 
 interface Props {
+  type: ArticleType;
   title: string;
   description: string;
   coverUrl: string | null;
   coverAlt: string;
   /** HTML produced by the Tiptap editor (its schema limits what can appear). */
   html: string;
-  reviewer: DoctorOption | null;
+  author: Contributor | null;
+  reviewer: Contributor | null;
   condition: string | null;
   mobile: boolean;
 }
 
 const initials = (name: string) => name.replace(/^Dr\.?\s+/i, '').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
+const authorLine = (a: Contributor) =>
+  [a.roleTitle || a.speciality || CONTRIBUTOR_TYPE_LABEL[a.type], a.organisation].filter(Boolean).join(', ');
+
 /** Replica of the Doctor Dekho article page (DoctorDekhoWeb/app/health/conditions/[condition]/page.tsx). */
-export default function ArticlePagePreview({ title, description, coverUrl, coverAlt, html, reviewer, condition, mobile }: Props) {
+export default function ArticlePagePreview({ type, title, description, coverUrl, coverAlt, html, author, reviewer, condition, mobile }: Props) {
   const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const reg = reviewer?.registrationNumber
     ? `Reg. ${reviewer.registrationNumber}${reviewer.registrationCouncil ? ` · ${reviewer.registrationCouncil}` : ''}`
@@ -40,22 +45,36 @@ export default function ArticlePagePreview({ title, description, coverUrl, cover
               ? <img className="dd-cover" src={coverUrl} alt={coverAlt} />
               : <div className="dd-cover-empty">No cover image yet</div>}
             <div className="dd-trust">
-              {reviewer ? (
+              {type === 'MEDICAL' ? (
+                reviewer ? (
+                  <div className="dd-rev">
+                    <div className="dd-av">{initials(reviewer.fullName)}</div>
+                    <div className="dd-rev-text">
+                      <div className="k">✓ Medically Reviewed By</div>
+                      <div className="n">{reviewer.fullName}</div>
+                      <div className="q">{[reviewer.qualification, reviewer.speciality].filter(Boolean).join(' • ')}</div>
+                      {reg && <div className="q">{reg}</div>}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="dd-norev">Reviewer not chosen yet. The "Medically Reviewed By" badge appears here once you pick one.</div>
+                )
+              ) : author ? (
                 <div className="dd-rev">
-                  <div className="dd-av">{initials(reviewer.fullName)}</div>
+                  <div className="dd-av">{initials(author.fullName)}</div>
                   <div className="dd-rev-text">
-                    <div className="k">✓ Medically Reviewed By</div>
-                    <div className="n">{reviewer.fullName}</div>
-                    <div className="q">{[reviewer.qualification, reviewer.specialty].filter(Boolean).join(' • ')}</div>
-                    {reg && <div className="q">{reg}</div>}
+                    <div className="k dd-k-plain">Written by</div>
+                    <div className="n">{author.fullName}</div>
+                    <div className="q">{authorLine(author)}</div>
                   </div>
                 </div>
               ) : (
-                <div className="dd-norev">Reviewer not chosen yet. The "Medically Reviewed By" badge appears here once you pick one.</div>
+                <div className="dd-norev">Author not chosen yet. The "Written by" line appears here once you pick one.</div>
               )}
               <div className="dd-sep" />
-              <div className="dd-meta"><span>Updated {date}</span><span>✓ Evidence Based</span></div>
+              <div className="dd-meta"><span>Updated {date}</span>{type === 'MEDICAL' && <span>✓ Evidence Based</span>}</div>
             </div>
+            {type === 'SECTOR_UPDATE' && <div className="dd-notice">This article is not medical advice. It reports on developments in the health sector.</div>}
             <div className="dd-prose" dangerouslySetInnerHTML={{ __html: html || '<p class="dd-ph">Your article content appears here.</p>' }} />
           </article>
           <aside>
