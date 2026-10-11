@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { healthWikiService, errorMessage } from '../services/healthWikiService';
+import { healthWikiService, errorMessage, announceLink } from '../services/healthWikiService';
 import type { Contributor, InviteContributorPayload } from '../types';
 import Modal from './Modal';
 
@@ -28,7 +28,7 @@ export default function InviteDialog({ onClose, onInvited }: Props) {
     setBusy(true);
     try {
       const c = await healthWikiService.inviteContributor({ fullName: fullName.trim(), mobile: digits, type });
-      toast.success(`Link sent to ${c.fullName} on WhatsApp`);
+      announceLink(c, c.fullName);
       onInvited(c);
     } catch (err) {
       toast.error(errorMessage(err, 'Could not send the invitation. Try again.'));

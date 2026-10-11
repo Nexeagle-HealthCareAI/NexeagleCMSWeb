@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { healthWikiService, errorMessage } from '../services/healthWikiService';
+import { healthWikiService, errorMessage, announceLink } from '../services/healthWikiService';
 import type { Contributor } from '../types';
 
 interface Props {
@@ -16,8 +16,9 @@ export default function SendLinkRow({ contributor: c, articleSlug, onSent }: Pro
   const send = async () => {
     setBusy(true);
     try {
-      onSent(await healthWikiService.sendLink(c.contributorId, articleSlug));
-      toast.success(`WhatsApp link sent to ${c.fullName}`);
+      const sent = await healthWikiService.sendLink(c.contributorId, articleSlug);
+      onSent(sent);
+      announceLink(sent, c.fullName);
     } catch (err) {
       toast.error(errorMessage(err, 'Could not send the link. Try again.'));
     } finally {

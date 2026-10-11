@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Users, UserPlus, Search, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { healthWikiService, errorMessage } from '../services/healthWikiService';
+import { healthWikiService, errorMessage, announceLink } from '../services/healthWikiService';
 import { CONTRIBUTOR_TYPE_LABEL, isDoctor, type Contributor, type ContributorStatus, type ContributorType } from '../types';
 import { ContributorStatusPill } from '../components/StatusPill';
 import SectionNav from '../components/SectionNav';
@@ -53,8 +53,9 @@ export default function ContributorsPage() {
   const resend = async (c: Contributor) => {
     setSendingTo(c.contributorId);
     try {
-      replace(await healthWikiService.sendLink(c.contributorId));
-      toast.success(`WhatsApp link sent to ${c.fullName}`);
+      const sent = await healthWikiService.sendLink(c.contributorId);
+      replace(sent);
+      announceLink(sent, c.fullName);
     } catch (e) {
       toast.error(errorMessage(e, 'Could not send the link. Try again.'));
     } finally {
