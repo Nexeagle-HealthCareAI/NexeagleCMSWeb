@@ -136,12 +136,15 @@ export interface TopicRequest {
   decisionReason: string | null;
   /** Draft created when the topic was accepted. */
   articleSlug: string | null;
+  /** The doctor who suggested it asked for someone else to write it. The team picks the writer and the doctor reviews. */
+  requestWriter?: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export type TopicDecision =
-  | { action: 'ACCEPT' }
+  /** For a topic that asked for a writer, say who writes it: a contributor, or the NexEagle content team (writes in the CMS). */
+  | { action: 'ACCEPT'; writerContributorId?: string; contentTeam?: boolean }
   | { action: 'DECLINE'; reason: string }
   | { action: 'ASK_DETAIL'; message: string };
 

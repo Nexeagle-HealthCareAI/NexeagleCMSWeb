@@ -60,6 +60,7 @@ const seedTopics = (): TopicRequest[] => [
   { topicId: 't2', contributorId: 'c7', title: 'Teleconsultation rules for hospitals in 2026', type: 'SECTOR_UPDATE', outline: 'A summary of what the latest telemedicine guidelines require from hospitals and platforms.', whyItMatters: 'Hospital administrators keep asking what changed.', conditionSlug: null, references: null, status: 'SUBMITTED', decisionReason: null, articleSlug: null, createdAt: '2026-10-04T11:30:00Z', updatedAt: '2026-10-04T11:30:00Z' },
   { topicId: 't3', contributorId: 'c8', title: 'Home care for a child with fever', type: 'MEDICAL', outline: 'Simple steps for parents before reaching a clinic.', whyItMatters: 'Parents in my district call us at night for this.', conditionSlug: null, references: null, status: 'NEEDS_DETAIL', decisionReason: 'Which age group does this cover, and which medicines would you mention?', articleSlug: null, createdAt: '2026-10-02T08:00:00Z', updatedAt: '2026-10-03T08:00:00Z' },
   { topicId: 't4', contributorId: 'c5', title: 'Managing blood sugar during Diwali', type: 'MEDICAL', outline: 'Sweets, fasting and medicine timing for people with diabetes.', whyItMatters: 'Seasonal and very searched.', conditionSlug: 'diabetes', references: null, status: 'ARTICLE_STARTED', decisionReason: null, articleSlug: 'diabetes-and-diwali', createdAt: '2026-09-28T08:00:00Z', updatedAt: '2026-09-30T08:00:00Z' },
+  { topicId: 't6', contributorId: 'c5', title: 'Sleep and blood pressure', type: 'MEDICAL', outline: 'How poor sleep raises blood pressure and what patients can do.', whyItMatters: 'Patients ask about it in every clinic.', conditionSlug: 'hypertension', references: null, requestWriter: true, status: 'SUBMITTED', decisionReason: null, articleSlug: null, createdAt: '2026-10-06T09:00:00Z', updatedAt: '2026-10-06T09:00:00Z' },
   { topicId: 't5', contributorId: 'c7', title: 'Best apps for health', type: 'SECTOR_UPDATE', outline: 'A list of apps.', whyItMatters: 'Popular topic.', conditionSlug: null, references: null, status: 'DECLINED', decisionReason: 'Too broad and promotional. Pitch a specific trend with sources.', articleSlug: null, createdAt: '2026-09-25T08:00:00Z', updatedAt: '2026-09-26T08:00:00Z' },
 ];
 let topics = seedTopics();
@@ -184,10 +185,12 @@ export const mockHealthWiki = {
     if (!t) throw new Error('Topic request not found');
     if (t.status !== 'SUBMITTED') throw new Error('This request is already decided.');
     if (d.action === 'ACCEPT') {
+      if (t.requestWriter && !d.contentTeam && !d.writerContributorId) throw new Error('Choose who writes it, or choose the NexEagle content team.');
       const slug = t.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 200);
       if (!articles.some((a) => a.slug === slug)) {
         articles = [{ ...base, slug, type: t.type, title: t.title, description: '', content: `## ${t.title}\n\n${t.outline}`,
-          relatedConditionSlug: t.conditionSlug, authorContributorId: t.contributorId, reviewerContributorId: null,
+          relatedConditionSlug: t.conditionSlug, authorContributorId: t.requestWriter ? (d.contentTeam ? null : d.writerContributorId ?? null) : t.contributorId,
+          reviewerContributorId: t.requestWriter && t.type === 'MEDICAL' ? t.contributorId : null,
           status: 'DRAFT', publishedAt: null, updatedAt: now() }, ...articles];
         log(slug, 'Created draft from an accepted topic', t.title);
       }

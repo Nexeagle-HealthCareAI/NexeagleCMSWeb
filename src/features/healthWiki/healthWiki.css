@@ -220,3 +220,6 @@
   /* leave room for the CMS bottom tab bar on phones */
   .hw-page { padding-bottom: 96px; }
 }
+
+.hw-check { display: flex; gap: 8px; align-items: center; margin: 6px 0 12px; font-size: 13px; }
+.hw-check input { width: 16px; height: 16px; }

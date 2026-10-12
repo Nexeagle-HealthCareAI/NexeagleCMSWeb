@@ -46,7 +46,7 @@ describe('Articles list', () => {
   it('shows how much is waiting in the section tabs', async () => {
     renderAt('/health-wiki');
     expect(await screen.findByTitle('Waiting for verification or approval')).toHaveTextContent('2');
-    expect(await screen.findByTitle('Waiting for a decision')).toHaveTextContent('2');
+    expect(await screen.findByTitle('Waiting for a decision')).toHaveTextContent('3');
   });
 });
 
@@ -236,6 +236,19 @@ describe('Topic requests', () => {
     expect(await screen.findByText(/Draft created and assigned to the contributor/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open the draft' })).toHaveAttribute('href', '/health-wiki/recognising-a-silent-heart-attack');
     expect(screen.queryByRole('button', { name: 'Accept and create draft' })).not.toBeInTheDocument();
+  });
+
+  it('makes the team choose a writer when a doctor asked for one, and makes that doctor the reviewer', async () => {
+    renderAt('/health-wiki/topics/t6');
+    expect(await screen.findByText(/asked for someone else to write this and will review it/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Accept and create draft' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Accept and choose a writer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Accept and create draft' }));
+    expect(await screen.findByText(/Choose a writer, or choose the NexEagle content team/)).toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText('The NexEagle content team writes it in the CMS'));
+    await userEvent.click(screen.getByRole('button', { name: 'Accept and create draft' }));
+    expect(await screen.findByText(/Draft created. The doctor reviews it once the writer submits it/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open the draft' })).toHaveAttribute('href', '/health-wiki/sleep-and-blood-pressure');
   });
 
   it('needs a reason to decline and shows it afterwards', async () => {

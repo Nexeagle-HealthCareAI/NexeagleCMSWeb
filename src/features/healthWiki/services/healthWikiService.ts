@@ -57,7 +57,8 @@ const real = {
   getTopicRequest: async (id: string) => (await api.get(`/health-wiki/topic-requests/${enc(id)}`)).data.data as TopicRequest,
   decideTopicRequest: async (id: string, d: TopicDecision) => {
     const path = d.action === 'ACCEPT' ? 'accept' : d.action === 'DECLINE' ? 'decline' : 'ask-detail';
-    const body = d.action === 'DECLINE' ? { reason: d.reason } : d.action === 'ASK_DETAIL' ? { message: d.message } : {};
+    const body = d.action === 'DECLINE' ? { reason: d.reason } : d.action === 'ASK_DETAIL' ? { message: d.message }
+      : { ...(d.writerContributorId ? { writerContributorId: d.writerContributorId } : {}), ...(d.contentTeam ? { contentTeam: true } : {}) };
     return (await api.post(`/health-wiki/topic-requests/${enc(id)}/${path}`, body)).data.data as TopicRequest;
   },
   navCounts: async () => (await api.get('/health-wiki/summary')).data.data as NavCounts,

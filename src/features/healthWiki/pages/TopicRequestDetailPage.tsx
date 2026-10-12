@@ -4,17 +4,24 @@ import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { healthWikiService, errorMessage } from '../services/healthWikiService';
 import { CONTRIBUTOR_TYPE_LABEL, TOPIC_OPEN, type Contributor, type TopicRequest } from '../types';
+import ContributorPicker from '../components/ContributorPicker';
 import { TopicStatusPill, TypePill } from '../components/StatusPill';
 import { refreshNavCounts } from '../components/navEvents';
 import '../healthWiki.css';
 
-type Mode = null | 'DECLINE' | 'ASK_DETAIL';
+type Mode = null | 'DECLINE' | 'ASK_DETAIL' | 'WRITER';
+
+const isDoctor = (t: Contributor['type']) => t === 'HOSPITAL_DOCTOR' || t === 'INDEPENDENT_DOCTOR';
 
 export default function TopicRequestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [topic, setTopic] = useState<TopicRequest | null>(null);
   const [person, setPerson] = useState<Contributor | null>(null);
+  const [people, setPeople] = useState<Contributor[]>([]);
+  const [writerId, setWriterId] = useState<string | null>(null);
+  const [contentTeam, setContentTeam] = useState(false);
+  const [writerError, setWriterError] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(null);
   const [text, setText] = useState('');
@@ -28,6 +35,7 @@ export default function TopicRequestDetailPage() {
         const [t, people] = await Promise.all([healthWikiService.getTopicRequest(id!), healthWikiService.listContributors()]);
         if (!alive) return;
         setTopic(t);
+        setPeople(people);
         setPerson(people.find((p) => p.contributorId === t.contributorId) ?? null);
       } catch (e) {
         if (alive) setError(errorMessage(e, 'Could not load this topic request.'));
@@ -49,6 +57,20 @@ export default function TopicRequestDetailPage() {
     } finally {
       setBusy(false);
     }
+  };
+
+  // Who may write it: a person who has joined and was not rejected, who may write this type (a medical article needs a doctor), not the doctor who asked.
+  const writerOptions = people.filter((p) => topic && p.contributorId !== topic.contributorId && (p.status === 'VERIFIED' || p.status === 'PENDING')
+    && (topic.type === 'SECTOR_UPDATE' || isDoctor(p.type) || p.type === 'STAFF'));
+
+  const confirmWriter = () => {
+    if (!contentTeam && !writerId) {
+      setWriterError('Choose a writer, or choose the NexEagle content team.');
+      return;
+    }
+    setWriterError('');
+    decide({ action: 'ACCEPT', ...(contentTeam ? { contentTeam: true } : { writerContributorId: writerId! }) },
+      'Accepted. A draft was created with the doctor as reviewer. Send the writer their link from the draft.');
   };
 
   const submitText = () => {
@@ -83,7 +105,7 @@ export default function TopicRequestDetailPage() {
           <h1 className="hw-h1">{topic.title}</h1>
           <p className="hw-sub">Suggested by {person?.fullName ?? 'a contributor'} on {new Date(topic.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
         </div>
-        <div className="hw-row"><TypePill type={topic.type} /><TopicStatusPill status={topic.status} /></div>
+        <div className="hw-row"><TypePill type={topic.type} />{topic.requestWriter && <span className="hw-tag">Wants a writer</span>}<TopicStatusPill status={topic.status} /></div>
       </div>
 
       <div className="hw-grid">
@@ -109,18 +131,38 @@ export default function TopicRequestDetailPage() {
             </div>
           )}
           {topic.status === 'NEEDS_DETAIL' && <p className="hw-sub">Waiting for the contributor to add detail. It comes back here as Submitted.</p>}
+          {topic.requestWriter && open && (
+            <div className="hw-banner info">{person?.fullName ?? 'The doctor'} asked for someone else to write this{topic.type === 'MEDICAL' ? ' and will review it before it goes live' : ''}. When you accept, you choose who writes it.</div>
+          )}
           {topic.articleSlug && (
-            <div className="hw-banner ok">Draft created and assigned to the contributor. <Link to={`/health-wiki/${topic.articleSlug}`}>Open the draft</Link></div>
+            <div className="hw-banner ok">{topic.requestWriter ? 'Draft created. The doctor reviews it once the writer submits it.' : 'Draft created and assigned to the contributor.'} <Link to={`/health-wiki/${topic.articleSlug}`}>Open the draft</Link></div>
           )}
 
           {open && mode === null && (
             <div className="hw-actions">
-              <button type="button" className="hw-btn hw-btn-primary" disabled={busy} onClick={() => decide({ action: 'ACCEPT' }, 'Accepted. A draft was created and the contributor is told.')}>Accept and create draft</button>
+              {topic.requestWriter
+                ? <button type="button" className="hw-btn hw-btn-primary" disabled={busy} onClick={() => { setMode('WRITER'); setWriterId(null); setContentTeam(false); setWriterError(''); }}>Accept and choose a writer</button>
+                : <button type="button" className="hw-btn hw-btn-primary" disabled={busy} onClick={() => decide({ action: 'ACCEPT' }, 'Accepted. A draft was created and the contributor is told.')}>Accept and create draft</button>}
               <button type="button" className="hw-btn" disabled={busy} onClick={() => { setMode('ASK_DETAIL'); setText(''); setTextError(''); }}>Ask for more detail</button>
               <button type="button" className="hw-btn" disabled={busy} onClick={() => { setMode('DECLINE'); setText(''); setTextError(''); }}>Decline</button>
             </div>
           )}
-          {open && mode !== null && (
+          {open && mode === 'WRITER' && (
+            <div className="hw-decision">
+              <ContributorPicker label="Writer" options={writerOptions} value={contentTeam ? null : writerId} disabled={contentTeam} error={writerError}
+                hint={topic.type === 'MEDICAL' ? 'A medical article can be written by a doctor. Writers and health workers write sector updates.' : 'Anyone who has joined.'}
+                onChange={setWriterId} />
+              <label className="hw-check">
+                <input type="checkbox" checked={contentTeam} onChange={(e) => { setContentTeam(e.target.checked); setWriterError(''); }} />
+                <span>The NexEagle content team writes it in the CMS</span>
+              </label>
+              <div className="hw-row">
+                <button type="button" className="hw-btn hw-btn-primary" disabled={busy} onClick={confirmWriter}>Accept and create draft</button>
+                <button type="button" className="hw-btn" onClick={() => setMode(null)}>Cancel</button>
+              </div>
+            </div>
+          )}
+          {open && mode !== null && mode !== 'WRITER' && (
             <div className="hw-decision">
               <div className="hw-field">
                 <label className="hw-label" htmlFor="topic-text">{mode === 'DECLINE' ? 'Reason for declining' : 'What detail do you need?'}</label>
