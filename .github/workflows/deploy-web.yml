@@ -87,7 +87,7 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=${{ vars.DEV_API_URL || 'http://151.185.45.77:5002/api/v1' }}
-            VITE_VITA_API_URL=${{ vars.DEV_VITA_API_URL || 'http://151.185.45.77:90' }}
+            VITE_VITA_API_URL=${{ vars.DEV_VITA_API_URL || 'https://vita-dev.nexeagle.com' }}
             VITE_MAPBOX_TOKEN=${{ secrets.VITE_MAPBOX_TOKEN }}
           tags: |
             ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
