@@ -1,0 +1,416 @@
+/* Vita Agents dashboard. Matches the Insights look (white cards, slate borders, blue accent). */
+
+.vita-page {
+    --vita-ink: #0f172a;
+    --vita-ink-2: #334155;
+    --vita-muted: #64748b;
+    --vita-line: #e2e8f0;
+    --vita-soft: #f8fafc;
+    --vita-accent: #2a78d6;
+    --vita-good: #15803d;
+    --vita-good-bg: #dcfce7;
+    --vita-warn: #b45309;
+    --vita-warn-bg: #fef3c7;
+    --vita-bad: #b91c1c;
+    --vita-bad-bg: #fee2e2;
+    padding: 4px 0 32px;
+    color: var(--vita-ink);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.vita-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+.vita-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.vita-title h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+}
+.vita-title p {
+    margin: 2px 0 0;
+    color: var(--vita-muted);
+    font-size: 13px;
+}
+.vita-title-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(135deg, #2a78d6, #1baf7a);
+    box-shadow: 0 6px 16px rgba(42, 120, 214, 0.25);
+}
+.vita-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.vita-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.vita-grid-2,
+.vita-grid-3 {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+}
+.vita-grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+@media (max-width: 520px) {
+    .vita-grid-2,
+    .vita-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vita-card {
+    background: #fff;
+    border: 1px solid var(--vita-line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    min-width: 0;
+}
+.vita-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.vita-card-head h3 {
+    font-size: 14px;
+    font-weight: 800;
+    margin: 0;
+}
+
+/* tiles */
+.vita-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+}
+.vita-tile {
+    background: #fff;
+    border: 1px solid var(--vita-line);
+    border-left: 4px solid var(--vita-line);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.vita-tile-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vita-muted);
+}
+.vita-tile-value {
+    font-size: 24px;
+    font-weight: 800;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+.vita-tile-sub {
+    font-size: 11.5px;
+    color: var(--vita-muted);
+    margin-top: 2px;
+}
+.vita-tone-good { border-left-color: #22c55e; }
+.vita-tone-warn { border-left-color: #f59e0b; }
+.vita-tone-bad { border-left-color: #ef4444; }
+.vita-tone-bad .vita-tile-value { color: var(--vita-bad); }
+
+/* insights */
+.vita-insights { background: linear-gradient(180deg, #f8fbff, #fff); }
+.vita-insight-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vita-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 8px 10px;
+    border-radius: 10px;
+}
+.vita-insight svg { flex-shrink: 0; margin-top: 2px; }
+.vita-insight span { flex: 1; }
+.vita-insight-good { background: var(--vita-good-bg); color: #14532d; }
+.vita-insight-warn { background: var(--vita-warn-bg); color: #78350f; }
+.vita-insight-bad { background: var(--vita-bad-bg); color: #7f1d1d; }
+
+/* pills */
+.vita-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.vita-pill-good { background: var(--vita-good-bg); color: var(--vita-good); }
+.vita-pill-warn { background: var(--vita-warn-bg); color: var(--vita-warn); }
+.vita-pill-bad { background: var(--vita-bad-bg); color: var(--vita-bad); }
+.vita-pill-neutral { background: #f1f5f9; color: var(--vita-muted); }
+
+/* tables */
+.vita-scroll { overflow-x: auto; }
+.vita-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.vita-table th {
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--vita-muted);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--vita-line);
+    background: var(--vita-soft);
+    white-space: nowrap;
+}
+.vita-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+.vita-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vita-table-click tbody tr:not(.vita-detail-row) { cursor: pointer; }
+.vita-table-click tbody tr:not(.vita-detail-row):hover { background: var(--vita-soft); }
+.vita-detail-row > td { background: #fbfdff; padding: 0; }
+.vita-ellipsis { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vita-wrap { min-width: 260px; }
+.vita-nowrap { white-space: nowrap; }
+
+.vita-bar-cell { display: flex; align-items: center; gap: 6px; }
+.vita-bar-track {
+    height: 4px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    margin-top: 6px;
+    overflow: hidden;
+    flex: 1;
+}
+.vita-bar-fill { height: 100%; background: var(--vita-accent); border-radius: 4px; }
+.vita-bar-fill-warn { background: #eb6834; }
+
+.vita-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    flex-shrink: 0;
+    background: #94a3b8;
+}
+.vita-dot-answered { background: #2a78d6; }
+.vita-dot-jev { background: #1baf7a; }
+.vita-dot-unanswered { background: #eb6834; }
+.vita-dot-failed { background: #e34948; }
+
+/* lists */
+.vita-list { list-style: none; margin: 0; padding: 0; }
+.vita-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dashed #f1f5f9;
+    font-size: 13px;
+}
+.vita-list li:last-child { border-bottom: none; }
+.vita-list-main { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.vita-count {
+    font-weight: 800;
+    color: var(--vita-accent);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.vita-count-bad { color: var(--vita-bad); }
+.vita-down { color: var(--vita-bad); font-size: 12px; white-space: nowrap; }
+
+.vita-muted { color: var(--vita-muted); }
+.vita-small { font-size: 11.5px; }
+.vita-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+}
+.vita-good { color: var(--vita-good); }
+.vita-bad { color: var(--vita-bad); }
+
+/* health checks */
+.vita-checks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+.vita-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid var(--vita-line);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.vita-check > div:nth-child(2) { flex: 1; min-width: 0; }
+.vita-check-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #eff6ff;
+    color: var(--vita-accent);
+}
+.vita-check.bad .vita-check-icon { background: var(--vita-bad-bg); color: var(--vita-bad); }
+.vita-check-name { font-weight: 700; font-size: 13px; }
+.vita-check-detail { font-size: 12px; color: var(--vita-muted); overflow: hidden; text-overflow: ellipsis; }
+
+/* filters and controls */
+.vita-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vita-input {
+    border: 1px solid var(--vita-line);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--vita-ink);
+    min-width: 0;
+}
+input.vita-input { min-width: 240px; }
+.vita-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
+.vita-check-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--vita-ink-2); cursor: pointer; }
+.vita-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--vita-line);
+    background: #fff;
+    color: var(--vita-ink-2);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.vita-btn:hover:not(:disabled) { border-color: #93c5fd; color: var(--vita-accent); }
+.vita-btn:disabled { opacity: 0.5; cursor: default; }
+.vita-btn-sm { padding: 4px 9px; font-size: 12px; margin-right: 6px; }
+.vita-btn-ghost { border-color: transparent; background: transparent; }
+.vita-link {
+    border: none;
+    background: none;
+    color: var(--vita-accent);
+    font-weight: 700;
+    font-size: 12.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 0;
+}
+.vita-spin { animation: vita-spin 1s linear infinite; }
+@keyframes vita-spin { to { transform: rotate(360deg); } }
+.vita-loading { opacity: 0.6; transition: opacity 0.2s; }
+
+.vita-empty { text-align: center; padding: 28px 12px; color: #94a3b8; font-size: 13px; }
+.vita-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--vita-bad-bg);
+    color: #7f1d1d;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+}
+.vita-explainer {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--vita-ink-2);
+}
+
+/* turn detail */
+.vita-detail { padding: 14px 18px 18px 40px; }
+.vita-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 20px; }
+@media (max-width: 860px) { .vita-detail-grid { grid-template-columns: 1fr; } .vita-detail { padding-left: 14px; } }
+.vita-detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--vita-muted);
+    margin: 10px 0 4px;
+}
+.vita-bubble {
+    background: #fff;
+    border: 1px solid var(--vita-line);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+.vita-bubble-user { background: #eff6ff; border-color: #dbeafe; }
+.vita-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.vita-chip {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+    background: #f1f5f9;
+    color: var(--vita-ink-2);
+}
+.vita-quote { font-style: italic; color: var(--vita-ink-2); margin-top: 4px; }
+.vita-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 10px 0 0; font-size: 12.5px; }
+.vita-facts dt { color: var(--vita-muted); }
+.vita-facts dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.vita-chat { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; max-height: 420px; overflow-y: auto; }
+.vita-detail .vita-btn { margin-top: 12px; }
+.vita-pager { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; }
+
+/* feedback */
+.vita-reasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px 20px; }
+.vita-reason { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.vita-reason span { width: 110px; }
+.vita-reason .vita-bar-track { margin-top: 0; }
+.vita-feedback-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 12px; }
+@media (max-width: 520px) { .vita-feedback-list { grid-template-columns: 1fr; } }
+.vita-feedback {
+    background: #fff;
+    border: 1px solid var(--vita-line);
+    border-left: 4px solid var(--vita-line);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.vita-feedback-down { border-left-color: #ef4444; }
+.vita-feedback-up { border-left-color: #22c55e; }
+.vita-feedback header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }

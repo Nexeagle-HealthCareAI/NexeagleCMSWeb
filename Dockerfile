@@ -9,6 +9,9 @@ ENV VITE_API_URL=$VITE_API_URL
 # Unset means the map is simply omitted, nothing breaks.
 ARG VITE_MAPBOX_TOKEN
 ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
+# Vita AI agents API (Vita Agents dashboard). Dev and prod pass different values.
+ARG VITE_VITA_API_URL
+ENV VITE_VITA_API_URL=$VITE_VITA_API_URL
 RUN npm run build
 
 FROM nginx:alpine
