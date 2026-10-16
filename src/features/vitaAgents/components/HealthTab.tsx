@@ -1,8 +1,9 @@
 import React from 'react';
 import { Cpu, Database, Layers, Server, Sparkles, Users } from 'lucide-react';
 import type { Health } from '../services/vitaService';
+import { vitaService } from '../services/vitaService';
 import { VITA_API_URL } from '../services/vitaService';
-import { dur, ms, num, pct, when } from './format';
+import { dur, ms, num, pct, useLoad, when } from './format';
 import { Card, Empty, Pill } from './shared';
 
 const Check: React.FC<{ icon: React.ReactNode; name: string; ok: boolean; detail: string }> = ({ icon, name, ok, detail }) => (
@@ -21,8 +22,24 @@ const HealthTab: React.FC<{ h: Health }> = ({ h }) => {
     const busy = h.workers.reduce((s, w) => s + w.inflight, 0);
     const stale = h.workers.filter((w) => w.lastSeenS > 20);
     const ev = h.knowledge?.eval ?? {};
+    const { data: alerts } = useLoad(() => vitaService.alerts().catch(() => []), [h.checkedAt]);
     return (
         <div className="vita-stack">
+            {alerts && alerts.length > 0 && (
+                <Card title={`Active alerts (${alerts.length})`}>
+                    <ul className="vita-insight-list">
+                        {alerts.map((a) => (
+                            <li key={a.key} className={`vita-insight vita-insight-${a.severity === 'critical' ? 'bad' : 'warn'}`}>
+                                <span>
+                                    <b>{a.title}</b> — {a.detail}
+                                    {a.fix && <div className="vita-small vita-code">{a.fix}</div>}
+                                    <div className="vita-small">since {when(new Date(a.since * 1000).toISOString())}</div>
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            )}
             <div className="vita-checks">
                 <Check
                     icon={<Server size={18} />}

@@ -249,6 +249,15 @@ export interface TurnFilters {
 const clean = <T extends object>(p: T) =>
     Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined && v !== '' && v !== null));
 
+export interface OpsAlert {
+    key: string;
+    severity: 'critical' | 'warning';
+    title: string;
+    detail: string;
+    fix?: string;
+    since: number;
+}
+
 export const vitaService = {
     overview: (range: Range, hospitalId?: string) =>
         vita.get<Overview>('/overview', { params: clean({ range, hospitalId }) }).then((r) => r.data),
@@ -271,6 +280,7 @@ export const vitaService = {
                 params: clean({ range, rating, hospitalId }),
             })
             .then((r) => r.data),
+    alerts: () => vita.get<{ alerts: OpsAlert[] }>('/alerts').then((r) => r.data.alerts),
     kbBuilds: () =>
         vita
             .get<{ builds: KbBuild[]; activeDocs: { docId: string; chunks: number; sections: number }[] }>('/kb/builds')
