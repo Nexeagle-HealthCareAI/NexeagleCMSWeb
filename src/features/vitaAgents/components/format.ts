@@ -16,6 +16,14 @@ export const ROUTES: Record<string, { label: string; group: 'answered' | 'jev' |
     not_sure: { label: 'Not sure', group: 'unanswered', hint: 'Answer could not be grounded' },
     no_kb: { label: 'No knowledge base', group: 'unanswered', hint: 'No active knowledge build' },
     failed: { label: 'Failed', group: 'failed', hint: 'Timeout, agent error or lost worker' },
+    'guide:playbook': { label: 'Guide (playbook)', group: 'answered', hint: 'Guide Mode: a checked playbook shown on screen' },
+    'guide:generated': { label: 'Guide (AI steps)', group: 'answered', hint: 'Guide Mode: steps written by the LLM, checked against real screen labels' },
+    'guide:crew_ask': { label: 'Guide → AI answer', group: 'answered', hint: 'Guide Mode had no guide; answered in words' },
+    'guide:extractive': { label: 'Guide → passage', group: 'answered', hint: 'Guide Mode had no guide; passage shown' },
+    'guide:extractive_fallback': { label: 'Guide → LLM fallback', group: 'answered', hint: 'Guide Mode had no guide; LLM failed, passage shown' },
+    'guide:cache': { label: 'Guide → cached answer', group: 'answered', hint: 'Guide Mode had no guide; cached answer' },
+    'guide:unknown': { label: 'Guide → no answer', group: 'unanswered', hint: 'Guide Mode: nothing relevant in the guides' },
+    'guide:not_sure': { label: 'Guide → not sure', group: 'unanswered', hint: 'Guide Mode: answer could not be grounded' },
 };
 
 export const routeLabel = (r: string | null) => (r ? ROUTES[r]?.label ?? r : '—');

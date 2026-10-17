@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, BookOpen, Bot, HeartPulse, MessageSquareWarning, MessagesSquare, RefreshCw, ThumbsUp } from 'lucide-react';
+import { Activity, BookOpen, Bot, Compass, HeartPulse, MessageSquareWarning, MessagesSquare, RefreshCw, ThumbsUp } from 'lucide-react';
 import type { Range } from '../services/vitaService';
 import { vitaError, vitaService } from '../services/vitaService';
 import { useLoad, when } from '../components/format';
@@ -10,6 +10,7 @@ import TurnsTab from '../components/TurnsTab';
 import GapsTab from '../components/GapsTab';
 import FeedbackTab from '../components/FeedbackTab';
 import KnowledgeTab from '../components/KnowledgeTab';
+import GuidesTab from '../components/GuidesTab';
 import '../../insights/components/Insights.css';
 import './VitaAgents.css';
 
@@ -19,6 +20,7 @@ const TABS = [
     { id: 'turns', label: 'Conversations', icon: MessagesSquare },
     { id: 'gaps', label: 'Knowledge gaps', icon: MessageSquareWarning },
     { id: 'feedback', label: 'Feedback', icon: ThumbsUp },
+    { id: 'guides', label: 'Guides', icon: Compass },
     { id: 'kb', label: 'Knowledge base', icon: BookOpen },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
@@ -125,6 +127,7 @@ const VitaAgentsPage: React.FC = () => {
             {tab === 'turns' && <TurnsTab range={range} hospitalId={hospitalId || undefined} />}
             {tab === 'gaps' && <GapsTab hospitalId={hospitalId || undefined} />}
             {tab === 'feedback' && <FeedbackTab range={range} hospitalId={hospitalId || undefined} />}
+            {tab === 'guides' && <GuidesTab range={range} hospitalId={hospitalId || undefined} />}
             {tab === 'kb' && <KnowledgeTab />}
         </div>
     );

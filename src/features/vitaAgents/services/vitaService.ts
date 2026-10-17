@@ -258,6 +258,50 @@ export interface OpsAlert {
     since: number;
 }
 
+export interface GuideStat {
+    guideId: string;
+    title: string;
+    source: 'playbook' | 'generated';
+    runs: number;
+    started: number;
+    completed: number;
+    abandoned: number;
+    completionRate: number | null;
+    up: number;
+    down: number;
+    avgMs: number | null;
+    /** step id -> runs that stopped there */
+    stoppedAt: Record<string, number>;
+}
+
+export interface GuideMissing {
+    guideId: string;
+    step: string;
+    count: number;
+    label: string | null;
+    screen: string | null;
+    say: string | null;
+}
+
+export interface GeneratedGuideRun {
+    runId: string;
+    guideId: string;
+    title: string;
+    status: string;
+    stepsDone: number;
+    stepsTotal: number;
+    rating: string | null;
+    createdAt: string;
+    steps: { say: string; label: string | null }[];
+}
+
+export interface GuidesReport {
+    totals: { runs: number; started: number; completed: number; abandoned: number; completionRate: number | null; missingTargets: number };
+    guides: GuideStat[];
+    missing: GuideMissing[];
+    generated: GeneratedGuideRun[];
+}
+
 export const vitaService = {
     overview: (range: Range, hospitalId?: string) =>
         vita.get<Overview>('/overview', { params: clean({ range, hospitalId }) }).then((r) => r.data),
@@ -281,6 +325,8 @@ export const vitaService = {
             })
             .then((r) => r.data),
     alerts: () => vita.get<{ alerts: OpsAlert[] }>('/alerts').then((r) => r.data.alerts),
+    guides: (range: Range, hospitalId?: string) =>
+        vita.get<GuidesReport>('/guides', { params: clean({ range, hospitalId }) }).then((r) => r.data),
     kbBuilds: () =>
         vita
             .get<{ builds: KbBuild[]; activeDocs: { docId: string; chunks: number; sections: number }[] }>('/kb/builds')
