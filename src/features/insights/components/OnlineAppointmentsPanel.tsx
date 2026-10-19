@@ -2,13 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle2, UserX } from 'lucide-react';
 import { getOnlineAppointments, type OnlineAppointmentItem } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
+import { todayIst } from '../utils/istDate';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
-
-const toDateInputValue = (d: Date): string => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
 
 const formatDateTime = (iso: string): string => {
     const d = new Date(iso);
@@ -40,7 +36,7 @@ export const OnlineAppointmentsPanel: React.FC = () => {
 
     const fetchAppointments = useCallback(async () => {
         if (dateMode === 'custom' && (!customFrom || !customTo)) return;
-        const today = toDateInputValue(new Date());
+        const today = todayIst();
         const from = dateMode === 'today' ? today : dateMode === 'custom' ? customFrom : undefined;
         const to = dateMode === 'today' ? today : dateMode === 'custom' ? customTo : undefined;
 

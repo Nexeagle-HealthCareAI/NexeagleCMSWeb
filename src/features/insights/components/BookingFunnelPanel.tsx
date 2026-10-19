@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getBookingFunnelStats, type BookingFunnelStats } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
+import { todayIst } from '../utils/istDate';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
-
-const toDateInputValue = (d: Date): string => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
 
 const pct = (numerator: number, denominator: number): string =>
     denominator > 0 ? `${Math.round((numerator / denominator) * 100)}%` : '—';
@@ -21,7 +17,7 @@ export const BookingFunnelPanel: React.FC = () => {
 
     useEffect(() => {
         if (mode === 'custom' && (!customFrom || !customTo)) return;
-        const today = toDateInputValue(new Date());
+        const today = todayIst();
         const from = mode === 'today' ? today : mode === 'custom' ? customFrom : undefined;
         const to = mode === 'today' ? today : mode === 'custom' ? customTo : undefined;
 
@@ -60,6 +56,10 @@ export const BookingFunnelPanel: React.FC = () => {
                     specialties get the most traffic (searches + views) versus which ones actually convert
                     into completed bookings. High traffic with low completions for a specialty is a strong
                     signal you don't have enough — or the right — doctors onboarded in that category.
+                </p>
+                <p>
+                    Counts people only: search-engine crawlers, link previews and data-centre traffic are left
+                    out. Dates are India time (IST).
                 </p>
             </InsightsExplainer>
 

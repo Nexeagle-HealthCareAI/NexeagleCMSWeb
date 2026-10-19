@@ -64,7 +64,7 @@ export const API_ENDPOINTS = {
         LIST: '/SubscriptionPlans',                   // ?application=EasyHMS|1Rad|All
     },
     INSIGHTS: {
-        SITE_VISITS: '/insights/site-visits',         // ?from=&to=
+        SITE_VISITS: '/insights/site-visits',         // ?from=&to=&site=
         PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
         APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
         AUTH_FUNNEL: '/insights/auth-funnel',                     // ?from=&to=
