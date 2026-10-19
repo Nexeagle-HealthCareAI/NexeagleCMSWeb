@@ -19,6 +19,12 @@ import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import UsersAccess from './features/admin/pages/UsersAccess';
 import MarketingPage from './features/marketing/pages/MarketingPage';
 import VitaAgentsPage from './features/vitaAgents/pages/VitaAgentsPage';
+import HealthWikiPage from './features/healthWiki/pages/HealthWikiPage';
+import ArticleEditorPage from './features/healthWiki/pages/ArticleEditorPage';
+import ContributorsPage from './features/healthWiki/pages/ContributorsPage';
+import TopicRequestsPage from './features/healthWiki/pages/TopicRequestsPage';
+import TopicRequestDetailPage from './features/healthWiki/pages/TopicRequestDetailPage';
+import { canUseHealthWiki } from './features/healthWiki/access';
 import RequirePermission from './components/RequirePermission';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -39,6 +45,12 @@ const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { childr
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (mustChangePassword && !allowWhilePasswordChange) return <Navigate to="/change-password" replace />;
   return children;
+};
+
+// Health Wiki is gated by `health-wiki.manage` (or the local mock flag while the backend is not wired).
+const RequireHealthWiki = ({ children }: { children: React.ReactElement }) => {
+  const permissions = useAuthStore((s) => s.permissions);
+  return canUseHealthWiki(permissions) ? children : <Navigate to="/no-access" replace />;
 };
 
 function App() {
@@ -100,6 +112,12 @@ function App() {
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
+            <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
+            <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
+            <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />
+            <Route path="health-wiki/topics/:id" element={<RequireHealthWiki><TopicRequestDetailPage /></RequireHealthWiki>} />
+            <Route path="health-wiki/new" element={<RequireHealthWiki><ArticleEditorPage key="new" /></RequireHealthWiki>} />
+            <Route path="health-wiki/:slug" element={<RequireHealthWiki><ArticleEditorPage key="edit" /></RequireHealthWiki>} />
             <Route path="marketing" element={<RequirePermission perm="marketing.view"><MarketingPage /></RequirePermission>} />
             <Route path="vita-agents" element={<RequirePermission perm="dashboard.view"><VitaAgentsPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
