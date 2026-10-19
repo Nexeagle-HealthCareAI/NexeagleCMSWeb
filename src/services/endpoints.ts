@@ -79,6 +79,16 @@ export const API_ENDPOINTS = {
         LEAD_DETAIL: '/marketing/leads',                    // Usage: /marketing/leads/:id  (GET | PUT | DELETE)
         LEAD_FOLLOWUPS: '/marketing/leads',                 // Usage: /marketing/leads/:id/followups (POST)
     },
+    AGENT_MONITOR: {
+        STATUS: '/agent-monitor/status',
+        OVERVIEW: '/agent-monitor/overview',                       // ?from=&to=&agent=&caller=
+        DECISIONS: '/agent-monitor/decisions',                     // ?page=&limit=&from=&to=&agent=&caller=&decision=
+        LEARNING_SUMMARY: '/agent-monitor/learning/summary',
+        LEARNING_ITEMS: '/agent-monitor/learning/items',           // ?page=&limit=&status=&source=&search= ; POST /:id/review
+        LEARNING_SCAN: '/agent-monitor/learning/scan',             // POST
+        MODELS: '/agent-monitor/models',                           // ?limit=
+        REBUILD: '/agent-monitor/models/rebuild',                  // POST
+    },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
         FEEDBACK_LOG: '/symptom-router/feedback-log',             // ?page=&limit=&from=&to=&correctionsOnly=

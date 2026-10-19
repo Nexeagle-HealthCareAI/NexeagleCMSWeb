@@ -4,7 +4,7 @@ import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../servi
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
 import { BulkEditModal } from '../components/BulkEditModal';
 import { InsightsTab } from '../../insights/components/InsightsTab';
-import { SymptomRouterTab } from '../../insights/components/SymptomRouterTab';
+import { RouterAgentsTab } from '../../routerAgents/pages/RouterAgentsTab';
 import '../../dashboard/pages/Dashboard.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './DoctorsPage.css';
@@ -228,12 +228,12 @@ const DoctorsPage: React.FC = () => {
                     className={`doctor-page-tab-btn ${pageTab === 'nlp' ? 'active' : ''}`}
                     onClick={() => setPageTab('nlp')}
                 >
-                    NLP
+                    AI Agents
                 </button>
             </div>
 
             {pageTab === 'insights' && <InsightsTab />}
-            {pageTab === 'nlp' && <SymptomRouterTab />}
+            {pageTab === 'nlp' && <RouterAgentsTab />}
 
             {pageTab === 'doctors' && (
             <div className="premium-table-card">
