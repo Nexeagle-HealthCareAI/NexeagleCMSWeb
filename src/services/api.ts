@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { API_ENDPOINTS } from './endpoints';
 import { toast } from 'sonner';
@@ -12,6 +12,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://151.185.45.77:5002/api/v
 // SignalR hub lives at <origin>/chathub (outside the /api/v1 prefix), derived from the
 // same configured API URL so it works across dev/prod instead of a hardcoded localhost.
 export const SIGNALR_URL = API_URL.replace(/\/api\/v1\/?$/, '') + '/chathub';
+// CRM alerts hub (CrmHub.cs) - same origin, needs a JWT with marketing.view.
+export const CRM_HUB_URL = API_URL.replace(/\/api\/v1\/?$/, '') + '/hubs/crm';
 
 export const api = axios.create({
     baseURL: API_URL,
@@ -25,6 +27,8 @@ export const api = axios.create({
 
 import { offlineCache } from '../utils/offlineCache';
 import { syncManager } from '../utils/syncManager';
+import { isCacheableUrl } from '../utils/clientData';
+import { memoGet, cacheKey, isMemoCacheable, clearRequestCache } from '../utils/requestCache';
 
 // Cache key generator
 const getCacheKey = (config: any) => {
@@ -91,8 +95,12 @@ const doRefresh = async (): Promise<string | null> => {
 
 api.interceptors.response.use(
     (response) => {
-        // Cache GET responses upon successful online fetch
-        if (response.config.method?.toLowerCase() === 'get' && response.status === 200) {
+        // A successful change invalidates every cached GET (see utils/requestCache.ts).
+        const method = response.config.method?.toLowerCase();
+        if (method && method !== 'get') clearRequestCache();
+
+        // Cache allow-listed GET responses for offline use (never patient, chat, lead or user data)
+        if (response.config.method?.toLowerCase() === 'get' && response.status === 200 && isCacheableUrl(response.config.url)) {
             const cacheKey = getCacheKey(response.config);
             offlineCache.set(cacheKey, response.data);
         }
@@ -146,6 +154,10 @@ api.interceptors.response.use(
         }
 
         const status = error.response?.status;
+        if (status !== undefined && status >= 500) {
+            // The API logs every request under this id (RequestLoggingMiddleware): quote it in bug reports.
+            console.error(`[api] ${original?.method?.toUpperCase()} ${original?.url} failed with ${status}; request id ${error.response?.headers?.['x-request-id'] ?? 'unknown'}`);
+        }
         const isAuthCall = typeof original?.url === 'string' && original.url.includes('/auth/');
 
         // In the local login-bypass mode a 401 is expected; never refresh or sign out because of it.
@@ -172,3 +184,20 @@ api.interceptors.response.use(
     }
 );
 
+
+// ── Short-lived GET cache (memory only) ────────────────────────────────────────────────────────
+// Wraps api.get so repeat calls within 30 s, and concurrent identical calls, share one request.
+// Pass { headers: { 'Cache-Control': 'no-cache' } } to force a fresh request.
+const rawGet = api.get.bind(api);
+api.get = (<T = unknown, R = AxiosResponse<T>, D = unknown>(url: string, config?: AxiosRequestConfig<D>): Promise<R> => {
+    const forceFresh = (config?.headers as Record<string, unknown> | undefined)?.['Cache-Control'] === 'no-cache';
+    if (forceFresh || !isMemoCacheable(url)) return rawGet<T, R, D>(url, config);
+    return memoGet<R>(cacheKey(url, config?.params), () => rawGet<T, R, D>(url, config));
+}) as typeof api.get;
+
+// Also cleared after an offline sync and when a hot lead arrives (logout clears it in useAuthStore,
+// which cannot be subscribed to here: the store imports this module, so it is not ready yet).
+if (typeof window !== 'undefined') {
+    window.addEventListener('sync-completed', clearRequestCache);
+    window.addEventListener('crm-hot-lead-received', clearRequestCache);
+}

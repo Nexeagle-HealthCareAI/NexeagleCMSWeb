@@ -11,7 +11,8 @@ export const API_ENDPOINTS = {
         RESET_PASSWORD: '/auth/reset-password',
     },
     ADMIN: {
-        USERS: '/users',                 // GET list, POST create; /users/:id GET/PUT; /users/:id/reset-password
+        USERS: '/users',
+        ASSIGNEES: '/users/assignees',   // GET id + name of active users (marketing.view)                 // GET list, POST create; /users/:id GET/PUT; /users/:id/reset-password
         ROLES: '/roles',                 // GET list, POST create; /roles/:id PUT/DELETE
         PERMISSIONS: '/permissions',     // GET catalog
     },

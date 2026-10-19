@@ -10,6 +10,8 @@ import {
     type User,
     type LoginResponse,
 } from '../features/login/services/authService';
+import { clearClientData, SYNC_QUEUE_KEY } from '../utils/clientData';
+import { clearRequestCache } from '../utils/requestCache';
 
 interface AuthState {
     user: User | null;
@@ -33,6 +35,14 @@ interface AuthState {
     silentRefresh: () => Promise<boolean>;
 }
 
+const pendingOfflineChanges = (): number => {
+    try {
+        return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) ?? '[]').length;
+    } catch {
+        return 0;
+    }
+};
+
 export const useAuthStore = create<AuthState>()(
     persist(
         (set, get) => ({
@@ -45,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
 
             login: async (email, password) => {
+                clearRequestCache(); // a new login never sees the previous user's cached responses
                 set({ isLoading: true, error: null });
                 try {
                     const res = await apiLogin(email, password);
@@ -64,6 +75,13 @@ export const useAuthStore = create<AuthState>()(
 
             logout: () => {
                 void apiLogout(); // best-effort server-side revoke (cookie sent automatically)
+                // Wipe cached API data and the offline queue: the next person on this browser must not
+                // see this user's data, and queued changes must not replay under someone else's login.
+                if (pendingOfflineChanges() > 0) {
+                    console.warn('[auth] Logout discarded unsynced offline changes.');
+                }
+                clearClientData();
+                clearRequestCache();
                 set({
                     user: null,
                     token: null,
@@ -103,6 +121,7 @@ export const useAuthStore = create<AuthState>()(
             },
 
             applyOtpSession: async (identifier, otp) => {
+                clearRequestCache();
                 const res = await apiLoginWithOtp(identifier, otp);
                 set({
                     user: res.user,
@@ -129,6 +148,8 @@ export const useAuthStore = create<AuthState>()(
                 } catch {
                     set({ isAuthenticated: false, user: null, token: null, permissions: [] });
                     localStorage.removeItem('auth-storage');
+                    clearClientData();
+                    clearRequestCache();
                     return false;
                 }
             },

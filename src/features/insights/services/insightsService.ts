@@ -74,7 +74,6 @@ export interface OnlineAppointmentItem {
     hospitalName: string | null;
     isLoggedIn: boolean;
     bookedByMobileMasked: string | null;
-    ipAddress: string | null;
     referrerUrl: string | null;
     utmCampaign: string | null;
 }
