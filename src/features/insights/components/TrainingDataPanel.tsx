@@ -112,10 +112,15 @@ export const TrainingDataPanel: React.FC = () => {
                     every row here is a phrase mapped to the specialist it should route to. This is what
                     actually gets retrained on (plus real search→booking feedback, see the Feedback Log tab).
                 </p>
+                <p style={{ color: '#b45309' }}>
+                    <strong>Note:</strong> the router in service today is built from the training files in the
+                    1HMS-NLP-Router repository and does not read this table yet. Rows saved here are kept and will
+                    be used once the router is connected to it.
+                </p>
                 <p>
                     <strong>How to use it:</strong> add new phrasing you've seen patients actually use, fix a
                     row that's mapped to the wrong specialist, or remove noisy/duplicate entries. Changes here
-                    take effect on the next retrain (nightly, or "Retrain now" in the Model Info tab).
+                    take effect on the next retrain once the router reads this table.
                 </p>
             </InsightsExplainer>
 

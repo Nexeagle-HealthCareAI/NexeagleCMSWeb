@@ -97,7 +97,11 @@ export interface OnlineAppointmentItem {
     bookedByMobileMasked: string | null;
     referrerUrl: string | null;
     utmCampaign: string | null;
+    statusCode?: string;
 }
+
+/** booked = from/to are the days the booking was made (India time); appointment = the appointment date. */
+export type AppointmentDateBy = 'booked' | 'appointment';
 
 export const getOnlineAppointments = async (
     page: number,
@@ -107,7 +111,8 @@ export const getOnlineAppointments = async (
     search?: string,
     sortBy?: string,
     sortDir?: 'asc' | 'desc',
-    source?: string
+    source?: string,
+    dateBy: AppointmentDateBy = 'booked'
 ): Promise<PagedResponse<OnlineAppointmentItem>> => {
     const response = await api.get<PagedResponse<OnlineAppointmentItem>>(API_ENDPOINTS.INSIGHTS.APPOINTMENTS, {
         params: {
@@ -118,6 +123,7 @@ export const getOnlineAppointments = async (
             sortBy: sortBy || undefined,
             sortDir: sortDir || undefined,
             source: source || undefined,
+            dateBy,
         }
     });
     return response.data;
@@ -173,13 +179,22 @@ export interface SpecialtyDemandItem {
     completedBookingCount: number;
 }
 
+// People only, de-duplicated (see CMSAPI FunnelModels.BookingFunnelStats): a search is one distinct
+// query per visit; profile views and booking steps are one per visit + doctor.
 export interface BookingFunnelStats {
     searchCount: number;
+    searchSessionCount: number;
     profileViewCount: number;
+    /** % of searching visits that went on to open a doctor profile. */
     searchToViewRatePct: number;
+    /** Booking form shown (it sits on every profile page). */
     visitStepCount: number;
+    /** Date and time chosen, moved on to patient details. */
     detailsStepCount: number;
+    /** Booked, as seen by tracking. */
     doneStepCount: number;
+    /** Doctor Dekho bookings saved in the database for the same days. */
+    bookingsRecorded: number;
     specialtyDemand: SpecialtyDemandItem[];
 }
 

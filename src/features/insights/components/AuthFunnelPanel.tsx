@@ -207,7 +207,7 @@ export const AuthFunnelPanel: React.FC = () => {
                                         {item.outcome === 'Verified' ? (
                                             <span className="insights-badge insights-badge-loggedin"><CheckCircle2 size={12} /> Verified</span>
                                         ) : (
-                                            <span className="insights-badge insights-badge-guest"><XCircle size={12} /> Bounced</span>
+                                            <span className="insights-badge insights-badge-guest"><XCircle size={12} /> Not verified</span>
                                         )}
                                     </td>
                                     <td>{formatSeconds(item.timeToAuthenticateSeconds)}</td>

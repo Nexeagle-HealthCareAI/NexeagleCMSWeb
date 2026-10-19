@@ -50,14 +50,14 @@ export const ModelInfoPanel: React.FC = () => {
         <div>
             <InsightsExplainer>
                 <p>
-                    <strong>What this is:</strong> the currently-deployed symptom router model's version,
-                    when it was last retrained, and how it scored on the frozen validation set (never
-                    trained on, so these numbers stay comparable across retrains).
+                    <strong>What this is:</strong> the symptom router model currently answering Doctor Dekho
+                    searches: its version, when it was built, and how many example phrases it was built from.
                 </p>
                 <p>
-                    <strong>How to use it:</strong> a retrain only ever replaces the live model if it
-                    doesn't score worse than what's already deployed — "Retrain now" is safe to click
-                    any time; it either promotes an improved model or silently does nothing.
+                    <strong>Accuracy figures</strong> are shown only when the router publishes them. The router in
+                    service today does not measure itself against a held-out validation set yet, so no accuracy is
+                    shown rather than a made-up one. The model is rebuilt from the 1HMS-NLP-Router repository's
+                    training files when that service is redeployed; there is no automatic retrain.
                 </p>
             </InsightsExplainer>
 
@@ -77,26 +77,44 @@ export const ModelInfoPanel: React.FC = () => {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 20 }}>
                         <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Top-1 Accuracy</div>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{pct(info.validationMetrics?.top1Accuracy)}</div>
+                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Training phrases</div>
+                            <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{info.trainingRowCount?.toLocaleString() ?? '—'}</div>
                         </div>
-                        <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>No-Match Rate</div>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{pct(info.validationMetrics?.noMatchRate)}</div>
-                        </div>
-                        <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Confidently Wrong</div>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: '#dc2626' }}>{pct(info.validationMetrics?.confidentlyWrongRate)}</div>
-                        </div>
-                        <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Training Rows</div>
-                            <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{info.trainingRowCount ?? '—'}</div>
-                        </div>
+                        {info.emergencyRows != null && (
+                            <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Emergency-labelled phrases</div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{info.emergencyRows.toLocaleString()}</div>
+                            </div>
+                        )}
+                        {info.validationMetrics && (
+                            <>
+                                <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                                    <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Top-1 Accuracy</div>
+                                    <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{pct(info.validationMetrics.top1Accuracy)}</div>
+                                </div>
+                                <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                                    <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Confidently Wrong</div>
+                                    <div style={{ fontSize: 24, fontWeight: 700, color: '#dc2626' }}>{pct(info.validationMetrics.confidentlyWrongRate)}</div>
+                                </div>
+                            </>
+                        )}
                     </div>
-
-                    <button className="approve-btn" onClick={handleRetrain} disabled={triggering}>
-                        <RefreshCw size={14} className={triggering ? 'spin' : ''} /> {triggering ? 'Triggering…' : 'Retrain now'}
-                    </button>
+                    {info.sources && Object.keys(info.sources).length > 0 && (
+                        <div style={{ fontSize: 13, color: '#475569', marginBottom: 16 }}>
+                            Built from: {Object.entries(info.sources).map(([k, v]) => `${k} ${v.toLocaleString()}`).join(' · ')}
+                        </div>
+                    )}
+                    {!info.validationMetrics && (
+                        <div style={{ fontSize: 13, color: '#64748b' }}>
+                            Accuracy not published by this router version. Retraining from the CMS is turned off: the
+                            current router does not read the CMS training table yet.
+                        </div>
+                    )}
+                    {info.validationMetrics && (
+                        <button className="approve-btn" style={{ marginTop: 16 }} onClick={handleRetrain} disabled={triggering}>
+                            <RefreshCw size={14} className={triggering ? 'spin' : ''} /> {triggering ? 'Triggering…' : 'Retrain now'}
+                        </button>
+                    )}
                     {triggerMessage && (
                         <div style={{ marginTop: 12, fontSize: 13, color: '#334155' }}>{triggerMessage}</div>
                     )}
