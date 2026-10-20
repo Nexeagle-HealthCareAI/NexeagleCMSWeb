@@ -1,5 +1,6 @@
 /* syncManager.ts - Background synchronization manager for offline mutations */
 
+import axios from 'axios';
 import { api } from '../services/api';
 import { toast } from 'sonner';
 
@@ -13,6 +14,8 @@ export interface QueuedMutation {
 }
 
 const QUEUE_KEY = 'nexeagle-cms-sync-queue';
+const SYNC_LOCK = 'nexeagle-cms-sync';
+let activeSync: Promise<void> | null = null;
 
 export const syncManager = {
     getQueue(): QueuedMutation[] {
@@ -69,7 +72,36 @@ export const syncManager = {
         });
     },
 
-    async sync(): Promise<void> {
+    /** Drop one item from the stored queue, re-reading it so mutations enqueued mid-sync survive. */
+    remove(id: string): void {
+        this.saveQueue(this.getQueue().filter(item => item.id !== id));
+    },
+
+    clear(): void {
+        try {
+            localStorage.removeItem(QUEUE_KEY);
+        } catch {
+            /* ignore */
+        }
+        window.dispatchEvent(new CustomEvent('sync-queue-updated', { detail: { count: 0 } }));
+    },
+
+    /**
+     * Replays queued mutations once. Concurrent calls in this tab share one run, and other tabs are
+     * kept out with a Web Lock, so the same queued mutation is never sent twice at the same time.
+     */
+    sync(): Promise<void> {
+        if (activeSync) return activeSync;
+        const run = () => this.runSync();
+        const locks: LockManager | undefined = typeof navigator !== 'undefined' ? navigator.locks : undefined;
+        const pending: Promise<void> = locks
+            ? locks.request(SYNC_LOCK, { ifAvailable: true }, async (lock): Promise<void> => { if (lock) await run(); }).then(() => undefined)
+            : run();
+        activeSync = pending.finally(() => { activeSync = null; });
+        return activeSync;
+    },
+
+    async runSync(): Promise<void> {
         const queue = this.getQueue();
         if (queue.length === 0) return;
 
@@ -79,39 +111,37 @@ export const syncManager = {
         }
 
         console.log(`[Sync Manager] Starting background sync of ${queue.length} operations...`);
-        
-        // Dispatch event indicating syncing has started
         window.dispatchEvent(new CustomEvent('sync-status', { detail: { status: 'syncing' } }));
         toast.loading('Syncing offline updates...', { id: 'sync-status-toast', position: 'bottom-center' });
 
-        const failedItems: QueuedMutation[] = [];
         let successCount = 0;
-
-        for (const item of queue) {
-            try {
-                // Execute using the authenticated api client
-                await api.request({
-                    url: item.url,
-                    method: item.method,
-                    data: item.body
-                });
-                successCount++;
-                console.log(`[Sync Manager] Successfully synced: ${item.description}`);
-            } catch (err: any) {
-                console.error(`[Sync Manager] Sync failed for item ${item.description}:`, err);
-                
-                // If it is a client-side validation error (400, 422, etc.), don't keep retrying it
-                if (err.response && err.response.status >= 400 && err.response.status < 500) {
-                    toast.error(`Sync error: ${item.description} was rejected by server.`, { position: 'bottom-center' });
-                } else {
-                    // Keep server errors (500, network loss) in the queue to retry later
-                    failedItems.push(item);
+        try {
+            for (const item of queue) {
+                try {
+                    await api.request({
+                        url: item.url,
+                        method: item.method,
+                        data: item.body,
+                        // Same key on every retry of this item, so a server that honours it can drop repeats.
+                        headers: { 'Idempotency-Key': item.id },
+                    });
+                    successCount++;
+                    this.remove(item.id); // remove as soon as it lands, not after the whole batch
+                    console.log(`[Sync Manager] Successfully synced: ${item.description}`);
+                } catch (err) {
+                    console.error(`[Sync Manager] Sync failed for item ${item.description}:`, err);
+                    // A client-side rejection (400, 422 ...) will never succeed: drop it and say so.
+                    // Server errors and network loss stay queued for the next attempt.
+                    const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+                    if (status !== undefined && status >= 400 && status < 500) {
+                        this.remove(item.id);
+                        toast.error(`Sync error: ${item.description} was rejected by server.`, { position: 'bottom-center' });
+                    }
                 }
             }
+        } finally {
+            window.dispatchEvent(new CustomEvent('sync-status', { detail: { status: 'idle' } }));
         }
-
-        this.saveQueue(failedItems);
-        window.dispatchEvent(new CustomEvent('sync-status', { detail: { status: 'idle' } }));
 
         if (successCount > 0) {
             toast.success(`Successfully synced ${successCount} operation(s) in background!`, {
@@ -119,7 +149,6 @@ export const syncManager = {
                 duration: 4000,
                 position: 'bottom-center'
             });
-            // Force a reload of the current page's data
             window.dispatchEvent(new CustomEvent('sync-completed'));
         } else {
             toast.dismiss('sync-status-toast');

@@ -11,7 +11,8 @@ export const API_ENDPOINTS = {
         RESET_PASSWORD: '/auth/reset-password',
     },
     ADMIN: {
-        USERS: '/users',                 // GET list, POST create; /users/:id GET/PUT; /users/:id/reset-password
+        USERS: '/users',
+        ASSIGNEES: '/users/assignees',   // GET id + name of active users (marketing.view)                 // GET list, POST create; /users/:id GET/PUT; /users/:id/reset-password
         ROLES: '/roles',                 // GET list, POST create; /roles/:id PUT/DELETE
         PERMISSIONS: '/permissions',     // GET catalog
     },
@@ -63,7 +64,7 @@ export const API_ENDPOINTS = {
         LIST: '/SubscriptionPlans',                   // ?application=EasyHMS|1Rad|All
     },
     INSIGHTS: {
-        SITE_VISITS: '/insights/site-visits',         // ?from=&to=
+        SITE_VISITS: '/insights/site-visits',         // ?from=&to=&site=
         PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
         APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
         AUTH_FUNNEL: '/insights/auth-funnel',                     // ?from=&to=
@@ -77,6 +78,16 @@ export const API_ENDPOINTS = {
         LEADS: '/marketing/leads',                          // GET ?stage=&priority=&assignedToUserId=&search=&page=&limit= | POST
         LEAD_DETAIL: '/marketing/leads',                    // Usage: /marketing/leads/:id  (GET | PUT | DELETE)
         LEAD_FOLLOWUPS: '/marketing/leads',                 // Usage: /marketing/leads/:id/followups (POST)
+    },
+    AGENT_MONITOR: {
+        STATUS: '/agent-monitor/status',
+        OVERVIEW: '/agent-monitor/overview',                       // ?from=&to=&agent=&caller=
+        DECISIONS: '/agent-monitor/decisions',                     // ?page=&limit=&from=&to=&agent=&caller=&decision=
+        LEARNING_SUMMARY: '/agent-monitor/learning/summary',
+        LEARNING_ITEMS: '/agent-monitor/learning/items',           // ?page=&limit=&status=&source=&search= ; POST /:id/review
+        LEARNING_SCAN: '/agent-monitor/learning/scan',             // POST
+        MODELS: '/agent-monitor/models',                           // ?limit=
+        REBUILD: '/agent-monitor/models/rebuild',                  // POST
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id

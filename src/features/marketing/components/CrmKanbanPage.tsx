@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, MessageCircle, MoreVertical, Loader2 } from 'lucide-react';
 import { salesLeadService, type SalesLeadSummary, type LeadStage } from '../services/salesLeadService';
 import { LeadDetailDrawer } from './LeadDetailDrawer';
-import { adminService, type UserSummary } from '../../admin/services/adminService';
+import { adminService, type Assignee } from '../../admin/services/adminService';
 import '../pages/Marketing.css';
 import '../../settings/pages/Settings.css';
 
@@ -12,7 +12,7 @@ export const CrmKanbanPage: React.FC = () => {
     const [leads, setLeads] = useState<SalesLeadSummary[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const [users, setUsers] = useState<UserSummary[]>([]);
+    const [users, setUsers] = useState<Assignee[]>([]);
     const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
     const loadLeads = async () => {
@@ -29,7 +29,7 @@ export const CrmKanbanPage: React.FC = () => {
 
     useEffect(() => {
         loadLeads();
-        adminService.getUsers().then(res => setUsers(res)).catch(console.error);
+        adminService.getAssignees().then(res => setUsers(res)).catch(console.error);
 
         const handleNewHotLead = () => {
             loadLeads();

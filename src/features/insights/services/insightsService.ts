@@ -1,34 +1,55 @@
 import { api } from '../../../services/api';
 import { API_ENDPOINTS } from '../../../services/endpoints';
 
-export interface RegionVisitCount {
-    country: string | null;
-    region: string | null;
-    city: string | null;
-    count: number;
+// People only (crawlers and data-centre traffic are excluded and counted separately). A visit is one
+// browser session: page views with no gap of 30 minutes or more. Days are India time (IST).
+export type SiteKey = 'doctordekho' | 'nexeagle';
+
+export interface LocationCount {
+    name: string;
+    /** State, for a city row. */
+    parent: string | null;
+    visits: number;
 }
 
 export interface PageVisitCount {
     pagePath: string | null;
+    /** Page views. */
     count: number;
+    visits: number;
 }
 
 export interface DailyVisitCount {
     date: string;
+    /** Visits that started that day. */
     count: number;
+    pageViews: number;
 }
 
 export interface SiteVisitStats {
-    totalVisits: number;
-    uniqueVisitors: number;
-    topRegions: RegionVisitCount[];
+    site: SiteKey | null;
+    from: string;
+    to: string;
+    visits: number;
+    pageViews: number;
+    automatedVisitsExcluded: number;
+    automatedPageViewsExcluded: number;
+    visitsInIndia: number;
+    visitsOutsideIndia: number;
+    visitsLocationUnknown: number;
+    indiaStates: LocationCount[];
+    indiaCities: LocationCount[];
+    countries: LocationCount[];
+    careInterestCities: LocationCount[];
+    bookingCities: LocationCount[];
     topPages: PageVisitCount[];
     dailyTrend: DailyVisitCount[];
+    sites: LocationCount[];
 }
 
-export const getSiteVisitStats = async (from?: string, to?: string): Promise<SiteVisitStats> => {
+export const getSiteVisitStats = async (from?: string, to?: string, site?: SiteKey): Promise<SiteVisitStats> => {
     const response = await api.get<SiteVisitStats>(API_ENDPOINTS.INSIGHTS.SITE_VISITS, {
-        params: { from: from || undefined, to: to || undefined }
+        params: { from: from || undefined, to: to || undefined, site: site || undefined }
     });
     return response.data;
 };
@@ -74,10 +95,13 @@ export interface OnlineAppointmentItem {
     hospitalName: string | null;
     isLoggedIn: boolean;
     bookedByMobileMasked: string | null;
-    ipAddress: string | null;
     referrerUrl: string | null;
     utmCampaign: string | null;
+    statusCode?: string;
 }
+
+/** booked = from/to are the days the booking was made (India time); appointment = the appointment date. */
+export type AppointmentDateBy = 'booked' | 'appointment';
 
 export const getOnlineAppointments = async (
     page: number,
@@ -87,7 +111,8 @@ export const getOnlineAppointments = async (
     search?: string,
     sortBy?: string,
     sortDir?: 'asc' | 'desc',
-    source?: string
+    source?: string,
+    dateBy: AppointmentDateBy = 'booked'
 ): Promise<PagedResponse<OnlineAppointmentItem>> => {
     const response = await api.get<PagedResponse<OnlineAppointmentItem>>(API_ENDPOINTS.INSIGHTS.APPOINTMENTS, {
         params: {
@@ -98,6 +123,7 @@ export const getOnlineAppointments = async (
             sortBy: sortBy || undefined,
             sortDir: sortDir || undefined,
             source: source || undefined,
+            dateBy,
         }
     });
     return response.data;
@@ -153,13 +179,22 @@ export interface SpecialtyDemandItem {
     completedBookingCount: number;
 }
 
+// People only, de-duplicated (see CMSAPI FunnelModels.BookingFunnelStats): a search is one distinct
+// query per visit; profile views and booking steps are one per visit + doctor.
 export interface BookingFunnelStats {
     searchCount: number;
+    searchSessionCount: number;
     profileViewCount: number;
+    /** % of searching visits that went on to open a doctor profile. */
     searchToViewRatePct: number;
+    /** Booking form shown (it sits on every profile page). */
     visitStepCount: number;
+    /** Date and time chosen, moved on to patient details. */
     detailsStepCount: number;
+    /** Booked, as seen by tracking. */
     doneStepCount: number;
+    /** Doctor Dekho bookings saved in the database for the same days. */
+    bookingsRecorded: number;
     specialtyDemand: SpecialtyDemandItem[];
 }
 

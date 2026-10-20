@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { salesLeadService, type SalesLeadDetail, type LeadStage, type LeadPriority, type ActivityType, type UpdateSalesLeadRequest } from '../services/salesLeadService';
 import { crmService } from '../services/crmService';
-import type { UserSummary } from '../../admin/services/adminService';
+import type { Assignee } from '../../admin/services/adminService';
 import { formatDateTimeIST } from '../utils/formatters';
 import { toast } from 'sonner';
 
@@ -13,7 +13,7 @@ interface LeadDetailDrawerProps {
     leadId: string | null;
     isOpen: boolean;
     onClose: () => void;
-    users: UserSummary[];
+    users: Assignee[];
     onUpdated: () => void;
 }
 

@@ -1,4 +1,6 @@
-/* offlineCache.ts - Cache manager for API responses */
+/* offlineCache.ts - Cache manager for API responses (allow-listed URLs only, see clientData.ts) */
+
+import { CACHE_PREFIX, clearClientData } from './clientData';
 
 interface CacheEntry<T> {
     timestamp: number;
@@ -6,7 +8,6 @@ interface CacheEntry<T> {
     ttl: number; // in milliseconds
 }
 
-const CACHE_PREFIX = 'nexeagle-cms-cache:';
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes default
 
 export const offlineCache = {
@@ -51,10 +52,9 @@ export const offlineCache = {
     },
 
     clearAll(): void {
-        Object.keys(localStorage).forEach((key) => {
-            if (key.startsWith(CACHE_PREFIX)) {
-                localStorage.removeItem(key);
-            }
-        });
+        clearClientData({ keepQueue: true });
     }
 };
+
+// Data cached by earlier builds (insights, chat transcripts, leads, users ...) is purged on load.
+clearClientData({ onlyDisallowed: true, keepQueue: true });
