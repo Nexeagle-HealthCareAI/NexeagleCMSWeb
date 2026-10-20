@@ -69,6 +69,16 @@ function insights(o: Overview): Insight[] {
             tone: 'warn',
             text: `${badDoc.docId} §${badDoc.section} (${badDoc.title}) gets more thumbs down than up. Rewrite that section.`,
         });
+    if ((k.slowReports ?? 0) >= 3)
+        out.push({
+            tone: 'warn',
+            text: `Staff said 1HMS is slow ${k.slowReports} times in this period. Check the screens in the audit log (vita.slow).`,
+        });
+    if ((k.repairRate ?? 0) > 0.1)
+        out.push({
+            tone: 'warn',
+            text: `${pct(k.repairRate ?? null)} of answers were rejected ("Not this"). Add phrasings to the cards people meant.`,
+        });
     if ((k.feedbackRate ?? 0) < 0.05 && k.answered > 20)
         out.push({ tone: 'warn', text: `Under 5% of answers are rated. Encourage thumbs up/down in 1HMS to learn faster.` });
     if (out.length === 0) out.push({ tone: 'good', text: 'All signals are healthy for this period.' });
@@ -143,6 +153,24 @@ const OverviewTab: React.FC<{ o: Overview; goTo: (tab: string) => void }> = ({ o
                     value={ms(k.queueWaitP95Ms)}
                     sub="before a worker starts"
                     tone={toneFor(k.queueWaitP95Ms, 1000, 3000)}
+                />
+                <Tile
+                    label="Vita asked"
+                    value={pct(k.askedRate ?? null)}
+                    sub={`${num(k.asked ?? 0)} times: which task was meant`}
+                    tone={toneFor(k.askedRate ?? null, 0.12, 0.2)}
+                />
+                <Tile
+                    label={'"Not this"'}
+                    value={pct(k.repairRate ?? null)}
+                    sub={`${num(k.repaired ?? 0)} answers rejected`}
+                    tone={toneFor(k.repairRate ?? null, 0.05, 0.1)}
+                />
+                <Tile
+                    label="Slow reports"
+                    value={num(k.slowReports ?? 0)}
+                    sub="staff said 1HMS is slow"
+                    tone={(k.slowReports ?? 0) > 0 ? 'warn' : 'good'}
                 />
                 <Tile label="Open gaps" value={num(k.openGaps)} sub={`${num(k.openGapsInRange)} asked in this period`} tone={k.openGaps > 0 ? 'warn' : 'good'} />
                 <Tile label="LLM tokens" value={num(k.tokensIn + k.tokensOut)} sub={`${num(k.tokensIn)} in · ${num(k.tokensOut)} out`} />

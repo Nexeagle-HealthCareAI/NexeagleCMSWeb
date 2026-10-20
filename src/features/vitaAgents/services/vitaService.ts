@@ -108,6 +108,14 @@ export interface Kpis {
     feedbackRate: number | null;
     openGaps: number;
     openGapsInRange: number;
+    /** Friendly conversation: Vita asked which task was meant (one question, tappable choices). */
+    asked?: number;
+    askedRate?: number | null;
+    /** "Not this" / thumbs-down "Not what I asked": Vita offered the other tasks. */
+    repaired?: number;
+    repairRate?: number | null;
+    /** Staff said the software is slow (screen in the audit log). */
+    slowReports?: number;
 }
 
 export interface SeriesPoint {
