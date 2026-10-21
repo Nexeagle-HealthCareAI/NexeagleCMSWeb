@@ -1,0 +1,113 @@
+/* Vita Test Agent pages. Builds on VitaAgents.css (tiles, pills, tables, buttons) and Insights.css (sub-tabs). */
+
+.vita-ta .vita-ta-icon { background: linear-gradient(135deg, #7c3aed, #2a78d6); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.25); }
+.vita-ta .insights-subtabs a { text-decoration: none; }
+
+/* overview cards */
+.vita-ta-repos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+}
+@media (max-width: 520px) { .vita-ta-repos { grid-template-columns: 1fr; } }
+.vita-ta-repo .vita-card-head h3 { display: flex; align-items: center; gap: 8px; }
+.vita-ta-verdicts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.vita-ta-verdict {
+    border: 1px solid var(--vita-line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+    background: var(--vita-soft);
+}
+.vita-ta-verdict-label { font-size: 11px; font-weight: 700; color: var(--vita-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.vita-ta-verdict-value { font-size: 15px; font-weight: 800; margin-top: 3px; }
+.vita-ta-verdict-when { font-size: 11px; color: var(--vita-muted); margin-top: 2px; }
+.vita-ta-verdict-good { border-color: #bbf7d0; background: var(--vita-good-bg); }
+.vita-ta-verdict-good .vita-ta-verdict-value { color: var(--vita-good); }
+.vita-ta-verdict-bad { border-color: #fecaca; background: var(--vita-bad-bg); }
+.vita-ta-verdict-bad .vita-ta-verdict-value { color: var(--vita-bad); }
+.vita-ta-verdict-warn { border-color: #fde68a; background: var(--vita-warn-bg); }
+.vita-ta-verdict-warn .vita-ta-verdict-value { color: var(--vita-warn); }
+.vita-ta-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.vita-ta-stat { font-size: 12px; color: var(--vita-muted); }
+.vita-ta-stat strong { display: block; font-size: 18px; color: var(--vita-ink); font-variant-numeric: tabular-nums; }
+.vita-ta-stat strong.vita-bad { color: var(--vita-bad); }
+.vita-ta-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.vita-ta-actions .vita-btn-primary { background: var(--vita-accent); border-color: var(--vita-accent); color: #fff; }
+.vita-ta-actions .vita-btn-primary:hover:not(:disabled) { color: #fff; background: #1f63b5; }
+
+/* runs table */
+.vita-ta-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.vita-ta-chevron { color: var(--vita-muted); }
+.vita-ta-results { margin: 0; }
+.vita-ta-report {
+    margin-top: 12px;
+    max-height: 320px;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid var(--vita-line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.vita-ta-msg { max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vita-ta-msg:hover { white-space: normal; }
+
+/* cases */
+.vita-ta-reason {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    background: var(--vita-soft);
+    border-top: 1px solid var(--vita-line);
+}
+.vita-ta-reason input.vita-input { min-width: 320px; flex: 1; }
+.vita-btn-danger { color: var(--vita-bad); }
+.vita-btn-danger:hover:not(:disabled) { border-color: #fca5a5; color: var(--vita-bad); }
+
+/* coverage */
+.vita-ta-cov-tiles { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.vita-ta-covbar { height: 4px; border-radius: 4px; background: var(--vita-line); margin-top: 6px; overflow: hidden; }
+.vita-ta-covbar span { display: block; height: 100%; background: var(--vita-good); }
+.vita-ta-genresult { display: flex; flex-direction: column; gap: 6px; }
+.vita-ta-dropped { margin: 4px 0 0 18px; padding: 0; font-size: 12px; }
+.vita-ta-dropped li { margin-bottom: 3px; }
+.vita-ta-perms { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }
+
+/* escapes */
+.vita-ta-escape-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.vita-ta-escape-form textarea.vita-input { resize: vertical; font-family: inherit; }
+.vita-ta-escape-form .vita-ta-actions input.vita-input { flex: 1; min-width: 200px; }
+@media (max-width: 520px) { .vita-ta-reason input.vita-input { min-width: 0; } }
+
+/* learning */
+.vita-ta-riskbar { width: 90px; display: inline-block; vertical-align: middle; margin: 0 0 0 8px; }
+.vita-ta-riskbar span { background: var(--vita-bad); }
+
+/* schedules + settings */
+.vita-ta-form, .vita-ta-panel { display: flex; flex-direction: column; gap: 10px; }
+.vita-ta-panel { padding: 12px 14px; margin-bottom: 12px; background: var(--vita-soft); border: 1px solid var(--vita-line); border-radius: 10px; }
+.vita-ta-presets { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.vita-ta-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.vita-ta-fields label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--vita-muted); }
+.vita-ta-fields label.vita-ta-wide { grid-column: span 2; }
+@media (max-width: 520px) { .vita-ta-fields label.vita-ta-wide { grid-column: auto; } }
+.vita-ta-fields .vita-input { width: 100%; box-sizing: border-box; }
+.vita-ta-off td { opacity: 0.55; }
+.vita-ta-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; }
+.vita-ta-switch input { accent-color: var(--vita-accent); width: 16px; height: 16px; }
+.vita-ta-reason input.vita-input.vita-ta-short, .vita-input.vita-ta-short { min-width: 0; width: 130px; flex: 0 0 auto; }
+.vita-ta-invalid { border-color: #fca5a5 !important; }
+.vita-ta-problems { align-items: flex-start; }
+.vita-ta-problems ul { margin: 4px 0 0 18px; padding: 0; }
+.vita-ta-kill {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 14px; border: 1px solid var(--vita-line); border-radius: 10px; background: var(--vita-soft);
+}
+.vita-ta-kill-on { border-color: #fecaca; background: var(--vita-bad-bg); }
+.vita-ta-kill-title { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 2px; }
+.vita-ta-audit { max-height: 480px; overflow: auto; }
