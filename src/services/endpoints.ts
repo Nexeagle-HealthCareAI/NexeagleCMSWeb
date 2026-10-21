@@ -89,6 +89,26 @@ export const API_ENDPOINTS = {
         MODELS: '/agent-monitor/models',                           // ?limit=
         REBUILD: '/agent-monitor/models/rebuild',                  // POST
     },
+    VITA: {
+        // Vita Test Agent, through the CMS API proxy (VitaController). See features/vitaAgents/services/vitaApi.ts.
+        OVERVIEW: '/vita/overview',
+        REPOS: '/vita/repos',
+        RUNS: '/vita/runs',
+        RUNS_ENQUEUE: '/vita/runs/enqueue',
+        CASES: '/vita/cases',
+        GRAPH: '/vita/graph',
+        GATE: '/vita/gate',
+        SCHEDULES: '/vita/schedules',
+        SETTINGS_REPOS: '/vita/settings/repos',
+        AUDIT: '/vita/audit',
+        CONTROLS: '/vita/controls',
+        COVERAGE: '/vita/coverage',
+        GENERATE: '/vita/generate',
+        ESCAPES: '/vita/escapes',
+        LEARNING: '/vita/learning',
+        LESSONS: '/vita/lessons',
+        LEARN: '/vita/learn',
+    },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id
         FEEDBACK_LOG: '/symptom-router/feedback-log',             // ?page=&limit=&from=&to=&correctionsOnly=
