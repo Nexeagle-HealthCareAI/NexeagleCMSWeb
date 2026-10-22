@@ -108,6 +108,9 @@ export const API_ENDPOINTS = {
         LEARNING: '/vita/learning',
         LESSONS: '/vita/lessons',
         LEARN: '/vita/learn',
+        RESULTS: '/vita/results',
+        CLASSIFIER: '/vita/classifier',
+        DIGEST: '/vita/digest',
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id

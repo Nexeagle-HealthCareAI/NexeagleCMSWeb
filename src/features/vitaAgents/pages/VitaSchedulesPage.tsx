@@ -213,6 +213,13 @@ const RepoSchedules: React.FC<{ repo: string; rows: VitaSchedule[]; onChanged: (
             s.id,
             async () => {
                 const res = await vitaApi.runScheduleNow(s.id);
+                if (res.status === 'sent') {
+                    // a digest schedule: Vita built (and emailed, when recipients are configured) the digest; no run row
+                    toast.success(res.digest?.sent === false ? 'Digest built (no recipients configured)' : 'Weekly digest sent', {
+                        description: typeof res.digest?.subject === 'string' ? res.digest.subject : undefined,
+                    });
+                    return;
+                }
                 if (res.status === 'skipped' || !res.run_id) {
                     toast.warning(`Not started: ${res.reason ?? 'skipped by Vita'}`);
                     return;

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ChevronDown, ChevronRight, RefreshCw, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { vitaApi, vitaApiError } from '../services/vitaApi';
-import { TRIGGERS, type VitaRepo, type VitaResult, type VitaRun, type VitaRunDetail, type VitaRunVerdict, type VitaTrigger } from '../types';
+import { TRIGGERS, VERDICT_LABELS, type VitaRepo, type VitaResult, type VitaRun, type VitaRunDetail, type VitaRunVerdict, type VitaTrigger, type VitaVerdictLabel } from '../types';
 import { ms, shortId, useLoad, when } from '../components/format';
 import { Empty, ErrorBox, Pill } from '../components/shared';
 import { isRunActive, resultTone, TRIGGER_LABEL, useVitaAccess, useVitaHub, verdictLabel, verdictTone } from '../components/testAgent';
@@ -22,7 +22,25 @@ const RunDetail: React.FC<{ repo: string; run: VitaRun; onFinished: () => void }
     const [results, setResults] = React.useState<VitaResult[] | null>(null);
     const [err, setErr] = React.useState<string | null>(null);
     const [showReport, setShowReport] = React.useState(false);
+    const [labelling, setLabelling] = React.useState<string | null>(null);
+    const { canApprove } = useVitaAccess();
     const active = isRunActive(detail?.status ?? run.status);
+
+    // A human correction of the Judge (vita.approve). The Learner mines these into judge examples.
+    const relabel = async (r: VitaResult, label: VitaVerdictLabel) => {
+        setLabelling(r.id);
+        try {
+            await vitaApi.relabelResult(r.id, label);
+            setResults((rows) =>
+                (rows ?? []).map((x) => (x.id === r.id && x.verdict ? { ...x, verdict: { ...x.verdict, human_label: label } } : x))
+            );
+            toast.success(`Verdict relabelled as ${label}`, { description: r.case_title ?? r.case_id });
+        } catch (e) {
+            toast.error(vitaApiError(e, 'Could not relabel the verdict.'));
+        } finally {
+            setLabelling(null);
+        }
+    };
 
     const loadResults = React.useCallback(
         () =>
@@ -100,6 +118,7 @@ const RunDetail: React.FC<{ repo: string; run: VitaRun; onFinished: () => void }
                                     <th>Case</th>
                                     <th>Message</th>
                                     <th>Verdict</th>
+                                    {canApprove && <th>Label</th>}
                                     <th className="num">Time</th>
                                 </tr>
                             </thead>
@@ -125,6 +144,28 @@ const RunDetail: React.FC<{ repo: string; run: VitaRun; onFinished: () => void }
                                                 '—'
                                             )}
                                         </td>
+                                        {canApprove && (
+                                            <td>
+                                                {r.verdict ? (
+                                                    <select
+                                                        className="vita-input"
+                                                        title="Correct the Judge's verdict"
+                                                        value={r.verdict.human_label ?? ''}
+                                                        disabled={labelling === r.id}
+                                                        onChange={(e) => e.target.value && void relabel(r, e.target.value as VitaVerdictLabel)}
+                                                    >
+                                                        <option value="">{r.verdict.human_label ? r.verdict.human_label : 'Relabel…'}</option>
+                                                        {VERDICT_LABELS.map((l) => (
+                                                            <option key={l} value={l}>
+                                                                {l}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </td>
+                                        )}
                                         <td className="num">{ms(r.duration_ms)}</td>
                                     </tr>
                                 ))}

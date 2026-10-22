@@ -51,7 +51,7 @@ const RepoCard: React.FC<{ r: VitaRepoOverview; onChanged: () => void }> = ({ r,
                 toast.success(`PR gate resumed for ${r.repo}`);
             } else {
                 await vitaApi.pauseGate(r.repo, 'Paused from the CMS');
-                toast.warning(`PR gate paused for ${r.repo}`, { description: 'Every PR answers neutral until it is resumed.' });
+                toast.warning(`PR gate paused for ${r.repo}`, { description: 'PR and push runs for this repo are skipped while paused' });
             }
             onChanged();
         } catch (e) {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, GraduationCap, RefreshCw, RotateCcw, ShieldCheck, XCircle } from 'lucide-react';
+import { CheckCircle2, GraduationCap, Mail, RefreshCw, RotateCcw, ShieldCheck, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { vitaApi, vitaApiError } from '../services/vitaApi';
-import type { VitaEscape, VitaEscapeVerifyResponse, VitaEvalCheck, VitaLearning, VitaLesson, VitaLessonKind } from '../types';
+import type { VitaDigestPreview, VitaEscape, VitaEscapeVerifyResponse, VitaEvalCheck, VitaLearning, VitaLesson, VitaLessonKind } from '../types';
 import { shortId, useLoad, when } from '../components/format';
 import type { Tone } from '../components/format';
 import { Empty, ErrorBox, Pill } from '../components/shared';
@@ -72,6 +72,137 @@ const describe = (l: VitaLesson): React.ReactNode => {
 
 const CheckBadge: React.FC<{ c: VitaEvalCheck }> = ({ c }) =>
     c.passed ? <Pill tone="good">pass</Pill> : c.enforced ? <Pill tone="bad">fail</Pill> : <Pill tone="warn">baseline</Pill>;
+
+/** Verdict classifier versions (promote / retire need vita.approve) and the weekly digest (preview / send need vita.manage). */
+const ClassifierDigestPanel: React.FC<{ canManage: boolean; canApprove: boolean }> = ({ canManage, canApprove }) => {
+    const { data: clf, error: clfError, reload: reloadClf } = useLoad(() => vitaApi.classifier(), []);
+    const [busy, setBusy] = React.useState<string | null>(null);
+    const [digest, setDigest] = React.useState<VitaDigestPreview | null>(null);
+
+    const setModel = async (id: string, action: 'promote' | 'retire') => {
+        const reason = window.prompt(`Reason to ${action} ${id}?`, '') ?? null;
+        if (reason === null) return;
+        setBusy(id);
+        try {
+            await (action === 'promote' ? vitaApi.promoteClassifier(id, reason) : vitaApi.retireClassifier(id, reason));
+            toast.success(action === 'promote' ? `${id} is now the active classifier` : `${id} retired`);
+            reloadClf();
+        } catch (e) {
+            toast.error(vitaApiError(e, `Could not ${action} the model.`));
+        } finally {
+            setBusy(null);
+        }
+    };
+    const preview = async () => {
+        setBusy('digest');
+        try {
+            setDigest(await vitaApi.digestPreview(7));
+        } catch (e) {
+            toast.error(vitaApiError(e, 'Could not build the digest.'));
+        } finally {
+            setBusy(null);
+        }
+    };
+    const send = async () => {
+        if (!window.confirm('Email the weekly digest now?')) return;
+        setBusy('send');
+        try {
+            const r = await vitaApi.digestSend();
+            toast.success(r.sent === false ? 'Digest built (no recipients configured)' : 'Digest sent', { description: r.subject });
+        } catch (e) {
+            toast.error(vitaApiError(e, 'Could not send the digest.'));
+        } finally {
+            setBusy(null);
+        }
+    };
+
+    return (
+        <div className="vita-detail-grid">
+            <section className="vita-card">
+                <header className="vita-card-head">
+                    <h3>Verdict classifier</h3>
+                </header>
+                {clfError ? <ErrorBox message={vitaApiError(clfError, 'Could not load the classifier.')} onRetry={reloadClf} /> : null}
+                {clf && !clf.available && <Empty>scikit-learn is not installed on the Vita server: the classifier is off.</Empty>}
+                {clf && clf.versions.length === 0 ? (
+                    <Empty>No model trained yet{clf.last_trained ? ` (last attempt ${when(clf.last_trained)})` : ''}.</Empty>
+                ) : clf ? (
+                    <div className="vita-scroll">
+                        <table className="vita-table">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Status</th>
+                                    <th className="num">Rows</th>
+                                    <th className="num">Accuracy</th>
+                                    <th className="num">Bug recall</th>
+                                    <th>Trained</th>
+                                    {canApprove && <th />}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {clf.versions.map((v) => (
+                                    <tr key={v.id}>
+                                        <td className="vita-code">{shortId(v.id)}</td>
+                                        <td>
+                                            <Pill tone={v.status === 'active' ? 'good' : v.status === 'retired' ? 'neutral' : 'warn'}>{v.status}</Pill>
+                                        </td>
+                                        <td className="num">{v.rows}</td>
+                                        <td className="num">{typeof v.metrics.accuracy === 'number' ? v.metrics.accuracy.toFixed(3) : '—'}</td>
+                                        <td className="num">{typeof v.metrics.bug_recall === 'number' ? v.metrics.bug_recall.toFixed(3) : '—'}</td>
+                                        <td className="vita-nowrap">{v.trained_at ? when(v.trained_at) : '—'}</td>
+                                        {canApprove && (
+                                            <td className="vita-nowrap">
+                                                {v.status !== 'active' && (
+                                                    <button className="vita-btn vita-btn-sm" disabled={!!busy} onClick={() => void setModel(v.id, 'promote')}>
+                                                        Promote
+                                                    </button>
+                                                )}
+                                                {v.status !== 'retired' && (
+                                                    <button className="vita-btn vita-btn-sm" disabled={!!busy} onClick={() => void setModel(v.id, 'retire')}>
+                                                        Retire
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : null}
+            </section>
+
+            <section className="vita-card">
+                <header className="vita-card-head">
+                    <h3>
+                        <Mail size={16} /> Weekly digest
+                    </h3>
+                </header>
+                {!canManage ? (
+                    <Empty>Previewing and sending the digest needs the vita.manage permission.</Empty>
+                ) : (
+                    <>
+                        <div className="vita-ta-actions">
+                            <button className="vita-btn vita-btn-sm" disabled={!!busy} onClick={() => void preview()}>
+                                <RefreshCw size={14} className={busy === 'digest' ? 'vita-spin' : ''} /> Preview last 7 days
+                            </button>
+                            <button className="vita-btn vita-btn-sm vita-btn-primary" disabled={!!busy} onClick={() => void send()}>
+                                <Mail size={14} /> {busy === 'send' ? 'Sending…' : 'Send now'}
+                            </button>
+                        </div>
+                        {digest && (
+                            <>
+                                <div className="vita-small vita-muted">{digest.subject}</div>
+                                <pre className="vita-ta-report">{digest.markdown}</pre>
+                            </>
+                        )}
+                    </>
+                )}
+            </section>
+        </div>
+    );
+};
 
 const VitaLearningPage: React.FC = () => {
     const [params, setParams] = useSearchParams();
@@ -487,6 +618,8 @@ const VitaLearningPage: React.FC = () => {
                             </div>
                         )}
                     </section>
+
+                    <ClassifierDigestPanel canManage={canManage} canApprove={canApprove} />
                 </>
             )}
         </div>

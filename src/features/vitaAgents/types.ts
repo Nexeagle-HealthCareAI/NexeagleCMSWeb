@@ -13,6 +13,7 @@ export type VitaCaseStatus = 'shadow' | 'active' | 'retired';
 export type VitaCaseOrigin = 'human' | 'generated' | 'seed' | 'escape' | 'mutant';
 export type VitaOracleKind = 'contract' | 'property' | 'invariant' | 'metamorphic' | 'differential' | 'golden';
 export type VitaVerdictLabel = 'bug' | 'flaky' | 'environment' | 'bad-test';
+export const VERDICT_LABELS: VitaVerdictLabel[] = ['bug', 'flaky', 'environment', 'bad-test'];
 
 export const TRIGGERS: VitaTrigger[] = ['pr', 'push', 'nightly', 'prod-sanity', 'manual', 'canary'];
 export const CASE_STATUSES: VitaCaseStatus[] = ['shadow', 'active', 'retired'];
@@ -69,7 +70,14 @@ export interface VitaResult {
     message: string;
     fingerprint: string;
     duration_ms: number | null;
-    verdict?: { label: VitaVerdictLabel; confidence: number; explanation: string } | null;
+    verdict?: {
+        label: VitaVerdictLabel;
+        confidence: number;
+        explanation: string;
+        suggested_fix?: string | null;
+        /** Set when a person corrected the Judge (POST results/{id}/label). */
+        human_label?: VitaVerdictLabel | null;
+    } | null;
 }
 
 export interface VitaOracle {
@@ -147,9 +155,11 @@ export interface VitaEnqueueRunResponse {
 /** POST /schedules/{id}/run-now. status "skipped" (run_id null) when the repo's gate is paused for a pr/push schedule. */
 export interface VitaRunNowResponse {
     run_id: string | null;
-    status: 'queued' | 'skipped';
+    /** 'sent': a digest schedule (no run row; see `digest`). */
+    status: 'queued' | 'skipped' | 'sent';
     repo?: string;
     reason?: string;
+    digest?: VitaDigestSendResponse;
 }
 
 /** One row of GET /schedules (Store.schedules). Times are UTC from Vita; the cron is evaluated in IST (Asia/Kolkata). */
@@ -539,4 +549,38 @@ export interface VitaControlsUpdate {
     budgets?: VitaControls['budgets'];
     models?: Partial<VitaControls['models']>;
     monthly_inr_cap?: number | null;
+}
+
+// ---- Verdict classifier + weekly digest (Learning tab) -------------------------------------------------------------
+
+/** One model version (GET /classifier). */
+export interface VitaModelVersion {
+    id: string;
+    kind: string;
+    status: 'candidate' | 'active' | 'retired' | string;
+    rows: number;
+    metrics: Record<string, unknown> & { accuracy?: number; bug_recall?: number; decision?: string };
+    trained_at: string | null;
+    path?: string | null;
+}
+
+export interface VitaClassifierStatus {
+    available: boolean;
+    active: VitaModelVersion | null;
+    versions: VitaModelVersion[];
+    last_trained: string | null;
+}
+
+/** GET /digest?days= */
+export interface VitaDigestPreview {
+    subject: string;
+    markdown: string;
+    data: Record<string, unknown>;
+}
+
+/** POST /digest/send (reporter.send_digest): what was sent where. */
+export interface VitaDigestSendResponse {
+    sent?: boolean;
+    subject?: string;
+    [key: string]: unknown;
 }
