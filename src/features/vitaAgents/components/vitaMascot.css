@@ -1,0 +1,183 @@
+/* Vita mascot: states and the fly-by. One image; everything else is CSS. */
+.vita-mascot {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+}
+.vita-mascot__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(32, 66, 110, 0.22));
+    transform-origin: 50% 85%;
+    user-select: none;
+}
+
+/* idle: slow breathing */
+.vita-mascot--idle .vita-mascot__img { animation: vita-breathe 4s ease-in-out infinite; }
+@keyframes vita-breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-2%) scale(1.02); }
+}
+
+/* thinking: head tilt + thought bubble */
+.vita-mascot--thinking .vita-mascot__img { animation: vita-ponder 3.2s ease-in-out infinite; }
+@keyframes vita-ponder {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-7deg) translateY(-2%); }
+    60% { transform: rotate(-4deg); }
+}
+.vita-mascot__bubble {
+    position: absolute;
+    top: -14%;
+    right: -26%;
+    display: flex;
+    gap: 3px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 35, 70, 0.18);
+}
+.vita-mascot__bubble::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    bottom: -5px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+}
+.vita-mascot__bubble i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #2a78d6;
+    animation: vita-dot 1.2s ease-in-out infinite;
+}
+.vita-mascot__bubble i:nth-child(2) { animation-delay: 0.15s; }
+.vita-mascot__bubble i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes vita-dot {
+    0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* working: quick bob + wing flutter + orbiting sparks */
+.vita-mascot--working .vita-mascot__img { animation: vita-flutter 0.9s ease-in-out infinite; }
+@keyframes vita-flutter {
+    0%, 100% { transform: translateY(0) rotate(0deg) skewX(0deg); }
+    25% { transform: translateY(-5%) rotate(-3deg) skewX(-2deg); }
+    50% { transform: translateY(-2%) rotate(1deg) skewX(1deg); }
+    75% { transform: translateY(-6%) rotate(3deg) skewX(2deg); }
+}
+.vita-mascot__orbit {
+    position: absolute;
+    inset: -12%;
+    animation: vita-spin 2.4s linear infinite;
+    pointer-events: none;
+}
+.vita-mascot__orbit i {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #5eead4 0%, #2a78d6 70%);
+    box-shadow: 0 0 6px rgba(94, 234, 212, 0.9);
+}
+.vita-mascot__orbit i:nth-child(1) { top: 0; left: 50%; }
+.vita-mascot__orbit i:nth-child(2) { bottom: 8%; left: 6%; }
+.vita-mascot__orbit i:nth-child(3) { bottom: 8%; right: 6%; }
+@keyframes vita-spin { to { transform: rotate(360deg); } }
+
+/* success / alert: a short hop and a badge */
+.vita-mascot--success .vita-mascot__img,
+.vita-mascot--alert .vita-mascot__img { animation: vita-hop 1.6s ease-out 1; }
+@keyframes vita-hop {
+    0%, 100% { transform: translateY(0); }
+    20% { transform: translateY(-10%); }
+    40% { transform: translateY(0); }
+    55% { transform: translateY(-4%); }
+}
+.vita-mascot__badge {
+    position: absolute;
+    right: -4%;
+    bottom: 2%;
+    display: grid;
+    place-items: center;
+    width: 36%;
+    min-width: 16px;
+    aspect-ratio: 1;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font-size: clamp(9px, 1.6vw, 14px);
+    font-weight: 700;
+    line-height: 1;
+}
+.vita-mascot__badge--success { background: #16a34a; }
+.vita-mascot__badge--alert { background: #dc2626; }
+
+/* sidebar icon */
+.vita-mascot-icon { display: block; object-fit: contain; }
+
+/* header placement */
+.vita-ta .vita-title-mascot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+.vita-ta .vita-mascot-caption {
+    font-size: 12px;
+    color: var(--text-secondary, #64748b);
+}
+
+/* fly-by: across the board along an arc, then gone */
+.vita-flyby {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    overflow: hidden;
+    animation: vita-flyby-life 3.4s linear forwards;
+}
+@keyframes vita-flyby-life { to { opacity: 1; } }
+.vita-flyby__bird {
+    position: absolute;
+    top: 22%;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: vita-fly 3.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+}
+.vita-flyby__bird .vita-mascot__img { animation: vita-flap 0.35s ease-in-out infinite; }
+@keyframes vita-flap {
+    0%, 100% { transform: rotate(-6deg) scaleY(1); }
+    50% { transform: rotate(4deg) scaleY(0.94); }
+}
+@keyframes vita-fly {
+    0% { transform: translate(-140px, 60px) rotate(-8deg); opacity: 0; }
+    10% { opacity: 1; }
+    50% { transform: translate(calc(50vw - 60px), -30px) rotate(0deg); }
+    90% { opacity: 1; }
+    100% { transform: translate(calc(100vw + 40px), 40px) rotate(8deg); opacity: 0; }
+}
+.vita-flyby__caption {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 35, 70, 0.85);
+    color: #fff;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vita-mascot__img,
+    .vita-mascot__orbit,
+    .vita-mascot__bubble i,
+    .vita-flyby__bird .vita-mascot__img { animation: none !important; }
+    .vita-flyby { display: none; }
+}
