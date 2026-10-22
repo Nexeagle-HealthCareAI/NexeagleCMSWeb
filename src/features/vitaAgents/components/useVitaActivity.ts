@@ -1,6 +1,6 @@
 import React from 'react';
 import { vitaApi } from '../services/vitaApi';
-import type { VitaOverview, VitaRunEvent, VitaRunVerdict } from '../types';
+import type { VitaOverview, VitaRepoOverview, VitaRunEvent, VitaRunVerdict } from '../types';
 import { useVitaHub } from './testAgent';
 import type { FlyBy, VitaMascotState } from './VitaMascot';
 
@@ -8,21 +8,25 @@ import type { FlyBy, VitaMascotState } from './VitaMascot';
  * The mascot's state from Vita's activity: overview counts (polled) plus live hub events.
  * Returns the state, a caption, and a fly-by to show when a run starts or finishes.
  */
-export const useVitaActivity = (pollMs = 20000) => {
+export const useVitaActivity = (pollMs = 10000) => {
     const [running, setRunning] = React.useState(0);
     const [queued, setQueued] = React.useState(0);
     const [last, setLast] = React.useState<{ verdict: VitaRunVerdict | null; at: number } | null>(null);
     const [flight, setFlight] = React.useState<FlyBy | null>(null);
+    const [repos, setRepos] = React.useState<VitaRepoOverview[]>([]);
+    const [connected, setConnected] = React.useState(false);
     const [now, setNow] = React.useState(() => Date.now());   // advances on each poll so a finished run's badge expires
     const seen = React.useRef<Set<string>>(new Set());
 
     const refresh = React.useCallback(async () => {
         try {
             const ov: VitaOverview = await vitaApi.overview();
+            setRepos(ov.repos);
+            setConnected(true);
             setRunning(ov.repos.reduce((n, r) => n + (r.running ?? 0), 0));
             setQueued(ov.repos.reduce((n, r) => n + (r.queued ?? 0), 0));
         } catch {
-            /* Vita not connected: the mascot stays idle */
+            setConnected(false);   /* Vita not connected: the mascot stays idle */
         }
     }, []);
 
@@ -67,5 +71,5 @@ export const useVitaActivity = (pollMs = 20000) => {
         : queued > 0 ? `Planning — ${queued} run${queued === 1 ? '' : 's'} queued`
             : recent ? `Last run ${recent.verdict ?? 'finished'}` : 'Standing by';
 
-    return { state, caption, flight, clearFlight: () => setFlight(null) };
+    return { state, caption, flight, clearFlight: () => setFlight(null), repos, connected };
 };

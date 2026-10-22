@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Activity, CalendarClock, GraduationCap, ListChecks, PlayCircle, Radar, Settings2 } from 'lucide-react';
-import { VitaFlyBy, VitaMascot } from './VitaMascot';
+import { VitaMascot } from './VitaMascot';
+import VitaAerie from './VitaAerie';
 import { useVitaActivity } from './useVitaActivity';
 import '../../insights/components/Insights.css';
 import '../pages/VitaAgents.css';
@@ -19,9 +20,9 @@ const TABS: { to: string; label: string; icon: React.ComponentType<{ size?: numb
 ];
 
 const VitaLayout: React.FC = () => {
-    // Vita the mascot shows what the agent is doing: idle, thinking (runs queued), working (runs executing),
-    // and flies across the board when a run starts or finishes.
-    const { state, caption, flight, clearFlight } = useVitaActivity();
+    // Vita the mascot shows what the agent is doing in the header; the aerie below shows the eagles at home on the
+    // cliff and flying to the work board when a run is called, then home again when it finishes.
+    const { state, caption, repos, connected } = useVitaActivity();
     return (
     <div className="vita-page vita-ta">
         <header className="vita-head">
@@ -36,7 +37,7 @@ const VitaLayout: React.FC = () => {
                 </div>
             </div>
         </header>
-        <VitaFlyBy flight={flight} onDone={clearFlight} />
+        <VitaAerie repos={repos} connected={connected} />
 
         <nav className="insights-subtabs">
             {TABS.map((t) => (
