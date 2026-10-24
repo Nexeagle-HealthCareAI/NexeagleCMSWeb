@@ -136,6 +136,18 @@ export const mockHealthWiki = {
     Object.assign(a, { status: 'DRAFT', publishedAt: null, updatedAt: now(), reviewerComment: reason });
     return wait({ ...a });
   },
+  unpublish: async (slug: string, reason: string) => {
+    const a = find(slug);
+    log(slug, 'Taken down', reason);
+    Object.assign(a, { status: 'DRAFT', publishedAt: null, updatedAt: now(), reviewerComment: reason });
+    return wait({ ...a });
+  },
+  pullBack: async (slug: string, reason: string) => {
+    const a = find(slug);
+    log(slug, 'Pulled back to review', reason);
+    Object.assign(a, { status: 'IN_REVIEW', publishedAt: null, holdForReview: true, updatedAt: now(), reviewerComment: reason });
+    return wait({ ...a });
+  },
   uploadImage: (file: File) =>
     new Promise<string>((resolve, reject) => {
       const fr = new FileReader();

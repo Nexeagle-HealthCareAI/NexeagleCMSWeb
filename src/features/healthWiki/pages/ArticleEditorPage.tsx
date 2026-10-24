@@ -44,6 +44,7 @@ export default function ArticleEditorPage() {
   const [historyKey, setHistoryKey] = useState(0);
 
   const [status, setStatus] = useState<ArticleStatus>('DRAFT');
+  const [hold, setHold] = useState(false);
   const [type, setType] = useState<ArticleType>('MEDICAL');
   const [reviewerComment, setReviewerComment] = useState<string | null>(null);
   const [slug, setSlug] = useState('');
@@ -81,6 +82,7 @@ export default function ArticleEditorPage() {
           setDisclosure(article.disclosure ?? '');
           setReferences(article.references ?? '');
           setStatus(article.status);
+          setHold(!!article.holdForReview);
           setType(article.type);
           setReviewerComment(article.reviewerComment ?? null);
           setSlug(article.slug);
@@ -184,6 +186,7 @@ export default function ArticleEditorPage() {
       if (isNew) navigate(`/health-wiki/${saved.slug}`, { replace: true });
       else {
         setStatus(saved.status);
+        setHold(!!saved.holdForReview);
         setReviewerComment(null);
       }
     } catch (err) {
@@ -202,6 +205,27 @@ export default function ArticleEditorPage() {
       setVersion((v) => v + 1);
     } catch (err) {
       toast.error(errorMessage(err, 'Could not approve the article.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const takeOffline = async (pullBack: boolean) => {
+    if (reason.trim().length < 3) {
+      setReasonError('Add a reason. It is kept in the audit trail and shown to the author.');
+      return;
+    }
+    setReasonError('');
+    setSaving(true);
+    try {
+      if (pullBack) await healthWikiService.pullBack(routeSlug!, reason.trim());
+      else await healthWikiService.unpublish(routeSlug!, reason.trim());
+      toast.success(pullBack ? 'Taken down and put back in review' : 'Taken down and returned to draft');
+      setReason('');
+      setHistoryKey((k) => k + 1);
+      setVersion((v) => v + 1);
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not change the status.'));
     } finally {
       setSaving(false);
     }
@@ -239,6 +263,8 @@ export default function ArticleEditorPage() {
     );
   }
 
+  // A medical article pulled back to review has no reviewer yet: the team picks one and sends it on.
+  const canAssignReviewer = !isNew && medical && status === 'IN_REVIEW' && !reviewer;
   const waitingOn = medical ? (reviewer?.fullName ?? 'the reviewer') : 'a CMS editor';
   const independent = [author, medical ? reviewer : null].filter((p): p is Contributor => !!p && p.type === 'INDEPENDENT_DOCTOR');
   const sendRows = independent.filter((p, i, l) => l.findIndex((x) => x.contributorId === p.contributorId) === i);
@@ -259,6 +285,7 @@ export default function ArticleEditorPage() {
         <button type="button" role="tab" aria-selected={view === 'preview'} className={view === 'preview' ? 'on' : ''} onClick={() => setView('preview')}>Page preview</button>
       </div>
 
+      {view === 'edit' && status === 'IN_REVIEW' && hold && <div className="hw-banner info">Pulled back to review by the team. {medical ? 'Choose a doctor reviewer below; the article goes live again once they approve it.' : 'Approve it below when it is right.'} The author cannot publish it alone until then.</div>}
       {view === 'edit' && status === 'IN_REVIEW' && <div className="hw-banner info">Waiting for {waitingOn} to {medical ? 'review in EasyHMS' : 'approve'}. Editing is locked until a decision.</div>}
       {view === 'edit' && status === 'PUBLISHED' && <div className="hw-banner ok">Published and visible on Doctor Dekho. Content is read-only here.</div>}
       {view === 'edit' && status === 'DRAFT' && reviewerComment && <div className="hw-banner warn"><b>Comment:</b> {reviewerComment}</div>}
@@ -339,12 +366,17 @@ export default function ArticleEditorPage() {
           <ContributorPicker label="Author" options={authorOptions} value={authorId} disabled={locked} error={errors.author}
             hint="Only verified or approved people." onChange={setAuthorId} />
           {medical && (
-            <ContributorPicker label="Reviewer" required options={reviewerOptions} value={reviewerId} disabled={locked} error={errors.reviewer}
+            <ContributorPicker label="Reviewer" required options={reviewerOptions} value={reviewerId} disabled={locked && !canAssignReviewer} error={errors.reviewer}
               hint="Verified doctors only. The doctor reviews in EasyHMS or from a WhatsApp link." onChange={setReviewerId} />
           )}
           {sendRows.map((p) => (
             <SendLinkRow key={p.contributorId} contributor={p} articleSlug={isNew ? undefined : routeSlug} onSent={replacePerson} />
           ))}
+          {canAssignReviewer && (
+            <div className="hw-actions">
+              <button type="button" className="hw-btn hw-btn-primary" disabled={saving || !reviewerId} onClick={() => save(true)}>Assign reviewer</button>
+            </div>
+          )}
           <div className="hw-actions">
             <button type="button" className="hw-btn" disabled={locked || saving} onClick={() => save(false)}>Save draft</button>
             <button type="button" className="hw-btn hw-btn-primary" disabled={locked || saving} onClick={() => save(true)}>Submit for review</button>
@@ -357,11 +389,18 @@ export default function ArticleEditorPage() {
                 <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={approve}>Approve and publish</button>
               )}
               <div className="hw-field">
-                <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for taking it down' : 'Reason for returning it'}</label>
+                <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for pulling it back or taking it down' : 'Reason for returning it'}</label>
                 <input id="hw-reason" type="text" value={reason} placeholder="Shown to the author" onChange={(e) => setReason(e.target.value)} />
                 {reasonError && <span className="hw-err">{reasonError}</span>}
               </div>
-              <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>{status === 'PUBLISHED' ? 'Take down' : 'Return to draft'}</button>
+              {status === 'PUBLISHED' ? (
+                <div className="hw-actions">
+                  <button type="button" className="hw-btn" disabled={saving} onClick={() => takeOffline(true)}>Pull back to review</button>
+                  <button type="button" className="hw-btn" disabled={saving} onClick={() => takeOffline(false)}>Take down</button>
+                </div>
+              ) : (
+                <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>Return to draft</button>
+              )}
             </div>
           )}
         </div>

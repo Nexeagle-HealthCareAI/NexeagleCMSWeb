@@ -80,6 +80,8 @@ export interface HealthArticle {
   status: ArticleStatus;
   /** Set when the reviewer or an editor sent the article back. */
   reviewerComment?: string | null;
+  /** The team pulled this article back to review: its author cannot publish it alone again until it is approved. */
+  holdForReview?: boolean;
   publishedAt: string | null;
   updatedAt: string;
 }

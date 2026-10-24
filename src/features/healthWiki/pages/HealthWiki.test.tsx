@@ -108,6 +108,26 @@ describe('Article editor', () => {
     expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
   });
 
+  it('offers both controls on a live article: pull it back to review, or take it down', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    const pull = await screen.findByRole('button', { name: 'Pull back to review' });
+    expect(screen.getByRole('button', { name: 'Take down' })).toBeInTheDocument();
+    await userEvent.click(pull);
+    expect(await screen.findByText(/Add a reason/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(/Reason for pulling it back/), 'Check the dose');
+    await userEvent.click(pull);
+    expect(await screen.findByText(/Pulled back to review by the team/)).toBeInTheDocument();
+    expect(screen.queryByText(/Published and visible on Doctor Dekho/)).toBeNull();
+  });
+
+  it('takes a live article down to a draft', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    await userEvent.type(await screen.findByLabelText(/Reason for pulling it back/), 'Wrong advice');
+    await userEvent.click(screen.getByRole('button', { name: 'Take down' }));
+    await waitFor(() => expect(screen.queryByText(/Published and visible on Doctor Dekho/)).toBeNull());
+    expect(await screen.findByRole('button', { name: 'Save draft' })).toBeEnabled();
+  });
+
   it('needs a reason to return an article to draft', async () => {
     renderAt('/health-wiki/high-blood-pressure');
     await userEvent.click(await screen.findByRole('button', { name: 'Return to draft' }));
