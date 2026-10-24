@@ -30,7 +30,7 @@ function insights(o: AgentOverview, status: AgentServiceStatus | null, learning:
     if ((learning?.pending ?? 0) > 0) out.push({ tone: 'warn', text: `${num(learning!.pending)} mistakes and doubtful answers are waiting for a person to review.`, action: { label: 'Review now', tab: 'learning' } });
     if ((learning?.awaitingRebuild ?? 0) > 0) out.push({ tone: 'warn', text: `${num(learning!.awaitingRebuild)} approved corrections are not in the model yet. Rebuild to teach them.`, action: { label: 'Rebuild', tab: 'models' } });
     if ((o.p95LatencyMs ?? 0) > 800) out.push({ tone: 'warn', text: `Slowest 5% of answers take over ${ms(o.p95LatencyMs)}. Check the LLM reasoner timeout and server load.` });
-    if (o.emergencies > 0) out.push({ tone: 'good', text: `${num(o.emergencies)} emergencies were flagged and told to call 108. Spot-check them in the review queue.`, action: { label: 'Check', tab: 'learning' } });
+    if (o.emergencies > 0) out.push({ tone: 'good', text: `${num(o.emergencies)} emergencies were flagged and told to call 108 (ambulance) or 112. Spot-check them in the review queue.`, action: { label: 'Check', tab: 'learning' } });
     if (out.every(i => i.tone === 'good')) out.unshift({ tone: 'good', text: 'Agents are healthy: most queries are answered confidently and nothing is waiting for review.' });
     return out;
 }
