@@ -14,7 +14,7 @@ export const useVitaActivity = (pollMs = 10000) => {
     const [last, setLast] = React.useState<{ verdict: VitaRunVerdict | null; at: number } | null>(null);
     const [flight, setFlight] = React.useState<FlyBy | null>(null);
     const [repos, setRepos] = React.useState<VitaRepoOverview[]>([]);
-    const [connected, setConnected] = React.useState(false);
+    const [connected, setConnected] = React.useState<boolean | null>(null);   // null until the first poll answers
     const [now, setNow] = React.useState(() => Date.now());   // advances on each poll so a finished run's badge expires
     const seen = React.useRef<Set<string>>(new Set());
 
@@ -63,13 +63,15 @@ export const useVitaActivity = (pollMs = 10000) => {
 
     // a finished run's badge shows for a minute, then Vita goes back to idle
     const recent = last && now - last.at < 60000 ? last : null;
-    const state: VitaMascotState = running > 0 ? 'working'
+    const state: VitaMascotState = connected === false ? 'sleeping'
+        : running > 0 ? 'working'
         : queued > 0 ? 'thinking'
             : recent?.verdict === 'green' ? 'success'
                 : recent?.verdict === 'red' ? 'alert' : 'idle';
-    const caption = running > 0 ? `Testing — ${running} run${running === 1 ? '' : 's'} in progress`
+    const caption = connected === false ? 'Vita is offline — the eagles are asleep'
+        : running > 0 ? `Testing — ${running} run${running === 1 ? '' : 's'} in progress`
         : queued > 0 ? `Planning — ${queued} run${queued === 1 ? '' : 's'} queued`
             : recent ? `Last run ${recent.verdict ?? 'finished'}` : 'Standing by';
 
-    return { state, caption, flight, clearFlight: () => setFlight(null), repos, connected };
+    return { state, caption, flight, clearFlight: () => setFlight(null), repos, connected: connected !== false };
 };

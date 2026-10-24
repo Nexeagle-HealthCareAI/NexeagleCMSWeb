@@ -1,0 +1,166 @@
+/* The 3D aerie: a WebGL canvas with HTML labels laid over it (positions set every frame by VitaAerie3D). */
+.vita-aerie3d {
+    position: relative;
+    overflow: hidden;
+    margin: 4px 0 14px;
+    border: 1px solid #d3deec;
+    border-radius: 16px;
+    background: linear-gradient(#9cc4ee, #dbeafe 55%, #f1f5f9);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px -12px rgba(15, 23, 42, 0.25);
+    isolation: isolate;
+}
+.vita-aerie3d__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.vita-aerie3d__card,
+.vita-aerie3d__over,
+.vita-aerie3d__deck-title,
+.vita-aerie3d__waiting {
+    position: absolute;
+    left: 0;
+    top: 0;
+    will-change: transform;
+    pointer-events: none;
+}
+
+/* one card per work station, under its perch */
+.vita-aerie3d__card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 190px;
+    margin-top: 6px;
+    padding: 5px 8px 5px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.94);
+    border-left: 3px solid #94a3b8;
+    box-shadow: 0 4px 14px -6px rgba(15, 23, 42, 0.45);
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: auto;
+}
+.vita-aerie3d__card strong { overflow: hidden; text-overflow: ellipsis; color: #0f172a; font-weight: 600; }
+.vita-aerie3d__pill {
+    flex: none;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #334155;
+}
+.vita-aerie3d__card.is-free { background: rgba(255, 255, 255, 0.55); border-left-color: #cbd5e1; box-shadow: none; }
+.vita-aerie3d__free { color: #64748b; font-size: 11px; }
+.vita-aerie3d__card.is-queued { border-left-color: #a78bfa; }
+.vita-aerie3d__card.is-queued .vita-aerie3d__pill { background: #ede9fe; color: #6d28d9; }
+.vita-aerie3d__card.is-running { border-left-color: #38bdf8; }
+.vita-aerie3d__card.is-running .vita-aerie3d__pill { background: #e0f2fe; color: #0369a1; }
+.vita-aerie3d__card.is-green { border-left-color: #22c55e; }
+.vita-aerie3d__card.is-green .vita-aerie3d__pill { background: #dcfce7; color: #15803d; }
+.vita-aerie3d__card.is-red { border-left-color: #ef4444; }
+.vita-aerie3d__card.is-red .vita-aerie3d__pill { background: #fee2e2; color: #b91c1c; }
+.vita-aerie3d__card.is-done:not(.is-green):not(.is-red) { border-left-color: #f59e0b; }
+
+/* over each eagle's head: a thought bubble while queued, a verdict badge when done; hidden in flight */
+.vita-aerie3d__over { transition: opacity 0.25s; }
+.vita-aerie3d__over[data-flying='1'] { opacity: 0; }
+.vita-aerie3d__bubble {
+    display: flex;
+    gap: 3px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 3px 10px -4px rgba(15, 23, 42, 0.4);
+}
+.vita-aerie3d__bubble i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #8b5cf6;
+    animation: vita-a3d-dot 1.2s ease-in-out infinite;
+}
+.vita-aerie3d__bubble i:nth-child(2) { animation-delay: 0.15s; }
+.vita-aerie3d__bubble i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes vita-a3d-dot {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-2px); }
+}
+.vita-aerie3d__badge {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 10px -3px rgba(15, 23, 42, 0.5);
+    animation: vita-a3d-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.vita-aerie3d__badge.is-green { background: #16a34a; }
+.vita-aerie3d__badge.is-red { background: #dc2626; }
+.vita-aerie3d__badge.is-neutral { background: #d97706; }
+@keyframes vita-a3d-pop { from { transform: scale(0.3); opacity: 0; } }
+
+.vita-aerie3d__deck-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #334155;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.7);
+}
+.vita-aerie3d__waiting {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d28d9;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #ede9fe;
+    transition: opacity 0.3s;
+}
+.vita-aerie3d__waiting.is-hidden { opacity: 0; }
+
+.vita-aerie3d__legend {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    padding: 4px 10px;
+    list-style: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(4px);
+    font-size: 11px;
+    color: #334155;
+}
+.vita-aerie3d__legend li { display: flex; align-items: center; gap: 5px; }
+.vita-aerie3d__legend i { width: 8px; height: 8px; border-radius: 50%; }
+.vita-aerie3d__legend i.is-queued { background: #a78bfa; }
+.vita-aerie3d__legend i.is-running { background: #38bdf8; }
+.vita-aerie3d__legend i.is-green { background: #22c55e; }
+.vita-aerie3d__legend i.is-red { background: #ef4444; }
+
+.vita-aerie3d__caption {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    max-width: calc(100% - 24px);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 12px;
+    backdrop-filter: blur(4px);
+}
+
+@media (max-width: 640px) {
+    .vita-aerie3d__legend { display: none; }
+}

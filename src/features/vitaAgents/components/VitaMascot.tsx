@@ -1,19 +1,19 @@
 import React from 'react';
-import mascot256 from '../assets/vita-mascot-256.webp';
 import mascot96 from '../assets/vita-mascot-96.webp';
 import type { VitaRunVerdict } from '../types';
+import { POSES, type VitaPose } from './vitaPoses';
 import './vitaMascot.css';
 
 /**
- * Vita, the Test Agent's mascot. One image, animated by state:
- *   idle      — standing by, gentle breathing
- *   thinking  — runs are queued / being planned: head tilt + thought bubble
- *   working   — runs are executing: quick bob, wing flutter, orbiting sparks
- *   success / alert — the last run finished green / red: a short badge
- * plus a fly-by across the board when a run starts or finishes (VitaFlyBy).
- * Respects prefers-reduced-motion (no movement, states still shown by the badge and caption).
+ * Vita, the Test Agent's mascot, in the pose that matches what Vita is doing (the brand artwork, see vitaPoses):
+ *   idle      — relaxed (a welcome wave for the first moments after the page opens)
+ *   thinking  — runs are queued / being planned
+ *   working   — runs are executing
+ *   success / alert — the last run passed (joyful) / failed (angry)
+ *   sleeping  — Vita is not connected
+ * A gentle CSS motion per state; prefers-reduced-motion turns the motion off, the pose still tells the state.
  */
-export type VitaMascotState = 'idle' | 'thinking' | 'working' | 'success' | 'alert';
+export type VitaMascotState = 'idle' | 'thinking' | 'working' | 'success' | 'alert' | 'sleeping';
 
 const LABEL: Record<VitaMascotState, string> = {
     idle: 'Vita is standing by',
@@ -21,36 +21,34 @@ const LABEL: Record<VitaMascotState, string> = {
     working: 'Vita is testing',
     success: 'All green',
     alert: 'Vita found a problem',
+    sleeping: 'Vita is offline',
+};
+
+const POSE: Record<VitaMascotState, VitaPose> = {
+    idle: 'relaxed', thinking: 'thinking', working: 'working', success: 'joyful', alert: 'angry', sleeping: 'sleeping',
 };
 
 export const VitaMascot: React.FC<{ state?: VitaMascotState; size?: number; title?: string; className?: string }> = ({
     state = 'idle', size = 56, title, className = '',
-}) => (
-    <span
-        className={`vita-mascot vita-mascot--${state} ${className}`}
-        style={{ width: size, height: size }}
-        role="img"
-        aria-label={title ?? LABEL[state]}
-        title={title ?? LABEL[state]}
-    >
-        <img src={size > 64 ? mascot256 : mascot96} alt="" draggable={false} className="vita-mascot__img" />
-        {state === 'thinking' && (
-            <span className="vita-mascot__bubble" aria-hidden="true">
-                <i /><i /><i />
-            </span>
-        )}
-        {state === 'working' && (
-            <span className="vita-mascot__orbit" aria-hidden="true">
-                <i /><i /><i />
-            </span>
-        )}
-        {(state === 'success' || state === 'alert') && (
-            <span className={`vita-mascot__badge vita-mascot__badge--${state}`} aria-hidden="true">
-                {state === 'success' ? '✓' : '!'}
-            </span>
-        )}
-    </span>
-);
+}) => {
+    const [greeting, setGreeting] = React.useState(true);
+    React.useEffect(() => {
+        const t = window.setTimeout(() => setGreeting(false), 3200);
+        return () => window.clearTimeout(t);
+    }, []);
+    const pose: VitaPose = state === 'idle' && greeting ? 'welcome' : POSE[state];
+    return (
+        <span
+            className={`vita-mascot vita-mascot--${state} vita-mascot--pose-${pose} ${className}`}
+            style={{ width: size, height: size }}
+            role="img"
+            aria-label={title ?? LABEL[state]}
+            title={title ?? LABEL[state]}
+        >
+            <img key={pose} src={POSES[pose]} alt="" draggable={false} className="vita-mascot__img" />
+        </span>
+    );
+};
 
 /** Small sidebar icon: the mascot's head-and-shoulders, no animation. */
 export const VitaMascotIcon: React.FC<{ size?: number }> = ({ size = 22 }) => (
