@@ -20,7 +20,7 @@ export type AerieJob = {
 export type EagleMood = 'home' | 'queued' | 'running' | 'green' | 'red' | 'neutral';
 
 export const EAGLES = 3;
-export const MAX_SLOTS = 6;
+export const MAX_SLOTS = 8;
 export const DONE_SHOW_MS = 9000;
 
 export const latestVerdict = (r: VitaRepoOverview): VitaRunVerdict | null => {
@@ -29,7 +29,7 @@ export const latestVerdict = (r: VitaRepoOverview): VitaRunVerdict | null => {
     return runs[0]?.verdict ?? null;
 };
 
-export const settle = (jobs: AerieJob[], now: number, slots: number): AerieJob[] => {
+export const settle = (jobs: AerieJob[], now: number, slots: number, eagles = EAGLES): AerieJob[] => {
     const kept = jobs
         .filter((j) => j.phase !== 'done' || now - (j.doneAt ?? 0) < DONE_SHOW_MS)
         // a station that no longer fits (narrower screen) is given up, and its eagle goes home
@@ -46,7 +46,7 @@ export const settle = (jobs: AerieJob[], now: number, slots: number): AerieJob[]
             }
         }
         if (next.slot !== undefined && next.eagle === undefined && next.phase !== 'done') {
-            const free = Array.from({ length: EAGLES }, (_, e) => e).find((e) => !usedEagles.has(e));
+            const free = Array.from({ length: eagles }, (_, e) => e).find((e) => !usedEagles.has(e));
             if (free !== undefined) {
                 usedEagles.add(free);
                 next = { ...next, eagle: free };
@@ -58,15 +58,15 @@ export const settle = (jobs: AerieJob[], now: number, slots: number): AerieJob[]
 
 const same = (a: AerieJob[], b: AerieJob[]) => a.length === b.length && a.every((j, i) => j === b[i]);
 
-export const useAerieJobs = (repos: VitaRepoOverview[], slots: number) => {
+export const useAerieJobs = (repos: VitaRepoOverview[], slots: number, eagles = EAGLES) => {
     const [jobs, setJobs] = React.useState<AerieJob[]>([]);
     React.useEffect(() => {
         const t = window.setInterval(() => setJobs((prev) => {
-            const next = settle(prev, Date.now(), slots);
+            const next = settle(prev, Date.now(), slots, eagles);
             return same(next, prev) ? prev : next;
         }), 1000);
         return () => window.clearInterval(t);
-    }, [slots]);
+    }, [slots, eagles]);
     React.useEffect(() => {
         setJobs((prev) => {
             const byKey = new Map(prev.map((j) => [j.key, j]));
@@ -90,10 +90,10 @@ export const useAerieJobs = (repos: VitaRepoOverview[], slots: number) => {
                     return { ...j, phase: 'done' as const, doneAt: at, verdict: r ? latestVerdict(r) : null };
                 });
             const stillShown = prev.filter((j) => j.phase === 'done' && !keys.has(j.key));
-            const next = settle([...active, ...stillShown, ...finished], at, slots);
+            const next = settle([...active, ...stillShown, ...finished], at, slots, eagles);
             return same(next, prev) ? prev : next;
         });
-    }, [repos, slots]);
+    }, [repos, slots, eagles]);
     return jobs;
 };
 
@@ -105,7 +105,7 @@ export const captionOf = (jobs: AerieJob[], connected: boolean): string => {
     const withEagle = jobs.filter((j) => j.eagle !== undefined);
     const busy = withEagle.filter((j) => j.phase !== 'done').length;
     const waiting = jobs.filter((j) => j.phase !== 'done' && j.eagle === undefined).length;
-    if (withEagle.length === 0 && waiting === 0) return 'All eagles are home. Run a repo to call one to work.';
+    if (withEagle.length === 0 && waiting === 0) return 'No jobs right now: the eagles are at home or taking a break. Run a repo to call one to work.';
     if (busy === 0 && waiting === 0) return 'Work done — the eagles are reporting back, then flying home.';
     return `${busy} eagle${busy === 1 ? '' : 's'} at work${waiting > 0 ? ` · ${waiting} more job${waiting === 1 ? '' : 's'} waiting for a free eagle` : ''}.`;
 };

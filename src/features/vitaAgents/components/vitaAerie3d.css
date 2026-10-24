@@ -9,11 +9,14 @@
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px -12px rgba(15, 23, 42, 0.25);
     isolation: isolate;
 }
-.vita-aerie3d__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.vita-aerie3d__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
+.vita-aerie3d__canvas:active { cursor: grabbing; }
+.vita-aerie3d { transition: height 0.35s ease; }
 
 .vita-aerie3d__card,
+.vita-aerie3d__chip,
 .vita-aerie3d__over,
-.vita-aerie3d__deck-title,
+.vita-aerie3d__zone,
 .vita-aerie3d__waiting {
     position: absolute;
     left: 0;
@@ -163,4 +166,128 @@
 
 @media (max-width: 640px) {
     .vita-aerie3d__legend { display: none; }
+}
+
+/* campus additions: zone names, busy-desk cards only, view tools, hint */
+.vita-aerie3d__card { font-size: 11.5px; padding: 4px 7px 4px 9px; max-width: 176px; transition: opacity 0.3s; }
+.vita-aerie3d__card.is-hidden { opacity: 0; }
+.vita-aerie3d__zone {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.55);
+    color: #f8fafc;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    backdrop-filter: blur(3px);
+}
+.vita-aerie3d__legend { top: auto; bottom: 10px; }
+.vita-aerie3d__tools {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px -4px rgba(15, 23, 42, 0.3);
+}
+.vita-aerie3d__tools button {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #334155;
+    cursor: pointer;
+}
+.vita-aerie3d__tools button:hover { background: #e2e8f0; color: #0f172a; }
+.vita-aerie3d__tools button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 1px; }
+.vita-aerie3d__hint {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #334155;
+    font-size: 11px;
+    pointer-events: none;
+    transition: opacity 0.4s;
+}
+.vita-aerie3d__hint.is-hidden { opacity: 0; }
+@media (max-width: 640px) {
+    .vita-aerie3d__zone { font-size: 9.5px; }
+    .vita-aerie3d__hint { display: none; }
+}
+
+/* a numbered chip over each busy desk; the job board lists them */
+.vita-aerie3d__chip {
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    border: 2px solid #fff;
+    background: #64748b;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 3px 8px -3px rgba(15, 23, 42, 0.5);
+    transition: opacity 0.3s;
+}
+.vita-aerie3d__chip.is-hidden { opacity: 0; }
+.vita-aerie3d__chip.is-queued { background: #8b5cf6; }
+.vita-aerie3d__chip.is-running { background: #0ea5e9; }
+.vita-aerie3d__chip.is-green { background: #16a34a; }
+.vita-aerie3d__chip.is-red { background: #dc2626; }
+.vita-aerie3d__chip.is-done:not(.is-green):not(.is-red) { background: #d97706; }
+
+.vita-aerie3d__board {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    width: 250px;
+    max-width: calc(100% - 24px);
+    padding: 8px 10px 6px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.35);
+    font-size: 11.5px;
+}
+.vita-aerie3d__board-title { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+.vita-aerie3d__board ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.vita-aerie3d__board li { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.vita-aerie3d__board li strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: #0f172a; }
+.vita-aerie3d__desk {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #64748b;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+.vita-aerie3d__board li.is-queued .vita-aerie3d__desk { background: #8b5cf6; }
+.vita-aerie3d__board li.is-running .vita-aerie3d__desk { background: #0ea5e9; }
+.vita-aerie3d__board li.is-green .vita-aerie3d__desk { background: #16a34a; }
+.vita-aerie3d__board li.is-red .vita-aerie3d__desk { background: #dc2626; }
+.vita-aerie3d__board li.is-queued .vita-aerie3d__pill { background: #ede9fe; color: #6d28d9; }
+.vita-aerie3d__board li.is-running .vita-aerie3d__pill { background: #e0f2fe; color: #0369a1; }
+.vita-aerie3d__board li.is-green .vita-aerie3d__pill { background: #dcfce7; color: #15803d; }
+.vita-aerie3d__board li.is-red .vita-aerie3d__pill { background: #fee2e2; color: #b91c1c; }
+.vita-aerie3d__hint { left: 50%; bottom: 10px; transform: translateX(-50%); }
+@media (max-width: 760px) {
+    .vita-aerie3d__caption { white-space: normal; width: max-content; max-width: calc(100% - 150px); text-align: center; font-size: 11px; }
+    .vita-aerie3d__board { width: 200px; font-size: 11px; }
 }

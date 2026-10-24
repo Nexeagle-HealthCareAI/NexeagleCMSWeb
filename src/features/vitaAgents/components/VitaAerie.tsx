@@ -9,7 +9,7 @@ import './vitaAerie3d.css';
  * motion; otherwise, or if the 3D scene fails, the flat version is shown.
  */
 const VitaAerie3D = React.lazy(() => import('./VitaAerie3D'));
-const HEIGHT_3D = 300;
+const HEIGHT_3D = 460;
 
 const can3d = (): boolean => {
     if (typeof window === 'undefined') return false;
