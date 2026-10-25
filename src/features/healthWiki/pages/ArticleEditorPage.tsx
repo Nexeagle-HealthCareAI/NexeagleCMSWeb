@@ -61,6 +61,8 @@ export default function ArticleEditorPage() {
   const [disclosure, setDisclosure] = useState('');
   const [references, setReferences] = useState('');
   const [authorId, setAuthorId] = useState<string | null>(null);
+  // Who wrote it: a contributor, or the NexEagle team on a doctor's behalf (a topic a doctor suggested). The team has no contributor record.
+  const [authorMode, setAuthorMode] = useState<'person' | 'team'>('person');
   const [reviewerId, setReviewerId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,6 +98,7 @@ export default function ArticleEditorPage() {
           setCoverUrl(article.coverImageUrl);
           setCoverAlt(article.coverImageAlt ?? '');
           setAuthorId(article.authorContributorId);
+          setAuthorMode(article.authorContributorId ? 'person' : 'team');
           setReviewerId(article.reviewerContributorId);
         }
       } catch (e) {
@@ -154,6 +157,7 @@ export default function ArticleEditorPage() {
     else if (isNew && RESERVED_SLUGS.includes(slug)) e.slug = 'That address is used by the Health Wiki pages. Choose another slug.';
     if (!contentMd.trim()) e.content = 'Content cannot be empty.';
     if (coverUrl && !coverAlt.trim()) e.cover = 'Add alt text for the cover image.';
+    if (submit && authorMode === 'person' && !authorId) e.author = 'Pick the author, or choose "NexEagle team wrote it".';
     if (medical && author?.type === 'WRITER') e.author = 'A writer can only write Sector updates.';
     if (submit && medical && !reviewerId) e.reviewer = 'Pick a reviewer to submit.';
     return e;
@@ -385,8 +389,21 @@ export default function ArticleEditorPage() {
               </select>
             </div>
           )}
-          <ContributorPicker label="Author" options={authorOptions} value={authorId} disabled={locked} error={errors.author}
-            hint="Only verified or approved people. Leave empty when the NexEagle content team writes it, for example for a topic a doctor suggested." onChange={setAuthorId} />
+          <div className="hw-field">
+            <span className="hw-label" id="hw-author-label">Written by</span>
+            <div className="hw-seg" role="radiogroup" aria-labelledby="hw-author-label" style={{ display: 'flex', width: '100%' }}>
+              <button type="button" role="radio" aria-checked={authorMode === 'person'} className={authorMode === 'person' ? 'on' : ''} disabled={locked} style={{ flex: 1 }}
+                onClick={() => setAuthorMode('person')}>A contributor</button>
+              <button type="button" role="radio" aria-checked={authorMode === 'team'} className={authorMode === 'team' ? 'on' : ''} disabled={locked} style={{ flex: 1 }}
+                onClick={() => { setAuthorMode('team'); setAuthorId(null); }}>NexEagle team wrote it</button>
+            </div>
+            {authorMode === 'person' ? (
+              <ContributorPicker label="Author" options={authorOptions} value={authorId} disabled={locked} error={errors.author}
+                hint="Only verified or approved people." onChange={setAuthorId} />
+            ) : (
+              <p className="hw-sub">The NexEagle team wrote this on behalf of the doctor who suggested the topic, so there is no contributor author. Readers see "Written by the NexEagle Health Wiki team".</p>
+            )}
+          </div>
           {medical && (
             <ContributorPicker label="Reviewer" required options={reviewerOptions} value={reviewerId} disabled={locked && !canAssignReviewer} error={errors.reviewer}
               hint="Verified doctors only. The doctor reviews in EasyHMS or from a WhatsApp link." onChange={setReviewerId} />

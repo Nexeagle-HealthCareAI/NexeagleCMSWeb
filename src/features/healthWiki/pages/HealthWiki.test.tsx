@@ -59,7 +59,7 @@ describe('Article editor', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Submit for review' }));
     expect(await screen.findByText('Content cannot be empty.')).toBeInTheDocument();
     expect(screen.getByText('Pick a reviewer to submit.')).toBeInTheDocument();
-    expect(screen.queryByText('Pick an author to submit.')).toBeNull();
+    expect(screen.getByText(/Pick the author, or choose/)).toBeInTheDocument();
   });
 
   it('hides the reviewer and condition for a Sector update', async () => {
@@ -157,6 +157,15 @@ describe('Article editor', () => {
     renderAt('/health-wiki/thyroid-basics');
     expect(await screen.findByText(/suggested by/)).toBeInTheDocument();
     expect(screen.getByText(/any other verified doctor/)).toBeInTheDocument();
+  });
+
+  it('lets the team say it wrote the article itself, so no contributor author is needed', async () => {
+    renderAt('/health-wiki/new');
+    await userEvent.click(await screen.findByRole('radio', { name: 'NexEagle team wrote it' }));
+    expect(screen.getByText(/no contributor author/)).toBeInTheDocument();
+    expect(screen.queryByText('Author')).toBeNull();
+    await userEvent.click(screen.getByRole('radio', { name: 'A contributor' }));
+    expect(screen.getByText('Author')).toBeInTheDocument();
   });
 
   it('needs a reason to return an article to draft', async () => {
