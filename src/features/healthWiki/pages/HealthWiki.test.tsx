@@ -51,7 +51,7 @@ describe('Articles list', () => {
 });
 
 describe('Article editor', () => {
-  it('builds a slug from the title and blocks submit without content, author and reviewer', async () => {
+  it('builds a slug from the title and blocks submit without content and reviewer, and lets the content team submit with no author', async () => {
     renderAt('/health-wiki/new');
     const title = await screen.findByLabelText('Title');
     await userEvent.type(title, 'Healthy Heart Tips');
@@ -59,7 +59,7 @@ describe('Article editor', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Submit for review' }));
     expect(await screen.findByText('Content cannot be empty.')).toBeInTheDocument();
     expect(screen.getByText('Pick a reviewer to submit.')).toBeInTheDocument();
-    expect(screen.getByText('Pick an author to submit.')).toBeInTheDocument();
+    expect(screen.queryByText('Pick an author to submit.')).toBeNull();
   });
 
   it('hides the reviewer and condition for a Sector update', async () => {

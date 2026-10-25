@@ -153,7 +153,6 @@ export default function ArticleEditorPage() {
     if (!contentMd.trim()) e.content = 'Content cannot be empty.';
     if (coverUrl && !coverAlt.trim()) e.cover = 'Add alt text for the cover image.';
     if (medical && author?.type === 'WRITER') e.author = 'A writer can only write Sector updates.';
-    if (submit && !authorId) e.author = 'Pick an author to submit.';
     if (submit && medical && !reviewerId) e.reviewer = 'Pick a reviewer to submit.';
     return e;
   };
@@ -384,7 +383,7 @@ export default function ArticleEditorPage() {
             </div>
           )}
           <ContributorPicker label="Author" options={authorOptions} value={authorId} disabled={locked} error={errors.author}
-            hint="Only verified or approved people." onChange={setAuthorId} />
+            hint="Only verified or approved people. Leave empty when the NexEagle content team writes it, for example for a topic a doctor suggested." onChange={setAuthorId} />
           {medical && (
             <ContributorPicker label="Reviewer" required options={reviewerOptions} value={reviewerId} disabled={locked && !canAssignReviewer} error={errors.reviewer}
               hint="Verified doctors only. The doctor reviews in EasyHMS or from a WhatsApp link." onChange={setReviewerId} />
