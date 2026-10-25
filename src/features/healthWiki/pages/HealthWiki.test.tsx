@@ -150,6 +150,15 @@ describe('Article editor', () => {
     expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
   });
 
+  it('tells the team who suggested the topic and that any verified doctor can review it', async () => {
+    const svc = (await import('../services/mockHealthWiki')).mockHealthWiki;
+    const first = (await svc.list()).find((x) => x.slug === 'thyroid-basics')!;
+    Object.assign(first, { suggestedByName: 'Dr. Asha Menon' });
+    renderAt('/health-wiki/thyroid-basics');
+    expect(await screen.findByText(/suggested by/)).toBeInTheDocument();
+    expect(screen.getByText(/any other verified doctor/)).toBeInTheDocument();
+  });
+
   it('needs a reason to return an article to draft', async () => {
     renderAt('/health-wiki/high-blood-pressure');
     await userEvent.click(await screen.findByRole('button', { name: 'Return to draft' }));

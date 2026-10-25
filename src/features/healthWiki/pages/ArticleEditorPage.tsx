@@ -45,6 +45,7 @@ export default function ArticleEditorPage() {
 
   const [status, setStatus] = useState<ArticleStatus>('DRAFT');
   const [hold, setHold] = useState(false);
+  const [suggestedBy, setSuggestedBy] = useState<string | null>(null);
   const [type, setType] = useState<ArticleType>('MEDICAL');
   const [reviewerComment, setReviewerComment] = useState<string | null>(null);
   const [slug, setSlug] = useState('');
@@ -83,6 +84,7 @@ export default function ArticleEditorPage() {
           setReferences(article.references ?? '');
           setStatus(article.status);
           setHold(!!article.holdForReview);
+          setSuggestedBy(article.suggestedByName ?? null);
           setType(article.type);
           setReviewerComment(article.reviewerComment ?? null);
           setSlug(article.slug);
@@ -304,6 +306,7 @@ export default function ArticleEditorPage() {
         <button type="button" role="tab" aria-selected={view === 'preview'} className={view === 'preview' ? 'on' : ''} onClick={() => setView('preview')}>Page preview</button>
       </div>
 
+      {view === 'edit' && medical && suggestedBy && <div className="hw-banner info">This topic was suggested by <b>{suggestedBy}</b>, who is the default reviewer. You can choose any other verified doctor in the Reviewer list; they are told that {suggestedBy} suggested the topic. Readers see only the reviewing doctor, never who suggested it.</div>}
       {view === 'edit' && status === 'IN_REVIEW' && hold && <div className="hw-banner info">Pulled back to review by the team. {medical ? 'Choose a doctor reviewer below; the article goes live again once they approve it.' : 'Approve it below when it is right.'} The author cannot publish it alone until then.</div>}
       {view === 'edit' && status === 'IN_REVIEW' && <div className="hw-banner info">Waiting for {waitingOn} to {medical ? 'review in EasyHMS' : 'approve'}. Editing is locked until a decision.</div>}
       {view === 'edit' && status === 'PUBLISHED' && <div className="hw-banner ok">Published and visible on Doctor Dekho. Content is read-only here.</div>}

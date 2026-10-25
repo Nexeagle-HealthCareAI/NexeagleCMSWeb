@@ -82,6 +82,8 @@ export interface HealthArticle {
   reviewerComment?: string | null;
   /** The team pulled this article back to review: its author cannot publish it alone again until it is approved. */
   holdForReview?: boolean;
+  /** The doctor whose topic this article was written for. Shown to the team only, never on the public page. */
+  suggestedByName?: string | null;
   publishedAt: string | null;
   updatedAt: string;
 }
