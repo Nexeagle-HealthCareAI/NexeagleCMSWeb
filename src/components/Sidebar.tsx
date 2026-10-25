@@ -1,6 +1,6 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Scan, Bot, BookOpen, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Scan, Bot, BookOpen, FlaskConical, Siren } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import { canUseHealthWiki } from '../features/healthWiki/access';
 import './Sidebar.css';
@@ -156,6 +156,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
                 >
                   <Handshake size={22} />
                   {(!collapsed || isMobile) && <span>Partner Network</span>}
+                </NavLink>
+              </li>
+            )}
+            {can('emergency.manage') && (
+              <li>
+                <NavLink
+                  to="/emergency"
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  title={collapsed && !isMobile ? "Emergency takeover" : ""}
+                  onClick={isMobile ? toggle : undefined}
+                >
+                  <Siren size={22} />
+                  {(!collapsed || isMobile) && <span>Emergency takeover</span>}
                 </NavLink>
               </li>
             )}
