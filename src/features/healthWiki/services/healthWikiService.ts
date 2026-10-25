@@ -44,6 +44,9 @@ const real = {
   /** Take a live article offline and put it back in review: its author cannot publish it alone again. */
   pullBack: async (slug: string, reason: string) =>
     unwrap<HealthArticle>((await api.post(`/health-articles/${enc(slug)}/pull-back`, { reason })).data.data, 'article'),
+  /** Put an article the team took offline or pulled back live again, with no further review. The reason is kept in the history. */
+  pullUp: async (slug: string, reason: string) =>
+    unwrap<HealthArticle>((await api.post(`/health-articles/${enc(slug)}/pull-up`, { reason })).data.data, 'article'),
   uploadImage: async (file: File) => {
     const body = new FormData();
     body.append('file', file);

@@ -128,6 +128,28 @@ describe('Article editor', () => {
     expect(await screen.findByRole('button', { name: 'Save draft' })).toBeEnabled();
   });
 
+  it('lets the team put a pulled-back article back live, with a reason', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    await userEvent.type(await screen.findByLabelText(/Reason for pulling it back/), 'Check the dose');
+    await userEvent.click(screen.getByRole('button', { name: 'Pull back to review' }));
+    const up = await screen.findByRole('button', { name: 'Put back live' });
+    await userEvent.click(up);
+    expect(await screen.findByText(/Add a reason/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(/Reason for putting it back live/), 'Dose checked');
+    await userEvent.click(up);
+    expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
+  });
+
+  it('lets the team bring back an article it took down', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    await userEvent.type(await screen.findByLabelText(/Reason for pulling it back/), 'Wrong advice');
+    await userEvent.click(screen.getByRole('button', { name: 'Take down' }));
+    const up = await screen.findByRole('button', { name: 'Put back live' });
+    await userEvent.type(screen.getByLabelText(/Reason for putting it back live/), 'Fixed');
+    await userEvent.click(up);
+    expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
+  });
+
   it('needs a reason to return an article to draft', async () => {
     renderAt('/health-wiki/high-blood-pressure');
     await userEvent.click(await screen.findByRole('button', { name: 'Return to draft' }));

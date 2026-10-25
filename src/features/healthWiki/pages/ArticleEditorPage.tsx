@@ -231,6 +231,26 @@ export default function ArticleEditorPage() {
     }
   };
 
+  const putBackLive = async () => {
+    if (reason.trim().length < 3) {
+      setReasonError('Add a reason. It is kept in the history and the author is told.');
+      return;
+    }
+    setReasonError('');
+    setSaving(true);
+    try {
+      await healthWikiService.pullUp(routeSlug!, reason.trim());
+      toast.success('Back live on Doctor Dekho');
+      setReason('');
+      setHistoryKey((k) => k + 1);
+      setVersion((v) => v + 1);
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not put the article back live.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const returnToDraft = async () => {
     if (reason.trim().length < 3) {
       setReasonError('Add a reason. It is kept in the audit trail and shown to the author.');
@@ -382,6 +402,19 @@ export default function ArticleEditorPage() {
             <button type="button" className="hw-btn hw-btn-primary" disabled={locked || saving} onClick={() => save(true)}>Submit for review</button>
           </div>
 
+          {!isNew && !locked && hold && (
+            <div className="hw-decision">
+              <h2>Editor actions</h2>
+              <p className="hw-sub">The team took this article offline. You can put it back live without another review; the author is told and the history shows who did it.</p>
+              <div className="hw-field">
+                <label className="hw-label" htmlFor="hw-reason">Reason for putting it back live</label>
+                <input id="hw-reason" type="text" value={reason} placeholder="Kept in the history" onChange={(e) => setReason(e.target.value)} />
+                {reasonError && <span className="hw-err">{reasonError}</span>}
+              </div>
+              <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={putBackLive}>Put back live</button>
+            </div>
+          )}
+
           {!isNew && locked && (
             <div className="hw-decision">
               <h2>Editor actions</h2>
@@ -389,7 +422,7 @@ export default function ArticleEditorPage() {
                 <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={approve}>Approve and publish</button>
               )}
               <div className="hw-field">
-                <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for pulling it back or taking it down' : 'Reason for returning it'}</label>
+                <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for pulling it back or taking it down' : hold ? 'Reason for putting it back live or returning it' : 'Reason for returning it'}</label>
                 <input id="hw-reason" type="text" value={reason} placeholder="Shown to the author" onChange={(e) => setReason(e.target.value)} />
                 {reasonError && <span className="hw-err">{reasonError}</span>}
               </div>
@@ -399,7 +432,10 @@ export default function ArticleEditorPage() {
                   <button type="button" className="hw-btn" disabled={saving} onClick={() => takeOffline(false)}>Take down</button>
                 </div>
               ) : (
-                <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>Return to draft</button>
+                <div className="hw-actions">
+                  {hold && <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={putBackLive}>Put back live</button>}
+                  <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>Return to draft</button>
+                </div>
               )}
             </div>
           )}
