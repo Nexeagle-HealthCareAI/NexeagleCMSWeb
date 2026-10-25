@@ -27,6 +27,7 @@ import TopicRequestsPage from './features/healthWiki/pages/TopicRequestsPage';
 import TopicRequestDetailPage from './features/healthWiki/pages/TopicRequestDetailPage';
 import { canUseHealthWiki } from './features/healthWiki/access';
 import RequirePermission from './components/RequirePermission';
+import EmergencyPage from './features/emergency/EmergencyPage';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
 import InactivityTracker from './components/InactivityTracker';
@@ -113,6 +114,7 @@ function App() {
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
             <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
             <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
+            <Route path="emergency" element={<RequirePermission perm="emergency.manage"><EmergencyPage /></RequirePermission>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
             <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />

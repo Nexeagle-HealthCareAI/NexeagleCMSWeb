@@ -1,0 +1,19 @@
+/* Emergency takeover (Vita). Builds on the Health Wiki's hw-* classes. */
+.em-pad { padding: 10px 14px; }
+.em-refresh { margin-left: auto; margin-bottom: 6px; }
+.em-list { list-style: none; margin: 0; padding: 0; }
+.em-row { display: flex; gap: 16px; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.em-main { min-width: 260px; flex: 1; display: grid; gap: 4px; }
+.em-facts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.em-facts span, .em-facts a { display: inline-flex; align-items: center; gap: 4px; }
+.em-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; min-width: 160px; }
+.em-reject { display: grid; gap: 6px; width: 280px; }
+.em-row-btns { display: flex; gap: 6px; justify-content: flex-end; }
+.em-live { background: #fee2e2; color: #b91c1c; }
+.em-add { padding: 14px; margin-bottom: 16px; display: grid; gap: 10px; }
+.em-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.em-field { display: grid; gap: 4px; font-weight: 600; }
+.em-check { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+.em-caps { border: 0; padding: 0; margin: 0; }
+.em-log-places { margin: 0; padding-left: 16px; }
+.em-ack { color: #047857; }
