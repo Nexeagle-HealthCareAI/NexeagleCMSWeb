@@ -156,7 +156,6 @@ export default function ArticleEditorPage() {
     if (isNew && !SLUG_PATTERN.test(slug)) e.slug = 'Use lowercase letters, numbers and single hyphens.';
     else if (isNew && RESERVED_SLUGS.includes(slug)) e.slug = 'That address is used by the Health Wiki pages. Choose another slug.';
     if (!contentMd.trim()) e.content = 'Content cannot be empty.';
-    if (coverUrl && !coverAlt.trim()) e.cover = 'Add alt text for the cover image.';
     if (submit && authorMode === 'person' && !authorId) e.author = 'Pick the author, or choose "NexEagle team wrote it".';
     if (medical && author?.type === 'WRITER') e.author = 'A writer can only write Sector updates.';
     if (submit && medical && !reviewerId) e.reviewer = 'Pick a reviewer to submit.';
@@ -175,7 +174,7 @@ export default function ArticleEditorPage() {
       content: contentMd,
       relatedConditionSlug: medical ? condition : null,
       coverImageUrl: coverUrl,
-      coverImageAlt: coverUrl ? coverAlt.trim() : null,
+      coverImageAlt: coverUrl ? coverAlt.trim() || null : null,
       disclosure: disclosure.trim() || null,
       references: references.trim() || null,
       authorContributorId: authorId,

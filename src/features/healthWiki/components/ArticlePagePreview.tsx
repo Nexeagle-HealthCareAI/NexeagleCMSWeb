@@ -59,7 +59,7 @@ export default function ArticlePagePreview({ type, title, description, coverUrl,
             <h1>{title || <span className="dd-ph">Your article title</span>}</h1>
             <p className="dd-desc">{description || <span className="dd-ph">Short description appears here.</span>}</p>
             {coverUrl
-              ? <img className="dd-cover" src={coverUrl} alt={coverAlt} />
+              ? <img className="dd-cover" src={coverUrl} alt={coverAlt || title} />
               : <div className="dd-cover-empty">No cover image yet</div>}
             <div className="dd-trust">
               {type === 'MEDICAL' ? (

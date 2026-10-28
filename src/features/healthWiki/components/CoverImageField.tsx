@@ -55,9 +55,9 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
         <div className="hw-cover">
           <img src={url} alt="" />
           <div className="hw-cover-meta">
-            <label htmlFor="hw-cover-alt">Alt text</label>
+            <label htmlFor="hw-cover-alt">Alt text <span className="hw-opt">(optional)</span></label>
             <input id="hw-cover-alt" type="text" value={alt} maxLength={200} disabled={disabled}
-              placeholder="Describe the image for screen readers" onChange={(e) => onChange(url, e.target.value)} />
+              placeholder="Describe the image for screen readers (helps accessibility)" onChange={(e) => onChange(url, e.target.value)} />
             <div className="hw-row">
               <button type="button" className="hw-btn hw-sm" disabled={disabled || busy} onClick={() => input.current?.click()}>Replace</button>
               <button type="button" className="hw-btn hw-sm" disabled={disabled} onClick={() => onChange(null, '')}>Remove</button>
@@ -67,7 +67,7 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
       )}
       <div className="hw-hint">
         <span className="hw-err">{error}</span>
-        <span>Shown on the article card on Doctor Dekho.</span>
+        <span>Shown on the article page on Doctor Dekho. Without alt text the article title describes it.</span>
       </div>
     </div>
   );

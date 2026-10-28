@@ -223,3 +223,4 @@
 
 .hw-check { display: flex; gap: 8px; align-items: center; margin: 6px 0 12px; font-size: 13px; }
 .hw-check input { width: 16px; height: 16px; }
+.hw-opt { font-weight: 400; color: var(--text-secondary); }
