@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { errorMessage } from '../services/healthWikiService';
-import { IMAGE_ACCEPT, ImageProblem, prepareImage } from './prepareImage';
+import { IMAGE_ACCEPT, ImageProblem, checkImageFile, prepareImage } from './prepareImage';
+import CoverCropDialog from './CoverCropDialog';
 
 interface Props {
   url: string | null;
@@ -16,16 +17,31 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The picture being cropped, and the picture the current cover came from (kept so the crop can be adjusted again in this visit).
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [source, setSource] = useState<File | null>(null);
 
-  const take = async (file: File | undefined) => {
+  const fail = (e: unknown) =>
+    // Say what went wrong: a picture that cannot be used, or the server's own message (daily limit, storage not available).
+    toast.error(e instanceof ImageProblem ? e.message : errorMessage(e, 'Could not upload the picture. Try again.'));
+
+  // A chosen, dropped or pasted picture opens the crop window first.
+  const take = (file: File | undefined) => {
     if (!file || disabled || busy) return;
+    try {
+      checkImageFile(file);
+      setCropFile(file);
+    } catch (e) {
+      fail(e);
+    }
+  };
+  const upload = async (make: () => Promise<File>, original: File) => {
     setBusy(true);
     try {
-      // A big photo is made small first, so a phone picture just works.
-      onChange(await uploadImage(await prepareImage(file)), alt);
+      onChange(await uploadImage(await make()), alt);
+      setSource(original);
     } catch (e) {
-      // Say what went wrong: a picture that cannot be used, or the server's own message (daily limit, storage not available).
-      toast.error(e instanceof ImageProblem ? e.message : errorMessage(e, 'Could not upload the picture. Try again.'));
+      fail(e);
     } finally {
       setBusy(false);
     }
@@ -33,7 +49,7 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
   // Paste a picture (a screenshot, or one copied from another page) while the cover area is in focus.
   const onPaste = (e: React.ClipboardEvent) => {
     const file = Array.from(e.clipboardData.files).find((f) => f.type.startsWith('image/'));
-    if (file) { e.preventDefault(); void take(file); }
+    if (file) { e.preventDefault(); take(file); }
   };
 
   return (
@@ -63,10 +79,20 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
               placeholder="Describe the image for screen readers (helps accessibility)" onChange={(e) => onChange(url, e.target.value)} />
             <div className="hw-row">
               <button type="button" className="hw-btn hw-sm" disabled={disabled || busy} onClick={() => input.current?.click()}>Replace</button>
-              <button type="button" className="hw-btn hw-sm" disabled={disabled} onClick={() => onChange(null, '')}>Remove</button>
+              {source && <button type="button" className="hw-btn hw-sm" disabled={disabled || busy} onClick={() => setCropFile(source)}>Crop and position</button>}
+              <button type="button" className="hw-btn hw-sm" disabled={disabled} onClick={() => { onChange(null, ''); setSource(null); }}>Remove</button>
             </div>
           </div>
         </div>
+      )}
+      {cropFile && (
+        <CoverCropDialog
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onError={(message) => { setCropFile(null); toast.error(message); }}
+          onApply={(cover) => { const original = cropFile; setCropFile(null); void upload(async () => cover, original); }}
+          onSkip={() => { const original = cropFile; setCropFile(null); void upload(() => prepareImage(original), original); }}
+        />
       )}
       <div className="hw-hint">
         <span className="hw-err">{error}</span>
