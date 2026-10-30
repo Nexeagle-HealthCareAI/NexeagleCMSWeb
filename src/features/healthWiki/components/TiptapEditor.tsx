@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { Markdown } from '@tiptap/markdown';
 import { Bold, Italic, List, ListOrdered, Quote, Link2, ImagePlus, Undo2, Redo2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { validateImageFile } from './imageRules';
+import { errorMessage } from '../services/healthWikiService';
+import { IMAGE_ACCEPT, ImageProblem, prepareImage } from './prepareImage';
 
 interface Props {
   /** Initial markdown. Read once on mount; mount the editor again (key) to load a different article. */
@@ -20,10 +21,12 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkError, setLinkError] = useState('');
-  const [pending, setPending] = useState<{ url: string } | null>(null);
+  // The picture just added: where it sits in the text, and the description being typed for it (optional).
+  const [added, setAdded] = useState<{ pos: number; src: string } | null>(null);
   const [alt, setAlt] = useState('');
-  const [altError, setAltError] = useState('');
   const [uploading, setUploading] = useState(false);
+  // The editor's own paste and drop handling is set up before the editor exists, so it calls this.
+  const addPicture = useRef<(file: File) => void>(() => undefined);
 
   const editor = useEditor({
     extensions: [
@@ -36,6 +39,19 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
     editable: !disabled,
     onUpdate: ({ editor: e }) => onChange(e.getMarkdown(), e.getHTML()),
     editorProps: {
+      // A picture pasted or dropped into the text is added there, like one chosen with the button.
+      handlePaste: (_view, event) => {
+        const file = Array.from(event.clipboardData?.files ?? []).find((f) => f.type.startsWith('image/'));
+        if (!file) return false;
+        addPicture.current(file);
+        return true;
+      },
+      handleDrop: (_view, event) => {
+        const file = Array.from((event as DragEvent).dataTransfer?.files ?? []).find((f) => f.type.startsWith('image/'));
+        if (!file) return false;
+        addPicture.current(file);
+        return true;
+      },
       attributes: { class: 'hw-editor-content', role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Article content' },
     },
   });
@@ -91,33 +107,30 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
     setLinkOpen(false);
   };
 
+  // Make the picture small enough, upload it, and put it in the text at once. Describing it for screen readers can follow, or be skipped.
   const onPickImage = async (file: File | undefined) => {
-    if (!file) return;
-    const problem = validateImageFile(file);
-    if (problem) {
-      toast.error(problem);
-      return;
-    }
+    if (!file || uploading) return;
     setUploading(true);
     try {
-      const url = await uploadImage(file);
-      setPending({ url });
-      setAlt('');
-      setAltError('');
-    } catch {
-      toast.error('Could not upload the image. Try again.');
+      const src = await uploadImage(await prepareImage(file));
+      editor.chain().focus().setImage({ src, alt: '' }).run();
+      // Where it landed (an image can take the place of an empty paragraph, so the cursor position is not it).
+      let pos = -1;
+      editor.state.doc.descendants((node, at) => { if (pos < 0 && node.type.name === 'image' && node.attrs.src === src) pos = at; });
+      if (pos >= 0) { setAdded({ pos, src }); setAlt(''); }
+    } catch (e) {
+      toast.error(e instanceof ImageProblem ? e.message : errorMessage(e, 'Could not upload the picture. Try again.'));
     } finally {
       setUploading(false);
     }
   };
-  const insertImage = () => {
-    if (!pending) return;
-    if (!alt.trim()) {
-      setAltError('Add alt text so everyone can read the page.');
-      return;
+  addPicture.current = (file) => { void onPickImage(file); };
+  const saveAlt = () => {
+    if (added) {
+      const node = editor.state.doc.nodeAt(added.pos);
+      if (node?.type.name === 'image' && node.attrs.src === added.src) editor.view.dispatch(editor.state.tr.setNodeMarkup(added.pos, undefined, { ...node.attrs, alt: alt.trim() }));
     }
-    editor.chain().focus().setImage({ src: pending.url, alt: alt.trim() }).run();
-    setPending(null);
+    setAdded(null);
   };
 
   const tb = (active: boolean) => `hw-tb${active ? ' on' : ''}`;
@@ -140,7 +153,7 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
         <button type="button" className={tb(s.link)} title="Link" aria-pressed={s.link} disabled={off} onClick={openLink}><Link2 size={15} /></button>
         <label className={`hw-tb${off || uploading ? ' disabled' : ''}`} title="Insert image">
           <ImagePlus size={15} />
-          <input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={off || uploading}
+          <input type="file" accept={IMAGE_ACCEPT} hidden disabled={off || uploading}
             onChange={(e) => { onPickImage(e.target.files?.[0]); e.target.value = ''; }} />
         </label>
         <span className="hw-sep" />
@@ -161,17 +174,16 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
         </div>
       )}
 
-      {pending && (
+      {uploading && <div className="hw-inline-box" role="status">Getting your picture ready…</div>}
+      {added && (
         <div className="hw-inline-box">
-          <img src={pending.url} alt="" className="hw-inline-thumb" />
+          <img src={added.src} alt="" className="hw-inline-thumb" />
           <div className="hw-grow">
-            <label htmlFor="hw-img-alt">Alt text</label>
-            <input id="hw-img-alt" type="text" value={alt} maxLength={200} placeholder="What the image shows" autoFocus
-              onChange={(e) => setAlt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && insertImage()} />
-            {altError && <span className="hw-err">{altError}</span>}
+            <label htmlFor="hw-img-alt">Picture added. Describe it for screen readers <span className="hw-opt">(optional)</span></label>
+            <input id="hw-img-alt" type="text" value={alt} maxLength={200} placeholder="What the picture shows"
+              onChange={(e) => setAlt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveAlt()} />
           </div>
-          <button type="button" className="hw-btn hw-btn-primary hw-sm" onClick={insertImage}>Insert</button>
-          <button type="button" className="hw-btn hw-sm" onClick={() => setPending(null)}>Cancel</button>
+          <button type="button" className="hw-btn hw-btn-primary hw-sm" onClick={saveAlt}>{alt.trim() ? 'Save' : 'Done'}</button>
         </div>
       )}
 

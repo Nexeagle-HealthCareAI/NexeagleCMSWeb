@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { validateImageFile } from './imageRules';
+import { errorMessage } from '../services/healthWikiService';
+import { IMAGE_ACCEPT, ImageProblem, prepareImage } from './prepareImage';
 
 interface Props {
   url: string | null;
@@ -17,26 +18,28 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
   const [busy, setBusy] = useState(false);
 
   const take = async (file: File | undefined) => {
-    if (!file || disabled) return;
-    const problem = validateImageFile(file);
-    if (problem) {
-      toast.error(problem);
-      return;
-    }
+    if (!file || disabled || busy) return;
     setBusy(true);
     try {
-      onChange(await uploadImage(file), alt);
-    } catch {
-      toast.error('Could not upload the image. Try again.');
+      // A big photo is made small first, so a phone picture just works.
+      onChange(await uploadImage(await prepareImage(file)), alt);
+    } catch (e) {
+      // Say what went wrong: a picture that cannot be used, or the server's own message (daily limit, storage not available).
+      toast.error(e instanceof ImageProblem ? e.message : errorMessage(e, 'Could not upload the picture. Try again.'));
     } finally {
       setBusy(false);
     }
   };
+  // Paste a picture (a screenshot, or one copied from another page) while the cover area is in focus.
+  const onPaste = (e: React.ClipboardEvent) => {
+    const file = Array.from(e.clipboardData.files).find((f) => f.type.startsWith('image/'));
+    if (file) { e.preventDefault(); void take(file); }
+  };
 
   return (
-    <div className="hw-field">
+    <div className="hw-field" onPaste={onPaste}>
       <span className="hw-label">Cover image</span>
-      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden
+      <input ref={input} type="file" accept={IMAGE_ACCEPT} hidden
         onChange={(e) => { take(e.target.files?.[0]); e.target.value = ''; }} />
       {!url ? (
         <div
@@ -48,8 +51,8 @@ export default function CoverImageField({ url, alt, disabled, error, onChange, u
           onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); take(e.dataTransfer.files[0]); }}
         >
-          <b>{busy ? 'Uploading…' : 'Add a cover image'}</b>
-          Drop a file here or click to choose. JPG, PNG or WebP, up to 2 MB. 16:9 works best.
+          <b>{busy ? 'Getting your picture ready…' : 'Add a cover image'}</b>
+          Drop, paste or click to choose a picture. Big photos are made smaller for you. 16:9 works best.
         </div>
       ) : (
         <div className="hw-cover">
