@@ -10,6 +10,7 @@ import {
 import StatusPill from '../components/StatusPill';
 import TiptapEditor from '../components/TiptapEditor';
 import CoverImageField from '../components/CoverImageField';
+import ConditionField from '../components/ConditionField';
 import ContributorPicker from '../components/ContributorPicker';
 import ArticlePagePreview from '../components/ArticlePagePreview';
 import SendLinkRow from '../components/SendLinkRow';
@@ -380,13 +381,7 @@ export default function ArticleEditorPage() {
 
         <div className="hw-panel hw-card">
           {medical && (
-            <div className="hw-field">
-              <label className="hw-label" htmlFor="hw-cond">Related condition</label>
-              <select id="hw-cond" value={condition ?? ''} disabled={locked} onChange={(e) => setCondition(e.target.value || null)}>
-                <option value="">None</option>
-                {conditions.map((c) => <option key={c} value={c}>{c.replace(/-/g, ' ')}</option>)}
-              </select>
-            </div>
+            <ConditionField key={routeSlug ?? 'new'} value={condition} options={conditions} disabled={locked} onChange={setCondition} />
           )}
           <div className="hw-field">
             <span className="hw-label" id="hw-author-label">Written by</span>
