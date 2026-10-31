@@ -19,7 +19,6 @@ vi.mock('./CoverCropDialog', () => ({
 }));
 
 import CoverImageField from './CoverImageField';
-import { ImageProblem } from './prepareImage';
 
 const photo = new File([new Uint8Array(8_000_000)], 'IMG_1.jpg', { type: 'image/jpeg' });
 const chooser = (c: HTMLElement) => c.querySelector('input[type="file"]') as HTMLInputElement;
