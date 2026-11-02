@@ -11,6 +11,7 @@
     font-weight: 700;
 }
 .doctor-badge-listed { background: #dbeafe; color: #1d4ed8; }
+.doctor-badge-notlive { background: #ffedd5; color: #c2410c; }
 .doctor-badge-featured { background: #fef3c7; color: #b45309; }
 .doctor-badge-discount { background: #dcfce7; color: #16a34a; }
 .doctor-badge-delisted { background: #fee2e2; color: #dc2626; }

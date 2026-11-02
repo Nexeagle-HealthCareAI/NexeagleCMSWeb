@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getBookingFunnelStats, type BookingFunnelStats } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
+import { todayIst } from '../utils/istDate';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
-
-const toDateInputValue = (d: Date): string => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
 
 const pct = (numerator: number, denominator: number): string =>
     denominator > 0 ? `${Math.round((numerator / denominator) * 100)}%` : '—';
@@ -21,7 +17,7 @@ export const BookingFunnelPanel: React.FC = () => {
 
     useEffect(() => {
         if (mode === 'custom' && (!customFrom || !customTo)) return;
-        const today = toDateInputValue(new Date());
+        const today = todayIst();
         const from = mode === 'today' ? today : mode === 'custom' ? customFrom : undefined;
         const to = mode === 'today' ? today : mode === 'custom' ? customTo : undefined;
 
@@ -38,28 +34,29 @@ export const BookingFunnelPanel: React.FC = () => {
         <div>
             <InsightsExplainer>
                 <p>
-                    <strong>What this is:</strong> what happens once a visitor starts looking for a
-                    doctor — from search, to opening a profile, to actually completing a booking.
+                    <strong>What this is:</strong> what people do once they start looking for a doctor, from
+                    searching, to opening a doctor's profile, to booking.
                 </p>
                 <p>
-                    <strong>Search-to-View Rate</strong> = profile views ÷ searches. A low rate can mean
-                    your doctor/specialty data doesn't match what people are actually searching for, or
-                    there simply aren't enough doctors listed in the categories being searched — not
-                    necessarily that search itself is broken.
+                    <strong>How it is counted:</strong> each number is de-duplicated per visit (one browsing
+                    session). A search counts once per distinct query in a visit, a profile once per doctor in a
+                    visit, and each booking step once per doctor in a visit, however often the page reloaded or the
+                    visitor went back and forth.
                 </p>
                 <p>
-                    <strong>Booking Funnel Drop-off</strong> shows the exact step people abandon at. A big
-                    drop between Confirm Details and Success usually means the details form itself is the
-                    problem (too many fields, unclear mobile validation). A drop right after Profile View
-                    means people are browsing but not ready to commit to a date yet. There is deliberately
-                    no separate payment step — this product is pay-at-hospital-counter, so Success is the
-                    final step.
+                    <strong>Searched → opened a profile</strong> is the share of visits that searched and then
+                    opened at least one doctor's profile. A low share means people are not finding a doctor they
+                    want in the results: missing doctors or specialties in their area, or results that do not match
+                    what they typed.
                 </p>
                 <p>
-                    <strong>Specialty Demand</strong> is the most actionable table here: it shows which
-                    specialties get the most traffic (searches + views) versus which ones actually convert
-                    into completed bookings. High traffic with low completions for a specialty is a strong
-                    signal you don't have enough — or the right — doctors onboarded in that category.
+                    <strong>Bookings saved</strong> comes from the appointments table and is the real number.
+                    "Booked" in the funnel is what tracking saw; it can be lower because ad blockers stop some
+                    tracking calls. There is no payment step: patients pay at the hospital counter.
+                </p>
+                <p>
+                    Counts people only: search-engine crawlers, link previews and data-centre traffic are left
+                    out. Dates are India time (IST).
                 </p>
             </InsightsExplainer>
 
@@ -89,38 +86,40 @@ export const BookingFunnelPanel: React.FC = () => {
                     <div className="insights-stat-grid">
                         <div className="insights-stat-card">
                             <div className="insights-stat-value">{stats.searchCount.toLocaleString()}</div>
-                            <div className="insights-stat-label">Searches Performed</div>
+                            <div className="insights-stat-label">Searches ({(stats.searchSessionCount ?? 0).toLocaleString()} visits)</div>
                         </div>
                         <div className="insights-stat-card">
                             <div className="insights-stat-value">{stats.profileViewCount.toLocaleString()}</div>
-                            <div className="insights-stat-label">Doctor Profile Views</div>
+                            <div className="insights-stat-label">Doctor profiles opened</div>
                         </div>
                         <div className="insights-stat-card">
                             <div className="insights-stat-value" style={{ color: '#1d4ed8' }}>{stats.searchToViewRatePct}%</div>
-                            <div className="insights-stat-label">Search-to-View Rate</div>
+                            <div className="insights-stat-label">Searched → opened a profile</div>
+                        </div>
+                        <div className="insights-stat-card">
+                            <div className="insights-stat-value" style={{ color: '#16a34a' }}>{(stats.bookingsRecorded ?? 0).toLocaleString()}</div>
+                            <div className="insights-stat-label">Bookings saved (appointments table)</div>
                         </div>
                     </div>
 
                     <div className="insights-mini-table-card" style={{ marginBottom: 16 }}>
-                        <h3 className="insights-mini-table-title">Booking Funnel Drop-off</h3>
+                        <h3 className="insights-mini-table-title">From profile to booking</h3>
                         <div className="insights-mini-row">
-                            <span className="insights-mini-row-label">Profile Viewed</span>
+                            <span className="insights-mini-row-label">Opened a doctor's profile</span>
                             <span className="insights-mini-row-value">{stats.profileViewCount.toLocaleString()}</span>
                         </div>
                         <div className="insights-mini-row">
-                            <span className="insights-mini-row-label">Date/Time Selected — {pct(stats.visitStepCount, stats.profileViewCount)} of views</span>
-                            <span className="insights-mini-row-value">{stats.visitStepCount.toLocaleString()}</span>
-                        </div>
-                        <div className="insights-mini-row">
-                            <span className="insights-mini-row-label">Confirm Details — {pct(stats.detailsStepCount, stats.visitStepCount)} of prior step</span>
+                            <span className="insights-mini-row-label">Chose a date and time: {pct(stats.detailsStepCount, stats.profileViewCount)} of profiles opened</span>
                             <span className="insights-mini-row-value">{stats.detailsStepCount.toLocaleString()}</span>
                         </div>
                         <div className="insights-mini-row">
-                            <span className="insights-mini-row-label">Booking Success — {pct(stats.doneStepCount, stats.detailsStepCount)} of prior step</span>
+                            <span className="insights-mini-row-label">Booked: {pct(stats.doneStepCount, stats.detailsStepCount)} of those</span>
                             <span className="insights-mini-row-value">{stats.doneStepCount.toLocaleString()}</span>
                         </div>
                         <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 10, marginBottom: 0 }}>
-                            No separate payment step — this product is pay-at-hospital-counter, confirmed at the front desk.
+                            Each row is one doctor per visit. {stats.bookingsRecorded > stats.doneStepCount
+                                ? `${(stats.bookingsRecorded - stats.doneStepCount).toLocaleString()} saved bookings were not seen by tracking (ad blockers, or bookings from another page).`
+                                : 'Tracking saw every saved booking in this period.'}
                         </p>
                     </div>
 
@@ -130,9 +129,9 @@ export const BookingFunnelPanel: React.FC = () => {
                                 <thead>
                                     <tr>
                                         <th>Specialty</th>
-                                        <th>Searches</th>
-                                        <th>Profile Views</th>
-                                        <th>Completed Bookings</th>
+                                        <th>Visits that searched it</th>
+                                        <th>Profiles opened</th>
+                                        <th>Booked</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -140,7 +139,7 @@ export const BookingFunnelPanel: React.FC = () => {
                                         <tr><td colSpan={4} style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>No specialty-tagged activity yet.</td></tr>
                                     ) : stats.specialtyDemand.map((s, i) => (
                                         <tr key={i} className="premium-row">
-                                            <td style={{ fontWeight: 600, textTransform: 'capitalize' }}>{s.specialtyId}</td>
+                                            <td style={{ fontWeight: 600, textTransform: 'capitalize' }}>{s.specialtyId.replace(/[-_]+/g, ' ')}</td>
                                             <td>{s.searchCount.toLocaleString()}</td>
                                             <td>{s.profileViewCount.toLocaleString()}</td>
                                             <td style={{ fontWeight: 700, color: '#16a34a' }}>{s.completedBookingCount.toLocaleString()}</td>

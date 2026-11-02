@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Search, Plus, AlertCircle, Building2, User, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { salesLeadService, type SalesLeadSummary, type SalesLeadFilter, type LeadStage, type LeadPriority } from '../../marketing/services/salesLeadService';
-import { adminService, type UserSummary } from '../../admin/services/adminService';
+import { adminService, type Assignee } from '../../admin/services/adminService';
 import { AddLeadDrawer } from './AddLeadDrawer';
 import { LeadDetailDrawer } from './LeadDetailDrawer';
 import { formatDateTimeIST } from '../utils/formatters';
@@ -31,7 +31,7 @@ export const LeadsPipeline: React.FC = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [users, setUsers] = useState<UserSummary[]>([]);
+    const [users, setUsers] = useState<Assignee[]>([]);
 
     // Filters
     const [stage, setStage] = useState<LeadStage | ''>('');
@@ -46,7 +46,7 @@ export const LeadsPipeline: React.FC = () => {
 
     // Initial load for users
     useEffect(() => {
-        adminService.getUsers()
+        adminService.getAssignees()
             .then(res => setUsers(res))
             .catch(console.error);
     }, []);

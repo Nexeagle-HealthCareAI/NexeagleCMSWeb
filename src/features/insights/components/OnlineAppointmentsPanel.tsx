@@ -1,14 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle2, UserX } from 'lucide-react';
-import { getOnlineAppointments, type OnlineAppointmentItem } from '../services/insightsService';
+import { getOnlineAppointments, type OnlineAppointmentItem, type AppointmentDateBy } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
+import { todayIst } from '../utils/istDate';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
-
-const toDateInputValue = (d: Date): string => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
 
 const formatDateTime = (iso: string): string => {
     const d = new Date(iso);
@@ -25,6 +21,7 @@ export const OnlineAppointmentsPanel: React.FC = () => {
     const [customFrom, setCustomFrom] = useState('');
     const [customTo, setCustomTo] = useState('');
     const [source, setSource] = useState('');
+    const [dateBy, setDateBy] = useState<AppointmentDateBy>('booked');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
@@ -40,13 +37,13 @@ export const OnlineAppointmentsPanel: React.FC = () => {
 
     const fetchAppointments = useCallback(async () => {
         if (dateMode === 'custom' && (!customFrom || !customTo)) return;
-        const today = toDateInputValue(new Date());
+        const today = todayIst();
         const from = dateMode === 'today' ? today : dateMode === 'custom' ? customFrom : undefined;
         const to = dateMode === 'today' ? today : dateMode === 'custom' ? customTo : undefined;
 
         try {
             setLoading(true);
-            const response = await getOnlineAppointments(currentPage, itemsPerPage, from, to, search, sortConfig.key, sortConfig.direction, source);
+            const response = await getOnlineAppointments(currentPage, itemsPerPage, from, to, search, sortConfig.key, sortConfig.direction, source, dateBy);
             setItems(response.data);
             setTotalPages(response.pagination.totalPages);
             setTotalItems(response.pagination.totalItems);
@@ -55,7 +52,7 @@ export const OnlineAppointmentsPanel: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, search, sortConfig, dateMode, customFrom, customTo, source]);
+    }, [currentPage, search, sortConfig, dateMode, customFrom, customTo, source, dateBy]);
 
     useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
 
@@ -83,6 +80,11 @@ export const OnlineAppointmentsPanel: React.FC = () => {
                     but a rising share of Logged-in bookings over time means WhatsApp login is becoming
                     trusted, load-bearing infrastructure rather than a hurdle patients skip past.
                 </p>
+                <p>
+                    Dates can filter by the day the booking was made or by the appointment date (India time).
+                    Status is the appointment's current status in the hospital's system, so cancellations and
+                    no-shows show here too.
+                </p>
             </InsightsExplainer>
 
             <div className="insights-filter-row">
@@ -107,6 +109,17 @@ export const OnlineAppointmentsPanel: React.FC = () => {
                         <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="insights-date-input" />
                     </>
                 )}
+                <select
+                    className="premium-filter-select"
+                    value={dateBy}
+                    onChange={(e) => { setDateBy(e.target.value as AppointmentDateBy); setCurrentPage(1); }}
+                    aria-label="Dates refer to"
+                    disabled={dateMode === 'all'}
+                    title="Which date the filter uses"
+                >
+                    <option value="booked">By booking date</option>
+                    <option value="appointment">By appointment date</option>
+                </select>
                 <select
                     className="premium-filter-select"
                     value={source}

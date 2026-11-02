@@ -1,0 +1,72 @@
+/* AI Agents tab (Doctor Dekho page). Builds on VitaAgents.css (vita-* classes). */
+
+.ra-page .vita-head { flex-wrap: wrap; gap: 12px; }
+.ra-status { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ra-controls { margin-bottom: 14px; flex-wrap: wrap; }
+
+.ra-tab-badge {
+    margin-left: 6px;
+    background: #eb6834;
+    color: #fff;
+    border-radius: 99px;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 1px 7px;
+}
+
+/* the learning loop */
+.ra-loop {
+    list-style: none;
+    margin: 4px 0 12px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+}
+.ra-loop-step {
+    position: relative;
+    background: var(--vita-soft);
+    border: 1px solid var(--vita-line);
+    border-radius: 12px;
+    padding: 12px 12px 14px;
+}
+.ra-loop-num { font-size: 22px; font-weight: 800; color: var(--vita-accent); line-height: 1.1; }
+.ra-loop-title { font-weight: 700; font-size: 13px; margin: 6px 0 4px; display: flex; align-items: center; gap: 6px; }
+.ra-loop-idx {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #e0edff; color: var(--vita-accent);
+    font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ra-loop-text { font-size: 12px; color: var(--vita-muted); line-height: 1.4; }
+.ra-loop-arrow { position: absolute; right: -15px; top: 18px; color: #94a3b8; background: #fff; border-radius: 50%; z-index: 1; }
+.ra-note { margin: 0; }
+.ra-verdict { margin-top: 10px; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; }
+.ra-verdict.ok { background: var(--vita-good-bg); color: #14532d; }
+.ra-verdict.kept { background: var(--vita-warn-bg); color: #78350f; }
+
+.ra-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ra-primary { background: var(--vita-accent); border-color: var(--vita-accent); color: #fff; }
+.ra-primary:hover:not(:disabled) { background: #1f63b5; color: #fff; }
+
+.ra-source { font-weight: 600; text-align: left; }
+.ra-source.active { text-decoration: underline; }
+.ra-source-hint { flex: 1; margin: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ra-status-tabs { margin-bottom: 12px; flex-wrap: wrap; }
+
+.ra-phrase { font-size: 13.5px; color: var(--vita-ink); line-height: 1.4; }
+.ra-actions { min-width: 300px; }
+.ra-select { max-width: 190px; padding: 5px 8px; font-size: 12.5px; margin-right: 6px; }
+.ra-approve { border-color: #86efac; color: #15803d; }
+.ra-approve:hover:not(:disabled) { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+
+@media (max-width: 1100px) {
+    .ra-loop { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ra-loop-arrow { display: none; }
+}
+@media (max-width: 640px) {
+    .ra-loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ra-actions { min-width: 220px; }
+}
+
+.ra-emergency-note { color: #9a3412; background: #fff7ed; border-radius: 6px; padding: 4px 8px; margin: 4px 0; }
+.ra-model-mark { font-size: 10px; }

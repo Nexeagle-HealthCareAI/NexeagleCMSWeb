@@ -2,13 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Sparkles } from 'lucide-react';
 import { getSearchLog, type SearchLogItem } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
+import { todayIst } from '../utils/istDate';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
-
-const toDateInputValue = (d: Date): string => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
 
 const formatDateTime = (iso: string): string => {
     const d = new Date(iso);
@@ -39,7 +35,7 @@ export const SearchLogPanel: React.FC = () => {
 
     const fetchSearches = useCallback(async () => {
         if (dateMode === 'custom' && (!customFrom || !customTo)) return;
-        const today = toDateInputValue(new Date());
+        const today = todayIst();
         const from = dateMode === 'today' ? today : dateMode === 'custom' ? customFrom : undefined;
         const to = dateMode === 'today' ? today : dateMode === 'custom' ? customTo : undefined;
 
@@ -75,7 +71,7 @@ export const SearchLogPanel: React.FC = () => {
                     <strong>What this is:</strong> a raw, real-time log of every single search a visitor
                     performs on Doctor Dekho — free-text queries (a symptom or doctor name) and/or a
                     specialty filter — along with how many results it returned, whether the AI fallback
-                    kicked in (meaning the plain keyword match found nothing), and the visitor's region.
+                    kicked in (meaning the plain keyword match found nothing), and the visitor's approximate region (from their internet address).
                 </p>
                 <p>
                     <strong>How to use it:</strong> this is your rawest trend data for onboarding decisions.
@@ -83,6 +79,10 @@ export const SearchLogPanel: React.FC = () => {
                     a doctor/specialty you don't have listed yet in that area, or a search term your
                     platform doesn't recognize as a synonym for an existing specialty. The AI fallback badge
                     flags exactly those "found nothing obvious" cases worth reviewing first.
+                </p>
+                <p>
+                    Counts people only: search-engine crawlers, link previews and data-centre traffic are left
+                    out. Dates are India time (IST).
                 </p>
             </InsightsExplainer>
 

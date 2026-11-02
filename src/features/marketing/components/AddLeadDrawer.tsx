@@ -7,12 +7,12 @@ import {
     type LeadPriority,
     type LeadSource,
 } from '../services/salesLeadService';
-import type { UserSummary } from '../../admin/services/adminService';
+import type { Assignee } from '../../admin/services/adminService';
 
 interface AddLeadDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    users: UserSummary[];
+    users: Assignee[];
     onCreated: () => void;
 }
 

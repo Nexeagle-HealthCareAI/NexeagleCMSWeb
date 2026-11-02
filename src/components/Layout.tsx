@@ -7,6 +7,8 @@ import { useAuthStore } from '../store/useAuthStore';
 import { Toaster, toast } from 'sonner';
 import { syncManager } from '../utils/syncManager';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { CRM_HUB_URL } from '../services/api';
+import type { SalesLeadDetail } from '../features/marketing/services/salesLeadService';
 import './Layout.css';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -92,10 +94,9 @@ const Layout: React.FC = () => {
             }
         };
 
-        const handleOnline = () => {
-            setIsOnline(true);
-            syncManager.sync();
-        };
+        // Replaying the offline queue is owned by syncManager's own 'online' listener; calling
+        // sync() here too used to replay every queued mutation twice on a slow reconnect.
+        const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
 
         const handleQueueUpdate = (e: any) => {
@@ -123,19 +124,29 @@ const Layout: React.FC = () => {
         };
     }, []);
 
+    // Live support: only agents (live-support.view) connect; the hub refuses everyone else. The
+    // connection is closed again on logout or if the permission is removed.
     const initSupport = useSupportStore(state => state.initConnection);
+    const stopSupport = useSupportStore(state => state.disconnect);
+    const isSupportAgent = permissions.includes('live-support.view');
 
     useEffect(() => {
+        if (!isSupportAgent) return;
         initSupport();
-    }, [initSupport]);
+        return () => stopSupport();
+    }, [isSupportAgent, initSupport, stopSupport]);
 
     // Refresh the current user's permissions on app load so route/menu gating stays current.
     useEffect(() => {
         void useAuthStore.getState().fetchMe();
     }, []);
 
-    // SignalR for Hot Leads
+    // SignalR for CRM alerts. The hub requires a JWT with marketing.view (it pushes lead phone
+    // numbers), so only connect for users who have it. Event names must match CrmHub.cs.
+    const canSeeMarketing = permissions.includes('marketing.view');
     useEffect(() => {
+        if (!canSeeMarketing) return;
+
         const playBeep = () => {
             try {
                 const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -153,22 +164,23 @@ const Layout: React.FC = () => {
             }
         };
 
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002/api/v1';
-        const hubUrl = apiUrl.replace('/api/v1', '/hubs/crm');
-
         const connection = new HubConnectionBuilder()
-            .withUrl(hubUrl)
+            .withUrl(CRM_HUB_URL, { accessTokenFactory: () => useAuthStore.getState().token ?? '' })
             .configureLogging(LogLevel.Warning)
             .withAutomaticReconnect()
             .build();
 
-        connection.on("ReceiveHotLead", (lead: any) => {
+        connection.on('crm-hot-lead-received', (lead: SalesLeadDetail) => {
             playBeep();
-            toast.success(`🔥 HOT LEAD ALERT: ${lead.facilityName} (${lead.aiIntentScore}/100)`, {
-                description: `Phone: ${lead.phoneNumber} | City: ${lead.city}`,
+            toast.success(`🔥 HOT LEAD ALERT: ${lead.hospitalName} (${lead.aiIntentScore}/100)`, {
+                description: `Phone: ${lead.mobile ?? '-'} | City: ${lead.city ?? '-'}`,
                 duration: 10000,
             });
             window.dispatchEvent(new CustomEvent('crm-hot-lead-received', { detail: lead }));
+        });
+
+        connection.on('crm-inbound-whatsapp', (msg: { leadId: string; message: string }) => {
+            window.dispatchEvent(new CustomEvent('crm-inbound-whatsapp', { detail: msg }));
         });
 
         connection.start().catch(err => console.error("SignalR CRM connection failed:", err));
@@ -176,7 +188,7 @@ const Layout: React.FC = () => {
         return () => {
             connection.stop();
         };
-    }, []);
+    }, [canSeeMarketing]);
 
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);

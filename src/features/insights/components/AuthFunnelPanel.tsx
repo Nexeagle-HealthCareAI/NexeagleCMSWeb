@@ -5,13 +5,9 @@ import {
     type AuthFunnelStats, type AuthFunnelAttemptItem
 } from '../services/insightsService';
 import { InsightsExplainer } from './InsightsExplainer';
+import { todayIst } from '../utils/istDate';
 
 type DateFilterMode = 'today' | 'all' | 'custom';
-
-const toDateInputValue = (d: Date): string => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
 
 const formatDateTime = (iso: string | null): string => {
     if (!iso) return '—';
@@ -51,7 +47,7 @@ export const AuthFunnelPanel: React.FC = () => {
 
     const effectiveRange = useCallback((): { from?: string; to?: string } => {
         if (mode === 'custom' && (!customFrom || !customTo)) return {};
-        const today = toDateInputValue(new Date());
+        const today = todayIst();
         const from = mode === 'today' ? today : mode === 'custom' ? customFrom : undefined;
         const to = mode === 'today' ? today : mode === 'custom' ? customTo : undefined;
         return { from, to };
@@ -95,8 +91,8 @@ export const AuthFunnelPanel: React.FC = () => {
                     Every ad rupee spent is wasted if this funnel leaks.
                 </p>
                 <p>
-                    <strong>Login Initiation Rate</strong> = visitors who opened the login form ÷ all
-                    visitor sessions. A low rate usually means the login prompt isn't visible or
+                    <strong>Login Initiation Rate</strong> = visits where the login form was opened ÷ all
+                    Doctor Dekho visits (a visit is one browsing session, ending after 30 minutes away). A low rate usually means the login prompt isn't visible or
                     compelling enough — not that the OTP flow itself is broken.
                 </p>
                 <p>
@@ -113,6 +109,10 @@ export const AuthFunnelPanel: React.FC = () => {
                 <p>
                     Every row below is a real attempt, mobile number included, so you can see exactly who
                     bounced and when — not just an aggregate percentage.
+                </p>
+                <p>
+                    Counts people only: search-engine crawlers, link previews and data-centre traffic are left
+                    out. Dates are India time (IST).
                 </p>
             </InsightsExplainer>
 
@@ -207,7 +207,7 @@ export const AuthFunnelPanel: React.FC = () => {
                                         {item.outcome === 'Verified' ? (
                                             <span className="insights-badge insights-badge-loggedin"><CheckCircle2 size={12} /> Verified</span>
                                         ) : (
-                                            <span className="insights-badge insights-badge-guest"><XCircle size={12} /> Bounced</span>
+                                            <span className="insights-badge insights-badge-guest"><XCircle size={12} /> Not verified</span>
                                         )}
                                     </td>
                                     <td>{formatSeconds(item.timeToAuthenticateSeconds)}</td>

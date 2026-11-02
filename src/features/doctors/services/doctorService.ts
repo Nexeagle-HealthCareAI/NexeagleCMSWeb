@@ -21,6 +21,10 @@ export interface DoctorListItem {
     discountEndAt: string | null;
     // From UserAuth.LastLoginTime (UTC ISO string) — null if the doctor has never logged in.
     lastLoginTime: string | null;
+    // Whether the doctor actually shows on Doctor Dekho now (listed, not delisted, account not
+    // revoked, linked to an active hospital); notLiveReason says why not.
+    isLiveOnDoctorDekho?: boolean;
+    notLiveReason?: string | null;
 }
 
 export interface DoctorsResponse {

@@ -230,3 +230,109 @@
     color: #94a3b8;
     font-size: 13px;
 }
+
+/* ── Site Visits (2026-10) ─────────────────────────────────────────────── */
+.insights-section-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 4px 0 10px;
+}
+.insights-range-note {
+    font-size: 12px;
+    color: #64748b;
+    margin: -6px 0 12px;
+}
+.insights-card-note {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin: -6px 0 10px;
+    line-height: 1.4;
+}
+.insights-title-icon {
+    vertical-align: -2px;
+    margin-right: 6px;
+    color: #2563eb;
+}
+.insights-stat-card-muted {
+    background: #f8fafc;
+}
+.insights-stat-card-muted .insights-stat-value {
+    color: #64748b;
+}
+.insights-share-row {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    margin: 2px -8px;
+    font-size: 13px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.insights-share-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: #eff6ff;
+    border-radius: 6px;
+    z-index: 0;
+}
+.insights-share-row > span {
+    position: relative;
+    z-index: 1;
+}
+.insights-share-parent {
+    color: #94a3b8;
+    font-weight: 400;
+}
+.insights-share-pct {
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 11px;
+    margin-left: 4px;
+}
+.insights-mini-row-head {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.insights-trend {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 140px;
+    padding-top: 6px;
+}
+.insights-trend-col {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    cursor: default;
+}
+.insights-trend-bar {
+    width: 100%;
+    background: #3b82f6;
+    border-radius: 3px 3px 0 0;
+    transition: background 0.15s;
+}
+.insights-trend-col:hover .insights-trend-bar {
+    background: #1d4ed8;
+}
+.insights-trend-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+.insights-filter-toggle {
+    flex-wrap: wrap;
+}
+.insights-filter-btn {
+    white-space: nowrap;
+}

@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X, BadgeCheck } from 'lucide-react';
+import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X, BadgeCheck, AlertTriangle } from 'lucide-react';
 import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../services/doctorService';
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
 import { BulkEditModal } from '../components/BulkEditModal';
 import { InsightsTab } from '../../insights/components/InsightsTab';
-import { SymptomRouterTab } from '../../insights/components/SymptomRouterTab';
+import { RouterAgentsTab } from '../../routerAgents/pages/RouterAgentsTab';
 import '../../dashboard/pages/Dashboard.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './DoctorsPage.css';
@@ -43,6 +43,20 @@ const isDiscountActive = (doctor: DoctorListItem): boolean => {
     if (doctor.discountStartAt && now < new Date(doctor.discountStartAt).getTime()) return false;
     if (doctor.discountEndAt && now > new Date(doctor.discountEndAt).getTime()) return false;
     return true;
+};
+
+// "Live" only when the doctor really appears on Doctor Dekho (server applies the public directory's
+// rules). Listed-but-not-live gets a warning badge with the reason, instead of a misleading "Listed".
+const LiveBadge: React.FC<{ doctor: DoctorListItem }> = ({ doctor }) => {
+    if (!doctor.isPubliclyListed || doctor.isDelistedByAdmin) return null;
+    const live = doctor.isLiveOnDoctorDekho ?? true;   // older API: fall back to the listed flag
+    return live ? (
+        <span className="doctor-badge doctor-badge-listed" title="Shows on Doctor Dekho"><Eye size={12} /> Live</span>
+    ) : (
+        <span className="doctor-badge doctor-badge-notlive" title={doctor.notLiveReason ?? 'Not showing on Doctor Dekho'}>
+            <AlertTriangle size={12} /> Not live{doctor.notLiveReason ? `: ${doctor.notLiveReason}` : ''}
+        </span>
+    );
 };
 
 interface EditFormState {
@@ -214,12 +228,12 @@ const DoctorsPage: React.FC = () => {
                     className={`doctor-page-tab-btn ${pageTab === 'nlp' ? 'active' : ''}`}
                     onClick={() => setPageTab('nlp')}
                 >
-                    NLP
+                    AI Agents
                 </button>
             </div>
 
             {pageTab === 'insights' && <InsightsTab />}
-            {pageTab === 'nlp' && <SymptomRouterTab />}
+            {pageTab === 'nlp' && <RouterAgentsTab />}
 
             {pageTab === 'doctors' && (
             <div className="premium-table-card">
@@ -332,9 +346,7 @@ const DoctorsPage: React.FC = () => {
                                                     {doctor.isRegistrationVerified && (
                                                         <span className="doctor-badge doctor-badge-verified" title={`Verified on ${formatLastLogin(doctor.registrationVerifiedAt)}`}><BadgeCheck size={12} /> Verified</span>
                                                     )}
-                                                    {doctor.isPubliclyListed && !doctor.isDelistedByAdmin && (
-                                                        <span className="doctor-badge doctor-badge-listed" title="Listed on Doctor Dekho"><Eye size={12} /> Listed</span>
-                                                    )}
+                                                    <LiveBadge doctor={doctor} />
                                                     {doctor.isFeatured && (
                                                         <span className="doctor-badge doctor-badge-featured"><Star size={12} /> Featured</span>
                                                     )}
@@ -394,9 +406,7 @@ const DoctorsPage: React.FC = () => {
                                         {doctor.isRegistrationVerified && (
                                             <span className="doctor-badge doctor-badge-verified" title="Registration verified"><BadgeCheck size={12} /> Verified</span>
                                         )}
-                                        {doctor.isPubliclyListed && !doctor.isDelistedByAdmin && (
-                                            <span className="doctor-badge doctor-badge-listed" title="Listed on Doctor Dekho"><Eye size={12} /> Listed</span>
-                                        )}
+                                        <LiveBadge doctor={doctor} />
                                         {doctor.isFeatured && (
                                             <span className="doctor-badge doctor-badge-featured" title="Featured"><Star size={12} /> Featured</span>
                                         )}

@@ -100,7 +100,11 @@ export interface ModelInfo {
     lastRetrainedAt: string | null;
     trainingRowCount: number | null;
     validationRowCount: number | null;
+    /** Only the retired classifier published these; the current router (hms_router) does not. */
     validationMetrics: ValidationMetrics | null;
+    /** Current router: rows used to build the model, per training file. */
+    emergencyRows?: number | null;
+    sources?: Record<string, number> | null;
 }
 
 export const getModelInfo = async (): Promise<ModelInfo> => {

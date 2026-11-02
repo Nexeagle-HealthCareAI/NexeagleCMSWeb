@@ -32,6 +32,12 @@ export interface UserSummary {
     roles: string[];
 }
 
+/** Minimal user shape for "assigned to" pickers (GET /users/assignees, marketing.view). */
+export interface Assignee {
+    userId: string;
+    fullName: string;
+}
+
 export interface UserDetail extends UserSummary {
     roleIds: string[];
     overrides: PermissionOverride[];
@@ -39,6 +45,7 @@ export interface UserDetail extends UserSummary {
 
 export const adminService = {
     getUsers: () => api.get<UserSummary[]>(API_ENDPOINTS.ADMIN.USERS).then((r) => r.data),
+    getAssignees: () => api.get<Assignee[]>(API_ENDPOINTS.ADMIN.ASSIGNEES).then((r) => r.data),
     getUser: (id: string) => api.get<UserDetail>(`${API_ENDPOINTS.ADMIN.USERS}/${id}`).then((r) => r.data),
     createUser: (p: { email: string; fullName: string; password: string; roleIds: string[] }) =>
         api.post<UserDetail>(API_ENDPOINTS.ADMIN.USERS, p).then((r) => r.data),
