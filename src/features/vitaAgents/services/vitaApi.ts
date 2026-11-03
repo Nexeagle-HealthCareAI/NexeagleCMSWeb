@@ -3,6 +3,20 @@ import { api } from '../../../services/api';
 import { API_ENDPOINTS } from '../../../services/endpoints';
 import type {
     VitaAddRepoRequest,
+    VitaAgentCard,
+    VitaAgentExample,
+    VitaAgentOutcome,
+    VitaAgentStep,
+    VitaAgentStats,
+    VitaAgentTryRequest,
+    VitaAgentsList,
+    VitaAiEvals,
+    VitaBaseline,
+    VitaBaselinePreview,
+    VitaBaselineRequest,
+    VitaBaselineWritten,
+    VitaCalibration,
+    VitaReplayResult,
     VitaAddRepoResponse,
     VitaAuditEntry,
     VitaCase,
@@ -128,6 +142,30 @@ export const vitaApi = {
         data<VitaModelVersion>(await api.post(`${V.CLASSIFIER}/${enc(id)}/retire`, { reason })),
     digestPreview: async (days = 7) => data<VitaDigestPreview>(await api.get(V.DIGEST, { params: { days }, ...FRESH })),
     digestSend: async () => data<VitaDigestSendResponse>(await api.post(`${V.DIGEST}/send`, {}, { timeout: 900_000 })),
+
+    // Agents tab: cards, health, the playground (try needs vita.manage; llm mode spends model tokens and is audited), a run's
+    // steps and their replay, and the Judge's calibration against people's relabels.
+    agents: async () => data<VitaAgentsList>(await api.get(V.AGENTS, FRESH)),
+    agentStats: async (days = 7) => data<{ days: number; agents: Record<string, VitaAgentStats> }>(await api.get(`${V.AGENTS}/stats`, { params: { days }, ...FRESH })),
+    agent: async (name: string) => data<VitaAgentCard>(await api.get(`${V.AGENTS}/${enc(name)}`)),
+    agentExample: async (name: string, example: string) => data<VitaAgentExample>(await api.get(`${V.AGENTS}/${enc(name)}/examples/${enc(example)}`)),
+    tryAgent: async (name: string, body: VitaAgentTryRequest) =>
+        data<VitaAgentOutcome>(await api.post(`${V.AGENTS}/${enc(name)}/try`, body, { timeout: 120_000 })),
+    runSteps: async (runId: string) => data<{ run_id: string; steps: VitaAgentStep[] }>(await api.get(`${V.AGENTS}/runs/${enc(runId)}/steps`, FRESH)),
+    agentStep: async (stepId: string) => data<VitaAgentStep>(await api.get(`${V.AGENTS}/steps/${enc(stepId)}`)),
+    replayStep: async (stepId: string, mode: 'replay' | 'rules' | 'llm') =>
+        data<VitaReplayResult>(await api.post(`${V.AGENTS}/steps/${enc(stepId)}/replay`, { mode }, { timeout: 120_000 })),
+    calibration: async (days = 90) => data<VitaCalibration>(await api.get(`${V.AGENTS}/calibration`, { params: { days }, ...FRESH })),
+
+    // Known findings (vita-baseline.txt). Preview needs vita.manage; writing needs vita.approve (listed failures stop blocking).
+    baseline: async (repo: string) => data<VitaBaseline>(await api.get(`${V.REPOS}/${enc(repo)}/baseline`, FRESH)),
+    previewBaseline: async (repo: string, body: VitaBaselineRequest) =>
+        data<VitaBaselinePreview>(await api.post(`${V.REPOS}/${enc(repo)}/baseline/preview`, body)),
+    writeBaseline: async (repo: string, body: VitaBaselineRequest) =>
+        data<VitaBaselineWritten>(await api.post(`${V.REPOS}/${enc(repo)}/baseline`, body)),
+
+    // AI agents under test (ai-agent skill pack): the newest result per agent x suite.
+    aiEvals: async (repo?: string) => data<VitaAiEvals>(await api.get(V.AI_EVALS, { params: { repo: repo || undefined }, ...FRESH })),
 };
 
 /** SignalR hub for run updates (VitaHub.cs): same origin as the API, outside the /api/v1 prefix, JWT with vita.view. */

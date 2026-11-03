@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Activity, CalendarClock, GraduationCap, ListChecks, PlayCircle, Radar, Settings2 } from 'lucide-react';
+import { Activity, Bot, CalendarClock, GraduationCap, ListChecks, MessagesSquare, PlayCircle, Radar, Settings2, ShieldCheck } from 'lucide-react';
 import { VitaMascot } from './VitaMascot';
 import VitaAerie from './VitaAerie';
 import { useVitaActivity } from './useVitaActivity';
 import '../../insights/components/Insights.css';
 import '../pages/VitaAgents.css';
 import './testAgent.css';
+import './vitaQuality.css';
 
 // Shell for the Vita Test Agent pages: header + sub-tabs; each tab is a nested route (see App.tsx, /vita/*).
 const TABS: { to: string; label: string; icon: React.ComponentType<{ size?: number }>; end?: boolean }[] = [
@@ -14,6 +15,9 @@ const TABS: { to: string; label: string; icon: React.ComponentType<{ size?: numb
     { to: '/vita/runs', label: 'Runs', icon: PlayCircle },
     { to: '/vita/cases', label: 'Cases', icon: ListChecks },
     { to: '/vita/coverage', label: 'Coverage', icon: Radar },
+    { to: '/vita/known', label: 'Known findings', icon: ShieldCheck },
+    { to: '/vita/agents', label: 'Agents', icon: Bot },
+    { to: '/vita/ai', label: 'AI agents', icon: MessagesSquare },
     { to: '/vita/schedules', label: 'Schedules', icon: CalendarClock },
     { to: '/vita/learning', label: 'Learning', icon: GraduationCap },
     { to: '/vita/settings', label: 'Settings', icon: Settings2 },

@@ -7,6 +7,7 @@ import { TRIGGERS, VERDICT_LABELS, type VitaRepo, type VitaResult, type VitaRun,
 import { ms, shortId, useLoad, when } from '../components/format';
 import { Empty, ErrorBox, Pill } from '../components/shared';
 import { isRunActive, resultTone, TRIGGER_LABEL, useVitaAccess, useVitaHub, verdictLabel, verdictTone } from '../components/testAgent';
+import RunAgentSteps from '../components/RunAgentSteps';
 
 const POLL_MS = 5_000;
 const VERDICTS: { id: VitaRunVerdict | 'running'; label: string }[] = [
@@ -22,6 +23,7 @@ const RunDetail: React.FC<{ repo: string; run: VitaRun; onFinished: () => void }
     const [results, setResults] = React.useState<VitaResult[] | null>(null);
     const [err, setErr] = React.useState<string | null>(null);
     const [showReport, setShowReport] = React.useState(false);
+    const [view, setView] = React.useState<'results' | 'agents'>('results');
     const [labelling, setLabelling] = React.useState<string | null>(null);
     const { canApprove } = useVitaAccess();
     const active = isRunActive(detail?.status ?? run.status);
@@ -105,7 +107,20 @@ const RunDetail: React.FC<{ repo: string; run: VitaRun; onFinished: () => void }
 
             {err && <ErrorBox message={err} />}
 
-            {!active && results && (
+            {!active && (
+                <div className="vita-tabs-inline" role="group" aria-label="Run view">
+                    <button type="button" aria-pressed={view === 'results'} onClick={() => setView('results')}>
+                        Results{results ? ` (${results.length})` : ''}
+                    </button>
+                    <button type="button" aria-pressed={view === 'agents'} onClick={() => setView('agents')}>
+                        How the agents worked
+                    </button>
+                </div>
+            )}
+
+            {!active && view === 'agents' && <RunAgentSteps runId={run.id} />}
+
+            {!active && view === 'results' && results && (
                 <div className="vita-scroll">
                     {results.length === 0 ? (
                         <Empty>No results were recorded for this run.</Empty>

@@ -111,6 +111,8 @@ export const API_ENDPOINTS = {
         RESULTS: '/vita/results',
         CLASSIFIER: '/vita/classifier',
         DIGEST: '/vita/digest',
+        AGENTS: '/vita/agents',
+        AI_EVALS: '/vita/ai-evals',
     },
     SYMPTOM_ROUTER: {
         TRAINING_EXAMPLES: '/symptom-router/training-examples',   // GET ?page=&limit=&specialist=&search= | POST | PUT /:id | DELETE /:id

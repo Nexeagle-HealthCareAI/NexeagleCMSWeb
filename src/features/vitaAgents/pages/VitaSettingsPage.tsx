@@ -1,4 +1,5 @@
 import React from 'react';
+import OnboardSteps from '../components/OnboardSteps';
 import { Archive, CheckCircle2, FolderGit2, KeyRound, Plus, Power, RefreshCw, RotateCw, ScrollText, ShieldAlert, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { vitaApi, vitaApiError } from '../services/vitaApi';
@@ -123,6 +124,7 @@ const AddRepoPanel: React.FC<{ onDone: () => void; onCancel: () => void }> = ({ 
                     )}
                 </div>
             )}
+            {added && <OnboardSteps added={added} />}
             <div className="vita-ta-actions">
                 <button className="vita-btn vita-btn-primary" onClick={submit} disabled={saving || !path.trim()}>
                     <Plus size={14} /> {saving ? 'Validating and discovering…' : 'Add repo'}

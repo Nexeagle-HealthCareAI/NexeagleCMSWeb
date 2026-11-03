@@ -1,0 +1,139 @@
+/* Agents, Known findings, AI agents tabs, the run timeline and the onboarding steps. Builds on VitaAgents.css + testAgent.css. */
+
+.vita-new-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6d28d9;
+    background: #f3e8ff;
+    border-radius: 6px;
+    padding: 1px 5px;
+    margin-left: 4px;
+}
+
+/* ---- onboarding steps ---- */
+.vita-steps { list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 720px) { .vita-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.vita-step { display: flex; gap: 10px; align-items: center; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--vita-line); background: var(--vita-soft); font-size: 13px; font-weight: 600; }
+.vita-step small { display: block; font-weight: 500; color: var(--vita-muted); font-size: 12px; }
+.vita-step-n { width: 26px; height: 26px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; background: #e2e8f0; color: #334155; flex: none; }
+.vita-step-done { background: #ecfdf5; border-color: #a7f3d0; }
+.vita-step-done .vita-step-n { background: #047857; color: #fff; }
+.vita-step-now { background: #eef2ff; border: 2px solid var(--vita-accent); }
+.vita-step-now .vita-step-n { background: var(--vita-accent); color: #fff; }
+.vita-onboard { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+.vita-onboard > div { flex: 3 1 380px; min-width: 0; }
+.vita-onboard > aside { flex: 2 1 280px; min-width: 0; }
+.vita-skill-row { display: flex; gap: 10px; align-items: center; min-height: 40px; font-size: 13px; }
+.vita-skill-row span:nth-child(2) { flex: 1 1 auto; }
+.vita-file {
+    margin: 6px 0 0;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    max-height: 260px;
+    overflow: auto;
+    white-space: pre;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ---- agents ---- */
+.vita-agents { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.vita-agent { display: flex; flex-direction: column; gap: 8px; }
+.vita-agent p { margin: 0; font-size: 13px; color: var(--vita-ink-2); line-height: 1.45; }
+.vita-mixbar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: #f1f5f9; }
+.vita-mixbar span { display: block; height: 100%; }
+.vita-mix-llm { background: #4f46e5; }
+.vita-mix-rules { background: #93c5fd; }
+.vita-mix-fallback { background: #f59e0b; }
+.vita-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--vita-muted); }
+.vita-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.vita-flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.vita-flow { border: 1px solid var(--vita-line); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: var(--vita-ink-2); }
+.vita-flow strong { display: block; font-size: 13px; color: var(--vita-ink); margin-bottom: 3px; }
+.vita-confusion { border-collapse: collapse; font-size: 12.5px; }
+.vita-confusion th, .vita-confusion td { border: 1px solid var(--vita-line); padding: 6px 9px; text-align: center; }
+.vita-confusion th { background: var(--vita-soft); font-weight: 600; color: var(--vita-muted); }
+.vita-confusion td.vita-diag { background: var(--vita-good-bg); font-weight: 800; }
+.vita-confusion td.vita-miss { background: var(--vita-warn-bg); }
+
+/* ---- playground ---- */
+.vita-try { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; align-items: start; }
+.vita-json {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 300px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    border: 1px solid var(--vita-line);
+    border-radius: 8px;
+    padding: 10px;
+    background: #fbfbfd;
+    color: var(--vita-ink);
+}
+.vita-json-invalid { border-color: #fca5a5; }
+.vita-pre {
+    margin: 6px 0 0;
+    background: var(--vita-soft);
+    border: 1px solid var(--vita-line);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    max-height: 280px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.vita-seg { display: inline-flex; border: 1px solid var(--vita-line); border-radius: 8px; overflow: hidden; }
+.vita-seg label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.vita-seg label + label { border-left: 1px solid var(--vita-line); }
+.vita-checks-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.vita-checks-list li { display: flex; gap: 8px; align-items: flex-start; }
+
+/* ---- run timeline ---- */
+.vita-tl { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); gap: 14px; align-items: start; margin-top: 10px; }
+@media (max-width: 900px) { .vita-tl { grid-template-columns: 1fr; } }
+.vita-tl ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.vita-tl ol ol { margin: 6px 0 0; padding-left: 14px; border-left: 2px solid var(--vita-line); }
+.vita-tl-step { width: 100%; text-align: left; display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; background: none; font: inherit; color: inherit; cursor: pointer; }
+.vita-tl-step:hover { background: var(--vita-soft); }
+.vita-tl-step.on { border-color: var(--vita-accent); background: #eff6ff; }
+.vita-tl-step.err { background: #fef2f2; }
+.vita-who { font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 6px; padding: 3px 7px; min-width: 70px; text-align: center; flex: none; background: #e2e8f0; color: #334155; }
+.vita-who-planner, .vita-who-generator { background: #e0e7ff; color: #3730a3; }
+.vita-who-executor { background: #dbeafe; color: #1e40af; }
+.vita-who-judge, .vita-who-classifier { background: #fce7f3; color: #9d174d; }
+.vita-who-gate { background: #fef3c7; color: #92400e; }
+.vita-who-learner, .vita-who-reporter { background: #dcfce7; color: #166534; }
+.vita-tl-title { font-size: 13.5px; font-weight: 600; }
+.vita-tl-meta { font-size: 12px; color: var(--vita-muted); margin-top: 2px; }
+.vita-tl-side { position: sticky; top: 12px; }
+.vita-diff { font-size: 12px; border-collapse: collapse; width: 100%; }
+.vita-diff td, .vita-diff th { border-bottom: 1px solid var(--vita-line); padding: 4px 6px; text-align: left; vertical-align: top; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.vita-tabs-inline { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+.vita-tabs-inline button { font: inherit; font-size: 12.5px; font-weight: 600; border: 1px solid var(--vita-line); background: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer; color: var(--vita-ink-2); }
+.vita-tabs-inline button[aria-pressed='true'] { background: var(--vita-ink); border-color: var(--vita-ink); color: #fff; }
+
+/* ---- AI agents ---- */
+.vita-ai-matrix th[scope='row'] { white-space: nowrap; }
+.vita-ai-cell { display: block; text-align: center; border-radius: 8px; padding: 7px 6px; font-weight: 800; font-size: 13px; border: none; width: 100%; cursor: pointer; font-family: inherit; }
+.vita-ai-ok { background: var(--vita-good-bg); color: var(--vita-good); }
+.vita-ai-bad { background: var(--vita-bad-bg); color: var(--vita-bad); }
+.vita-ai-na { background: #f1f5f9; color: #64748b; cursor: default; }
+.vita-ai-cell.on { outline: 2px solid var(--vita-accent); outline-offset: 1px; }
+.vita-alert { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #fca5a5; background: #fef2f2; border-radius: 12px; padding: 12px 14px; font-size: 13.5px; }
+.vita-alert-good { border-color: #a7f3d0; background: #f0fdf4; }
+.vita-transcript { display: flex; flex-direction: column; gap: 6px; }
+.vita-transcript .vita-bubble { max-width: 85%; }
+.vita-sev-critical { background: var(--vita-bad-bg); color: var(--vita-bad); }
+.vita-ai-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .vita-ai-split { grid-template-columns: 1fr; } }
+
+/* ten tabs: wrap instead of a row that scrolls with its scrollbar hidden (the last tabs were out of sight) */
+.vita-ta .insights-subtabs { display: flex; flex-wrap: wrap; overflow: visible; }
