@@ -1,0 +1,206 @@
+/* The aerie: Vita's eagles at home on the cliff and at work on the board. */
+.vita-aerie {
+    position: relative;
+    overflow: hidden;
+    margin: 4px 0 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: #f1f5f9;
+}
+.vita-aerie__sky { position: absolute; inset: 0; width: 100%; height: 100%; }
+.vita-aerie__cliff { position: absolute; left: 0; bottom: 0; }
+.vita-aerie__cloud {
+    position: absolute;
+    width: 90px;
+    height: 26px;
+    border-radius: 999px;
+    background: #fff;
+    opacity: 0.85;
+    box-shadow: 30px -10px 0 -2px #fff, 56px 2px 0 -6px #fff;
+    animation: vita-cloud 60s linear infinite;
+}
+.vita-aerie__cloud--a { top: 22px; left: 30%; }
+.vita-aerie__cloud--b { top: 58px; left: 70%; transform: scale(0.7); animation-duration: 85s; animation-delay: -30s; }
+@keyframes vita-cloud {
+    from { translate: 0 0; }
+    to { translate: -120vw 0; }
+}
+
+/* work board */
+.vita-aerie__board {
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    border: 1px dashed #b6c6dc;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(2px);
+}
+.vita-aerie__board-title {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+.vita-aerie__board-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    color: #94a3b8;
+}
+.vita-aerie__job {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid #dbe4f0;
+    border-left: 4px solid #2a78d6;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 12px;
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(15, 35, 70, 0.08);
+    animation: vita-job-in 0.4s ease-out;
+}
+.vita-aerie__job strong { overflow: hidden; color: #0f172a; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.vita-aerie__job--queued { border-left-color: #94a3b8; }
+.vita-aerie__job--running { border-left-color: #2a78d6; }
+.vita-aerie__job--green { border-left-color: #16a34a; }
+.vita-aerie__job--red { border-left-color: #dc2626; }
+.vita-aerie__job--done { animation: vita-job-in 0.4s ease-out, vita-job-out 0.6s ease-in 8.4s forwards; }
+@keyframes vita-job-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes vita-job-out { to { opacity: 0; } }
+
+.vita-aerie__caption {
+    position: absolute;
+    left: 14px;
+    bottom: 8px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(15, 35, 70, 0.72);
+    color: #fff;
+    font-size: 12px;
+}
+
+/* eagles */
+.vita-eagle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    transform: translate(var(--tx), var(--ty));
+}
+.vita-eagle__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 6px rgba(15, 35, 70, 0.25));
+    transform-origin: 50% 85%;
+}
+.vita-eagle--home .vita-eagle__img { animation: vita-perch 5s ease-in-out infinite; }
+@keyframes vita-perch {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    40% { transform: translateY(-1px) rotate(-3deg); }
+    70% { transform: translateY(0) rotate(2deg); }
+}
+.vita-eagle--queued .vita-eagle__img { animation: vita-hover 2.4s ease-in-out infinite; }
+.vita-eagle--running .vita-eagle__img { animation: vita-work 0.8s ease-in-out infinite; }
+@keyframes vita-hover {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-5px) rotate(-8deg); }
+}
+@keyframes vita-work {
+    0%, 100% { transform: translateY(0) rotate(0deg) skewX(0deg); }
+    25% { transform: translateY(-4px) rotate(-3deg) skewX(-2deg); }
+    75% { transform: translateY(-5px) rotate(3deg) skewX(2deg); }
+}
+.vita-eagle--green .vita-eagle__img,
+.vita-eagle--red .vita-eagle__img,
+.vita-eagle--neutral .vita-eagle__img { animation: vita-cheer 1.4s ease-out 1; }
+@keyframes vita-cheer {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-9px); }
+    50% { transform: translateY(0); }
+    65% { transform: translateY(-4px); }
+}
+
+/* flight: from (--fx,--fy) up over (--mx,--my) down to (--tx,--ty), wings flapping */
+.vita-eagle--flying { animation: vita-flight 2.6s cubic-bezier(0.45, 0.05, 0.4, 1) forwards; z-index: 3; }
+@keyframes vita-flight {
+    0% { transform: translate(var(--fx), var(--fy)); }
+    50% { transform: translate(var(--mx), var(--my)) scale(1.12); }
+    100% { transform: translate(var(--tx), var(--ty)); }
+}
+.vita-eagle--flying .vita-eagle__img { animation: vita-flap 0.32s ease-in-out infinite; }
+.vita-eagle--flying .vita-eagle__img--left { animation-name: vita-flap-left; }
+@keyframes vita-flap {
+    0%, 100% { transform: rotate(-8deg) scaleY(1); }
+    50% { transform: rotate(5deg) scaleY(0.9); }
+}
+@keyframes vita-flap-left {
+    0%, 100% { transform: scaleX(-1) rotate(-8deg) scaleY(1); }
+    50% { transform: scaleX(-1) rotate(5deg) scaleY(0.9); }
+}
+
+.vita-eagle__bubble {
+    position: absolute;
+    top: -10px;
+    right: -18px;
+    display: flex;
+    gap: 3px;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(15, 35, 70, 0.18);
+}
+.vita-eagle__bubble i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #2a78d6;
+    animation: vita-dot 1.2s ease-in-out infinite;
+}
+.vita-eagle__bubble i:nth-child(2) { animation-delay: 0.15s; }
+.vita-eagle__bubble i:nth-child(3) { animation-delay: 0.3s; }
+.vita-eagle__orbit { position: absolute; inset: -10%; animation: vita-spin 2.2s linear infinite; pointer-events: none; }
+.vita-eagle__orbit i {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #5eead4 0%, #2a78d6 70%);
+    box-shadow: 0 0 6px rgba(94, 234, 212, 0.9);
+}
+.vita-eagle__orbit i:nth-child(1) { top: 0; left: 50%; }
+.vita-eagle__orbit i:nth-child(2) { bottom: 8%; left: 4%; }
+.vita-eagle__orbit i:nth-child(3) { bottom: 8%; right: 4%; }
+.vita-eagle__badge {
+    position: absolute;
+    right: -6px;
+    bottom: 2px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+.vita-eagle__badge--green { background: #16a34a; }
+.vita-eagle__badge--red { background: #dc2626; }
+
+@media (max-width: 720px) {
+    .vita-aerie__caption { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .vita-aerie *, .vita-eagle, .vita-eagle__img { animation: none !important; }
+}
