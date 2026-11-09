@@ -51,7 +51,7 @@ describe('Articles list', () => {
 });
 
 describe('Article editor', () => {
-  it('builds a slug from the title and blocks submit without content, author and reviewer', async () => {
+  it('builds a slug from the title and blocks submit without content and reviewer, and lets the content team submit with no author', async () => {
     renderAt('/health-wiki/new');
     const title = await screen.findByLabelText('Title');
     await userEvent.type(title, 'Healthy Heart Tips');
@@ -59,7 +59,7 @@ describe('Article editor', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Submit for review' }));
     expect(await screen.findByText('Content cannot be empty.')).toBeInTheDocument();
     expect(screen.getByText('Pick a reviewer to submit.')).toBeInTheDocument();
-    expect(screen.getByText('Pick an author to submit.')).toBeInTheDocument();
+    expect(screen.getByText(/Pick the author, or choose/)).toBeInTheDocument();
   });
 
   it('hides the reviewer and condition for a Sector update', async () => {
@@ -106,6 +106,66 @@ describe('Article editor', () => {
     const approve = await screen.findByRole('button', { name: 'Approve and publish' });
     await userEvent.click(approve);
     expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
+  });
+
+  it('offers both controls on a live article: pull it back to review, or take it down', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    const pull = await screen.findByRole('button', { name: 'Pull back to review' });
+    expect(screen.getByRole('button', { name: 'Take down' })).toBeInTheDocument();
+    await userEvent.click(pull);
+    expect(await screen.findByText(/Add a reason/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(/Reason for pulling it back/), 'Check the dose');
+    await userEvent.click(pull);
+    expect(await screen.findByText(/Pulled back to review by the team/)).toBeInTheDocument();
+    expect(screen.queryByText(/Published and visible on Doctor Dekho/)).toBeNull();
+  });
+
+  it('takes a live article down to a draft', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    await userEvent.type(await screen.findByLabelText(/Reason for pulling it back/), 'Wrong advice');
+    await userEvent.click(screen.getByRole('button', { name: 'Take down' }));
+    await waitFor(() => expect(screen.queryByText(/Published and visible on Doctor Dekho/)).toBeNull());
+    expect(await screen.findByRole('button', { name: 'Save draft' })).toBeEnabled();
+  });
+
+  it('lets the team put a pulled-back article back live, with a reason', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    await userEvent.type(await screen.findByLabelText(/Reason for pulling it back/), 'Check the dose');
+    await userEvent.click(screen.getByRole('button', { name: 'Pull back to review' }));
+    const up = await screen.findByRole('button', { name: 'Put back live' });
+    await userEvent.click(up);
+    expect(await screen.findByText(/Add a reason/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(/Reason for putting it back live/), 'Dose checked');
+    await userEvent.click(up);
+    expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
+  });
+
+  it('lets the team bring back an article it took down', async () => {
+    renderAt('/health-wiki/diabetes-type-2');
+    await userEvent.type(await screen.findByLabelText(/Reason for pulling it back/), 'Wrong advice');
+    await userEvent.click(screen.getByRole('button', { name: 'Take down' }));
+    const up = await screen.findByRole('button', { name: 'Put back live' });
+    await userEvent.type(screen.getByLabelText(/Reason for putting it back live/), 'Fixed');
+    await userEvent.click(up);
+    expect(await screen.findByText(/Published and visible on Doctor Dekho/)).toBeInTheDocument();
+  });
+
+  it('tells the team who suggested the topic and that any verified doctor can review it', async () => {
+    const svc = (await import('../services/mockHealthWiki')).mockHealthWiki;
+    const first = (await svc.list()).find((x) => x.slug === 'thyroid-basics')!;
+    Object.assign(first, { suggestedByName: 'Dr. Asha Menon' });
+    renderAt('/health-wiki/thyroid-basics');
+    expect(await screen.findByText(/suggested by/)).toBeInTheDocument();
+    expect(screen.getByText(/any other verified doctor/)).toBeInTheDocument();
+  });
+
+  it('lets the team say it wrote the article itself, so no contributor author is needed', async () => {
+    renderAt('/health-wiki/new');
+    await userEvent.click(await screen.findByRole('radio', { name: 'NexEagle team wrote it' }));
+    expect(screen.getByText(/no contributor author/)).toBeInTheDocument();
+    expect(screen.queryByText('Author')).toBeNull();
+    await userEvent.click(screen.getByRole('radio', { name: 'A contributor' }));
+    expect(screen.getByText('Author')).toBeInTheDocument();
   });
 
   it('needs a reason to return an article to draft', async () => {

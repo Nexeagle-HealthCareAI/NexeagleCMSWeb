@@ -10,6 +10,7 @@ import {
 import StatusPill from '../components/StatusPill';
 import TiptapEditor from '../components/TiptapEditor';
 import CoverImageField from '../components/CoverImageField';
+import ConditionField from '../components/ConditionField';
 import ContributorPicker from '../components/ContributorPicker';
 import ArticlePagePreview from '../components/ArticlePagePreview';
 import SendLinkRow from '../components/SendLinkRow';
@@ -44,6 +45,8 @@ export default function ArticleEditorPage() {
   const [historyKey, setHistoryKey] = useState(0);
 
   const [status, setStatus] = useState<ArticleStatus>('DRAFT');
+  const [hold, setHold] = useState(false);
+  const [suggestedBy, setSuggestedBy] = useState<string | null>(null);
   const [type, setType] = useState<ArticleType>('MEDICAL');
   const [reviewerComment, setReviewerComment] = useState<string | null>(null);
   const [slug, setSlug] = useState('');
@@ -59,6 +62,8 @@ export default function ArticleEditorPage() {
   const [disclosure, setDisclosure] = useState('');
   const [references, setReferences] = useState('');
   const [authorId, setAuthorId] = useState<string | null>(null);
+  // Who wrote it: a contributor, or the NexEagle team on a doctor's behalf (a topic a doctor suggested). The team has no contributor record.
+  const [authorMode, setAuthorMode] = useState<'person' | 'team'>('person');
   const [reviewerId, setReviewerId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,6 +86,8 @@ export default function ArticleEditorPage() {
           setDisclosure(article.disclosure ?? '');
           setReferences(article.references ?? '');
           setStatus(article.status);
+          setHold(!!article.holdForReview);
+          setSuggestedBy(article.suggestedByName ?? null);
           setType(article.type);
           setReviewerComment(article.reviewerComment ?? null);
           setSlug(article.slug);
@@ -92,6 +99,7 @@ export default function ArticleEditorPage() {
           setCoverUrl(article.coverImageUrl);
           setCoverAlt(article.coverImageAlt ?? '');
           setAuthorId(article.authorContributorId);
+          setAuthorMode(article.authorContributorId ? 'person' : 'team');
           setReviewerId(article.reviewerContributorId);
         }
       } catch (e) {
@@ -149,9 +157,8 @@ export default function ArticleEditorPage() {
     if (isNew && !SLUG_PATTERN.test(slug)) e.slug = 'Use lowercase letters, numbers and single hyphens.';
     else if (isNew && RESERVED_SLUGS.includes(slug)) e.slug = 'That address is used by the Health Wiki pages. Choose another slug.';
     if (!contentMd.trim()) e.content = 'Content cannot be empty.';
-    if (coverUrl && !coverAlt.trim()) e.cover = 'Add alt text for the cover image.';
+    if (submit && authorMode === 'person' && !authorId) e.author = 'Pick the author, or choose "NexEagle team wrote it".';
     if (medical && author?.type === 'WRITER') e.author = 'A writer can only write Sector updates.';
-    if (submit && !authorId) e.author = 'Pick an author to submit.';
     if (submit && medical && !reviewerId) e.reviewer = 'Pick a reviewer to submit.';
     return e;
   };
@@ -168,7 +175,7 @@ export default function ArticleEditorPage() {
       content: contentMd,
       relatedConditionSlug: medical ? condition : null,
       coverImageUrl: coverUrl,
-      coverImageAlt: coverUrl ? coverAlt.trim() : null,
+      coverImageAlt: coverUrl ? coverAlt.trim() || null : null,
       disclosure: disclosure.trim() || null,
       references: references.trim() || null,
       authorContributorId: authorId,
@@ -184,6 +191,7 @@ export default function ArticleEditorPage() {
       if (isNew) navigate(`/health-wiki/${saved.slug}`, { replace: true });
       else {
         setStatus(saved.status);
+        setHold(!!saved.holdForReview);
         setReviewerComment(null);
       }
     } catch (err) {
@@ -202,6 +210,47 @@ export default function ArticleEditorPage() {
       setVersion((v) => v + 1);
     } catch (err) {
       toast.error(errorMessage(err, 'Could not approve the article.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const takeOffline = async (pullBack: boolean) => {
+    if (reason.trim().length < 3) {
+      setReasonError('Add a reason. It is kept in the audit trail and shown to the author.');
+      return;
+    }
+    setReasonError('');
+    setSaving(true);
+    try {
+      if (pullBack) await healthWikiService.pullBack(routeSlug!, reason.trim());
+      else await healthWikiService.unpublish(routeSlug!, reason.trim());
+      toast.success(pullBack ? 'Taken down and put back in review' : 'Taken down and returned to draft');
+      setReason('');
+      setHistoryKey((k) => k + 1);
+      setVersion((v) => v + 1);
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not change the status.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const putBackLive = async () => {
+    if (reason.trim().length < 3) {
+      setReasonError('Add a reason. It is kept in the history and the author is told.');
+      return;
+    }
+    setReasonError('');
+    setSaving(true);
+    try {
+      await healthWikiService.pullUp(routeSlug!, reason.trim());
+      toast.success('Back live on Doctor Dekho');
+      setReason('');
+      setHistoryKey((k) => k + 1);
+      setVersion((v) => v + 1);
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not put the article back live.'));
     } finally {
       setSaving(false);
     }
@@ -239,6 +288,8 @@ export default function ArticleEditorPage() {
     );
   }
 
+  // A medical article pulled back to review has no reviewer yet: the team picks one and sends it on.
+  const canAssignReviewer = !isNew && medical && status === 'IN_REVIEW' && !reviewer;
   const waitingOn = medical ? (reviewer?.fullName ?? 'the reviewer') : 'a CMS editor';
   const independent = [author, medical ? reviewer : null].filter((p): p is Contributor => !!p && p.type === 'INDEPENDENT_DOCTOR');
   const sendRows = independent.filter((p, i, l) => l.findIndex((x) => x.contributorId === p.contributorId) === i);
@@ -259,6 +310,8 @@ export default function ArticleEditorPage() {
         <button type="button" role="tab" aria-selected={view === 'preview'} className={view === 'preview' ? 'on' : ''} onClick={() => setView('preview')}>Page preview</button>
       </div>
 
+      {view === 'edit' && medical && suggestedBy && <div className="hw-banner info">This topic was suggested by <b>{suggestedBy}</b>, who is the default reviewer. You can choose any other verified doctor in the Reviewer list; they are told that {suggestedBy} suggested the topic. Readers see only the reviewing doctor, never who suggested it.</div>}
+      {view === 'edit' && status === 'IN_REVIEW' && hold && <div className="hw-banner info">Pulled back to review by the team. {medical ? 'Choose a doctor reviewer below; the article goes live again once they approve it.' : 'Approve it below when it is right.'} The author cannot publish it alone until then.</div>}
       {view === 'edit' && status === 'IN_REVIEW' && <div className="hw-banner info">Waiting for {waitingOn} to {medical ? 'review in EasyHMS' : 'approve'}. Editing is locked until a decision.</div>}
       {view === 'edit' && status === 'PUBLISHED' && <div className="hw-banner ok">Published and visible on Doctor Dekho. Content is read-only here.</div>}
       {view === 'edit' && status === 'DRAFT' && reviewerComment && <div className="hw-banner warn"><b>Comment:</b> {reviewerComment}</div>}
@@ -328,27 +381,52 @@ export default function ArticleEditorPage() {
 
         <div className="hw-panel hw-card">
           {medical && (
-            <div className="hw-field">
-              <label className="hw-label" htmlFor="hw-cond">Related condition</label>
-              <select id="hw-cond" value={condition ?? ''} disabled={locked} onChange={(e) => setCondition(e.target.value || null)}>
-                <option value="">None</option>
-                {conditions.map((c) => <option key={c} value={c}>{c.replace(/-/g, ' ')}</option>)}
-              </select>
-            </div>
+            <ConditionField key={routeSlug ?? 'new'} value={condition} options={conditions} disabled={locked} onChange={setCondition} />
           )}
-          <ContributorPicker label="Author" options={authorOptions} value={authorId} disabled={locked} error={errors.author}
-            hint="Only verified or approved people." onChange={setAuthorId} />
+          <div className="hw-field">
+            <span className="hw-label" id="hw-author-label">Written by</span>
+            <div className="hw-seg" role="radiogroup" aria-labelledby="hw-author-label" style={{ display: 'flex', width: '100%' }}>
+              <button type="button" role="radio" aria-checked={authorMode === 'person'} className={authorMode === 'person' ? 'on' : ''} disabled={locked} style={{ flex: 1 }}
+                onClick={() => setAuthorMode('person')}>A contributor</button>
+              <button type="button" role="radio" aria-checked={authorMode === 'team'} className={authorMode === 'team' ? 'on' : ''} disabled={locked} style={{ flex: 1 }}
+                onClick={() => { setAuthorMode('team'); setAuthorId(null); }}>NexEagle team wrote it</button>
+            </div>
+            {authorMode === 'person' ? (
+              <ContributorPicker label="Author" options={authorOptions} value={authorId} disabled={locked} error={errors.author}
+                hint="Only verified or approved people." onChange={setAuthorId} />
+            ) : (
+              <p className="hw-sub">The NexEagle team wrote this on behalf of the doctor who suggested the topic, so there is no contributor author. Readers see "Written by the NexEagle Health Wiki team".</p>
+            )}
+          </div>
           {medical && (
-            <ContributorPicker label="Reviewer" required options={reviewerOptions} value={reviewerId} disabled={locked} error={errors.reviewer}
+            <ContributorPicker label="Reviewer" required options={reviewerOptions} value={reviewerId} disabled={locked && !canAssignReviewer} error={errors.reviewer}
               hint="Verified doctors only. The doctor reviews in EasyHMS or from a WhatsApp link." onChange={setReviewerId} />
           )}
           {sendRows.map((p) => (
             <SendLinkRow key={p.contributorId} contributor={p} articleSlug={isNew ? undefined : routeSlug} onSent={replacePerson} />
           ))}
+          {canAssignReviewer && (
+            <div className="hw-actions">
+              <button type="button" className="hw-btn hw-btn-primary" disabled={saving || !reviewerId} onClick={() => save(true)}>Assign reviewer</button>
+            </div>
+          )}
           <div className="hw-actions">
             <button type="button" className="hw-btn" disabled={locked || saving} onClick={() => save(false)}>Save draft</button>
             <button type="button" className="hw-btn hw-btn-primary" disabled={locked || saving} onClick={() => save(true)}>Submit for review</button>
           </div>
+
+          {!isNew && !locked && hold && (
+            <div className="hw-decision">
+              <h2>Editor actions</h2>
+              <p className="hw-sub">The team took this article offline. You can put it back live without another review; the author is told and the history shows who did it.</p>
+              <div className="hw-field">
+                <label className="hw-label" htmlFor="hw-reason">Reason for putting it back live</label>
+                <input id="hw-reason" type="text" value={reason} placeholder="Kept in the history" onChange={(e) => setReason(e.target.value)} />
+                {reasonError && <span className="hw-err">{reasonError}</span>}
+              </div>
+              <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={putBackLive}>Put back live</button>
+            </div>
+          )}
 
           {!isNew && locked && (
             <div className="hw-decision">
@@ -357,11 +435,21 @@ export default function ArticleEditorPage() {
                 <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={approve}>Approve and publish</button>
               )}
               <div className="hw-field">
-                <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for taking it down' : 'Reason for returning it'}</label>
+                <label className="hw-label" htmlFor="hw-reason">{status === 'PUBLISHED' ? 'Reason for pulling it back or taking it down' : hold ? 'Reason for putting it back live or returning it' : 'Reason for returning it'}</label>
                 <input id="hw-reason" type="text" value={reason} placeholder="Shown to the author" onChange={(e) => setReason(e.target.value)} />
                 {reasonError && <span className="hw-err">{reasonError}</span>}
               </div>
-              <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>{status === 'PUBLISHED' ? 'Take down' : 'Return to draft'}</button>
+              {status === 'PUBLISHED' ? (
+                <div className="hw-actions">
+                  <button type="button" className="hw-btn" disabled={saving} onClick={() => takeOffline(true)}>Pull back to review</button>
+                  <button type="button" className="hw-btn" disabled={saving} onClick={() => takeOffline(false)}>Take down</button>
+                </div>
+              ) : (
+                <div className="hw-actions">
+                  {hold && <button type="button" className="hw-btn hw-btn-primary" disabled={saving} onClick={putBackLive}>Put back live</button>}
+                  <button type="button" className="hw-btn" disabled={saving} onClick={returnToDraft}>Return to draft</button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { PlansTab } from './PlansTab';
 import { ApprovalsTab } from './ApprovalsTab';
+import { RadApprovalsTab } from './RadApprovalsTab';
 import { ReferralCodesTab } from './ReferralCodesTab';
 import '../dashboard/pages/PremiumHospitals.css';
 import './SubscriptionManagementPage.css';
 
-type MainTab = 'plans' | 'approvals' | 'referral-codes';
+type MainTab = 'plans' | 'approvals' | 'rad-approvals' | 'referral-codes';
 
 const SubscriptionManagementPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<MainTab>('plans');
@@ -15,7 +16,7 @@ const SubscriptionManagementPage: React.FC = () => {
             <header className="premium-header">
                 <div>
                     <h1 className="premium-title">Manage Subscription</h1>
-                    <p className="premium-subtitle">Configure EasyHMS plans and review payment approvals — all in one place.</p>
+                    <p className="premium-subtitle">Configure EasyHMS plans and review EasyHMS and 1Rad payment approvals — all in one place.</p>
                 </div>
             </header>
 
@@ -33,6 +34,12 @@ const SubscriptionManagementPage: React.FC = () => {
                     Approvals
                 </button>
                 <button
+                    className={`subscription-mgmt-tab-btn ${activeTab === 'rad-approvals' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('rad-approvals')}
+                >
+                    1Rad Approvals
+                </button>
+                <button
                     className={`subscription-mgmt-tab-btn ${activeTab === 'referral-codes' ? 'active' : ''}`}
                     onClick={() => setActiveTab('referral-codes')}
                 >
@@ -40,7 +47,10 @@ const SubscriptionManagementPage: React.FC = () => {
                 </button>
             </div>
 
-            {activeTab === 'plans' ? <PlansTab /> : activeTab === 'approvals' ? <ApprovalsTab /> : <ReferralCodesTab />}
+            {activeTab === 'plans' ? <PlansTab />
+                : activeTab === 'approvals' ? <ApprovalsTab />
+                : activeTab === 'rad-approvals' ? <RadApprovalsTab />
+                : <ReferralCodesTab />}
         </div>
     );
 };

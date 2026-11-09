@@ -50,6 +50,9 @@ export const API_ENDPOINTS = {
     RAD_HOSPITALS: {
         LIST: '/rad-hospitals',                          // GET
     },
+    RAD_SUBSCRIPTIONS: {
+        PAYMENT_REQUESTS: '/rad-subscriptions/payment-requests', // GET | POST /:id/approve | POST /:id/reject
+    },
     NIGHT_JOBS: {
         LIST: '/night-jobs',                             // GET
         SET_ACTIVE: '/night-jobs',                        // PUT /:jobName/active

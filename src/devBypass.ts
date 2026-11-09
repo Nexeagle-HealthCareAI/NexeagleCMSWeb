@@ -13,7 +13,7 @@ export function applyDevBypass() {
   useAuthStore.setState({
     user: { id: 'dev-bypass', email: 'dev@localhost', name: 'Local reviewer', role: 'Administrator' },
     token: 'dev-bypass-token',
-    permissions: ['dashboard.view', 'health-wiki.manage'],
+    permissions: ['dashboard.view', 'health-wiki.manage', 'emergency.manage'],
     mustChangePassword: false,
     isAuthenticated: true,
     isLoading: false,

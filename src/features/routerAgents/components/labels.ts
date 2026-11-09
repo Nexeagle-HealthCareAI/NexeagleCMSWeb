@@ -28,7 +28,7 @@ export const DECISIONS: Record<string, { label: string; color: string; hint: str
     answer: { label: 'Answered', color: '#2a78d6', hint: 'Sure enough to name the specialty' },
     clarify: { label: 'Asked to clarify', color: '#8b5cf6', hint: 'Unsure: asked a question or showed a short list' },
     abstain: { label: 'No match', color: '#eb6834', hint: 'Nothing like it in training, or not a health query' },
-    emergency: { label: 'Emergency', color: '#e34948', hint: 'Emergency signs: told to call 112 / go to ER' },
+    emergency: { label: 'Emergency', color: '#e34948', hint: 'Emergency signs: told to call 108 / 112 / go to ER' },
     follow_up: { label: 'Follow-up question', color: '#0ea5e9', hint: 'Chat agent asked for more detail' },
     recommendation: { label: 'Recommendation', color: '#1baf7a', hint: 'Chat agent named specialists' },
 };
