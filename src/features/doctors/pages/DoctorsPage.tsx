@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import CustomerTabs from '../../../components/CustomerTabs';
 import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X, BadgeCheck, AlertTriangle } from 'lucide-react';
 import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../services/doctorService';
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
@@ -203,10 +204,11 @@ const DoctorsPage: React.FC = () => {
         <div className="premium-container">
             <header className="premium-header">
                 <div>
-                    <h1 className="premium-title">Doctors</h1>
-                    <p className="premium-subtitle">Feature, discount, or delist any doctor across every hospital on the platform.</p>
+                    <h1 className="premium-title">Customers</h1>
+                    <p className="premium-subtitle">Doctor Dekho: feature, discount or delist any doctor across every hospital.</p>
                 </div>
             </header>
+            <div style={{ marginBottom: 16 }}><CustomerTabs /></div>
 
             <div className="premium-table-card">
                 <div className="premium-controls">

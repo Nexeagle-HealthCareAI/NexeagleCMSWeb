@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
+import CustomerTabs from '../../../components/CustomerTabs';
+import '../../dashboard/pages/customers.css';
 import { getRadHospitals, type RadHospitalItem } from '../services/radHospitalsService';
 
 const badge = (text: string, color: string, bg: string): React.ReactNode => (
@@ -54,25 +56,25 @@ export const RadCentersPage: React.FC = () => {
     }, [centers, search]);
 
     return (
-        <div className="ne-page">
+        <div className="ne-page cu">
             <div className="ne-page-head">
                 <div>
-                    <h1>Diagnostic centres</h1>
-                    <p>Every centre registered on 1Rad, with its active staff.</p>
+                    <h1>Customers</h1>
+                    <p>Every diagnostic centre on 1Rad, with its active staff.</p>
                 </div>
-                <div style={{ position: 'relative' }}>
-                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: 10, top: 11 }} />
+            </div>
+            <CustomerTabs />
+            <div className="cu-bar">
+                <label className="cu-search">
+                    <Search size={16} aria-hidden="true" />
                     <input
                         type="text"
-                        placeholder="Search by name, address, registration no."
+                        placeholder="Name, address or registration number"
+                        aria-label="Search centres"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        style={{
-                            height: 38, padding: '0 12px 0 34px', borderRadius: 8, border: '1px solid #cbd5e1',
-                            fontSize: 13, fontFamily: 'inherit', color: '#334155', width: 300,
-                        }}
                     />
-                </div>
+                </label>
             </div>
 
             <div className="premium-table-card">
