@@ -3,13 +3,30 @@ import { api } from '../../../services/api';
 import { API_ENDPOINTS } from '../../../services/endpoints';
 import type {
     VitaAddRepoRequest,
+    VitaAgentCard,
+    VitaAgentExample,
+    VitaAgentOutcome,
+    VitaAgentStep,
+    VitaAgentStats,
+    VitaAgentTryRequest,
+    VitaAgentsList,
+    VitaAiEvals,
+    VitaBaseline,
+    VitaBaselinePreview,
+    VitaBaselineRequest,
+    VitaBaselineWritten,
+    VitaCalibration,
+    VitaReplayResult,
     VitaAddRepoResponse,
     VitaAuditEntry,
     VitaCase,
+    VitaClassifierStatus,
     VitaCaseStatus,
     VitaControls,
     VitaControlsUpdate,
     VitaCoverage,
+    VitaDigestPreview,
+    VitaDigestSendResponse,
     VitaEnqueueRunRequest,
     VitaEnqueueRunResponse,
     VitaEscape,
@@ -23,6 +40,7 @@ import type {
     VitaLearnResponse,
     VitaLearning,
     VitaLesson,
+    VitaModelVersion,
     VitaOverview,
     VitaRepo,
     VitaRepoSecrets,
@@ -37,6 +55,7 @@ import type {
     VitaSecretRotatedRequest,
     VitaSettingsRepo,
     VitaValidateResponse,
+    VitaVerdictLabel,
 } from '../types';
 
 /**
@@ -60,7 +79,11 @@ export const vitaApi = {
 
     runs: async (repo: string, limit = 30) => data<VitaRun[]>(await api.get(`${V.RUNS}/${enc(repo)}`, { params: { limit }, ...FRESH })),
     run: async (repo: string, runId: string) => data<VitaRunDetail>(await api.get(`${V.RUNS}/${enc(repo)}/${enc(runId)}`, FRESH)),
-    runResults: async (repo: string, runId: string) => data<VitaResult[]>(await api.get(`${V.RUNS}/${enc(repo)}/${enc(runId)}/results`)),
+    runResults: async (repo: string, runId: string, limit = 1000) =>
+        data<VitaResult[]>(await api.get(`${V.RUNS}/${enc(repo)}/${enc(runId)}/results`, { params: { limit } })),
+    // A human correction of the Judge (vita.approve); the CMS API fills in the actor.
+    relabelResult: async (resultId: string, label: VitaVerdictLabel) =>
+        data<{ ok: boolean }>(await api.post(`${V.RESULTS}/${enc(resultId)}/label`, { label })),
     enqueueRun: async (body: VitaEnqueueRunRequest) => data<VitaEnqueueRunResponse>(await api.post(V.RUNS_ENQUEUE, body)),
 
     cases: async (repo: string, status?: VitaCaseStatus | '', skill?: string) =>
@@ -77,13 +100,13 @@ export const vitaApi = {
     schedules: async () => data<VitaSchedule[]>(await api.get(V.SCHEDULES, FRESH)),
     createSchedule: async (body: VitaScheduleCreate) => data<{ id: string; next_run_at: string | null }>(await api.post(V.SCHEDULES, body)),
     updateSchedule: async (id: string, body: VitaSchedulePatch) => data<VitaSchedulePatchResponse>(await api.patch(`${V.SCHEDULES}/${enc(id)}`, body)),
-    runScheduleNow: async (id: string) => data<VitaRunNowResponse>(await api.post(`${V.SCHEDULES}/${enc(id)}/run-now`, {})),
+    runScheduleNow: async (id: string) => data<VitaRunNowResponse>(await api.post(`${V.SCHEDULES}/${enc(id)}/run-now`, {}, { timeout: 900_000 })),
     deleteSchedule: async (id: string) => data<{ ok: boolean }>(await api.delete(`${V.SCHEDULES}/${enc(id)}`)),
 
     // Settings tab. Adding / archiving repos and marking secrets rotated need vita.manage; PUT controls needs vita.approve and a reason.
     settingsRepos: async () => data<VitaSettingsRepo[]>(await api.get(V.SETTINGS_REPOS, FRESH)),
     // Discovery walks the repo checkout: give it longer than the default.
-    addRepo: async (body: VitaAddRepoRequest) => data<VitaAddRepoResponse>(await api.post(V.REPOS, body, { timeout: 90_000 })),
+    addRepo: async (body: VitaAddRepoRequest) => data<VitaAddRepoResponse>(await api.post(V.REPOS, body, { timeout: 900_000 })),
     validateRepo: async (repo: string) => data<VitaValidateResponse>(await api.post(`${V.REPOS}/${enc(repo)}/validate`, {})),
     archiveRepo: async (repo: string, reason = '') => data<{ ok: boolean; schedules_disabled: string[] }>(await api.delete(`${V.REPOS}/${enc(repo)}`, { data: { reason } })),
     secrets: async (repo: string) => data<VitaRepoSecrets>(await api.get(`${V.REPOS}/${enc(repo)}/secrets`, FRESH)),
@@ -109,7 +132,40 @@ export const vitaApi = {
     applyLesson: async (id: string) => data<{ ok: boolean; lesson: VitaLesson }>(await api.post(`${V.LESSONS}/${enc(id)}/apply`, {})),
     revertLesson: async (id: string) => data<{ ok: boolean; lesson: VitaLesson }>(await api.post(`${V.LESSONS}/${enc(id)}/revert`, {})),
     learnNow: async (repo: string, applyAuto = true) =>
-        data<VitaLearnResponse>(await api.post(`${V.LEARN}/${enc(repo)}`, { apply_auto: applyAuto }, { timeout: 60_000 })),
+        data<VitaLearnResponse>(await api.post(`${V.LEARN}/${enc(repo)}`, { apply_auto: applyAuto }, { timeout: 900_000 })),
+
+    // Verdict classifier (view; promote / retire need vita.approve) and the weekly digest (vita.manage).
+    classifier: async () => data<VitaClassifierStatus>(await api.get(V.CLASSIFIER, FRESH)),
+    promoteClassifier: async (id: string, reason = '') =>
+        data<VitaModelVersion>(await api.post(`${V.CLASSIFIER}/${enc(id)}/promote`, { reason })),
+    retireClassifier: async (id: string, reason = '') =>
+        data<VitaModelVersion>(await api.post(`${V.CLASSIFIER}/${enc(id)}/retire`, { reason })),
+    digestPreview: async (days = 7) => data<VitaDigestPreview>(await api.get(V.DIGEST, { params: { days }, ...FRESH })),
+    digestSend: async () => data<VitaDigestSendResponse>(await api.post(`${V.DIGEST}/send`, {}, { timeout: 900_000 })),
+
+    // Agents tab: cards, health, the playground (try needs vita.manage; llm mode spends model tokens and is audited), a run's
+    // steps and their replay, and the Judge's calibration against people's relabels.
+    agents: async () => data<VitaAgentsList>(await api.get(V.AGENTS, FRESH)),
+    agentStats: async (days = 7) => data<{ days: number; agents: Record<string, VitaAgentStats> }>(await api.get(`${V.AGENTS}/stats`, { params: { days }, ...FRESH })),
+    agent: async (name: string) => data<VitaAgentCard>(await api.get(`${V.AGENTS}/${enc(name)}`)),
+    agentExample: async (name: string, example: string) => data<VitaAgentExample>(await api.get(`${V.AGENTS}/${enc(name)}/examples/${enc(example)}`)),
+    tryAgent: async (name: string, body: VitaAgentTryRequest) =>
+        data<VitaAgentOutcome>(await api.post(`${V.AGENTS}/${enc(name)}/try`, body, { timeout: 120_000 })),
+    runSteps: async (runId: string) => data<{ run_id: string; steps: VitaAgentStep[] }>(await api.get(`${V.AGENTS}/runs/${enc(runId)}/steps`, FRESH)),
+    agentStep: async (stepId: string) => data<VitaAgentStep>(await api.get(`${V.AGENTS}/steps/${enc(stepId)}`)),
+    replayStep: async (stepId: string, mode: 'replay' | 'rules' | 'llm') =>
+        data<VitaReplayResult>(await api.post(`${V.AGENTS}/steps/${enc(stepId)}/replay`, { mode }, { timeout: 120_000 })),
+    calibration: async (days = 90) => data<VitaCalibration>(await api.get(`${V.AGENTS}/calibration`, { params: { days }, ...FRESH })),
+
+    // Known findings (vita-baseline.txt). Preview needs vita.manage; writing needs vita.approve (listed failures stop blocking).
+    baseline: async (repo: string) => data<VitaBaseline>(await api.get(`${V.REPOS}/${enc(repo)}/baseline`, FRESH)),
+    previewBaseline: async (repo: string, body: VitaBaselineRequest) =>
+        data<VitaBaselinePreview>(await api.post(`${V.REPOS}/${enc(repo)}/baseline/preview`, body)),
+    writeBaseline: async (repo: string, body: VitaBaselineRequest) =>
+        data<VitaBaselineWritten>(await api.post(`${V.REPOS}/${enc(repo)}/baseline`, body)),
+
+    // AI agents under test (ai-agent skill pack): the newest result per agent x suite.
+    aiEvals: async (repo?: string) => data<VitaAiEvals>(await api.get(V.AI_EVALS, { params: { repo: repo || undefined }, ...FRESH })),
 };
 
 /** SignalR hub for run updates (VitaHub.cs): same origin as the API, outside the /api/v1 prefix, JWT with vita.view. */

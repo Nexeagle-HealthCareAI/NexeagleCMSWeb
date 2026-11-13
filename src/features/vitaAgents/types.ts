@@ -13,6 +13,7 @@ export type VitaCaseStatus = 'shadow' | 'active' | 'retired';
 export type VitaCaseOrigin = 'human' | 'generated' | 'seed' | 'escape' | 'mutant';
 export type VitaOracleKind = 'contract' | 'property' | 'invariant' | 'metamorphic' | 'differential' | 'golden';
 export type VitaVerdictLabel = 'bug' | 'flaky' | 'environment' | 'bad-test';
+export const VERDICT_LABELS: VitaVerdictLabel[] = ['bug', 'flaky', 'environment', 'bad-test'];
 
 export const TRIGGERS: VitaTrigger[] = ['pr', 'push', 'nightly', 'prod-sanity', 'manual', 'canary'];
 export const CASE_STATUSES: VitaCaseStatus[] = ['shadow', 'active', 'retired'];
@@ -69,7 +70,14 @@ export interface VitaResult {
     message: string;
     fingerprint: string;
     duration_ms: number | null;
-    verdict?: { label: VitaVerdictLabel; confidence: number; explanation: string } | null;
+    verdict?: {
+        label: VitaVerdictLabel;
+        confidence: number;
+        explanation: string;
+        suggested_fix?: string | null;
+        /** Set when a person corrected the Judge (POST results/{id}/label). */
+        human_label?: VitaVerdictLabel | null;
+    } | null;
 }
 
 export interface VitaOracle {
@@ -147,9 +155,11 @@ export interface VitaEnqueueRunResponse {
 /** POST /schedules/{id}/run-now. status "skipped" (run_id null) when the repo's gate is paused for a pr/push schedule. */
 export interface VitaRunNowResponse {
     run_id: string | null;
-    status: 'queued' | 'skipped';
+    /** 'sent': a digest schedule (no run row; see `digest`). */
+    status: 'queued' | 'skipped' | 'sent';
     repo?: string;
     reason?: string;
+    digest?: VitaDigestSendResponse;
 }
 
 /** One row of GET /schedules (Store.schedules). Times are UTC from Vita; the cron is evaluated in IST (Asia/Kolkata). */
@@ -539,4 +549,281 @@ export interface VitaControlsUpdate {
     budgets?: VitaControls['budgets'];
     models?: Partial<VitaControls['models']>;
     monthly_inr_cap?: number | null;
+}
+
+// ---- Verdict classifier + weekly digest (Learning tab) -------------------------------------------------------------
+
+/** One model version (GET /classifier). */
+export interface VitaModelVersion {
+    id: string;
+    kind: string;
+    status: 'candidate' | 'active' | 'retired' | string;
+    rows: number;
+    metrics: Record<string, unknown> & { accuracy?: number; bug_recall?: number; decision?: string };
+    trained_at: string | null;
+    path?: string | null;
+}
+
+export interface VitaClassifierStatus {
+    available: boolean;
+    active: VitaModelVersion | null;
+    versions: VitaModelVersion[];
+    last_trained: string | null;
+}
+
+/** GET /digest?days= */
+export interface VitaDigestPreview {
+    subject: string;
+    markdown: string;
+    data: Record<string, unknown>;
+}
+
+/** POST /digest/send (reporter.send_digest): what was sent where. */
+export interface VitaDigestSendResponse {
+    sent?: boolean;
+    subject?: string;
+    [key: string]: unknown;
+}
+
+// ---- Agents tab (vita/api/agents_routes.py) -------------------------------------------------------------------------------
+
+export type VitaAgentMode = 'rules' | 'llm' | 'replay';
+
+/** Per-agent health over the last N days (Store.agent_stats). */
+export interface VitaAgentStats {
+    steps: number;
+    llm: number;
+    rules: number;
+    fallback: number;
+    replay: number;
+    errors: number;
+    avg_ms: number;
+    tokens: number;
+    fallback_rate: number;
+}
+
+export interface VitaAgentExampleRef {
+    name: string;
+    title: string;
+    about?: string;
+    mode?: string;
+}
+
+/** An agent's card (vita/agentkit/contract.py AgentCard.as_dict). */
+export interface VitaAgentCard {
+    name: string;
+    title: string;
+    stage: string;
+    role: string;
+    inputs: string;
+    outputs: string;
+    uses_llm: boolean;
+    fallback: string;
+    guardrails: string[];
+    side_effects: string[];
+    source: string;
+    playground: boolean;
+    playground_api: boolean;
+    modes: VitaAgentMode[];
+    collaborates: string[];
+    examples: VitaAgentExampleRef[];
+    stats_7d?: VitaAgentStats | null;
+    participants?: string[];
+}
+
+export interface VitaAgentsList {
+    agents: VitaAgentCard[];
+    flows: VitaAgentCard[];
+}
+
+export interface VitaAgentExample {
+    agent: string;
+    name: string;
+    title?: string;
+    about?: string;
+    mode?: string;
+    input: Record<string, unknown>;
+    expect?: { path: string; [op: string]: unknown }[];
+}
+
+export interface VitaAgentModelCall {
+    purpose?: string;
+    model?: string;
+    data?: unknown;
+    answer?: unknown;
+    error?: string | null;
+    tokens?: number;
+    ms?: number;
+}
+
+export interface VitaAgentCheck {
+    path: string;
+    expect: Record<string, unknown>;
+    ok: boolean;
+    why: string | null;
+}
+
+/** POST /agents/{name}/try (contract.py Outcome.as_dict, plus the example's expectations when one is named). */
+export interface VitaAgentOutcome {
+    agent: string;
+    mode: VitaAgentMode;
+    mode_used: string;
+    fallback_reason: string | null;
+    output: unknown;
+    calls: VitaAgentModelCall[];
+    ms: number;
+    tokens: number;
+    notes: string[];
+    error: string | null;
+    checks?: VitaAgentCheck[];
+    checked_against?: string;
+}
+
+export interface VitaAgentTryRequest {
+    input?: Record<string, unknown>;
+    example?: string;
+    check?: string;
+    mode: 'rules' | 'llm';
+}
+
+/** One step of a run (VitaAgentSteps). Full steps carry input / output / calls. */
+export interface VitaAgentStep {
+    id: string;
+    run_id: string;
+    seq: number | null;
+    agent: string;
+    title: string | null;
+    mode_used: string | null;
+    fallback_reason: string | null;
+    replayable: boolean;
+    error: string | null;
+    tokens: number;
+    ms: number;
+    started_at: string | null;
+    parent_id: string | null;
+    requested_by: string | null;
+    kind: string | null;
+    input?: unknown;
+    output?: unknown;
+    calls?: VitaAgentModelCall[];
+}
+
+export interface VitaReplayResult {
+    step: Partial<VitaAgentStep>;
+    recorded_output: unknown;
+    outcome: VitaAgentOutcome;
+    same: boolean;
+    diff: { path: string; before: unknown; after: unknown }[];
+}
+
+export interface VitaAgreement {
+    n: number;
+    agreement: number | null;
+    kappa: number | null;
+    confusion: Record<string, Record<string, number>>;
+    per_label: Record<string, { precision: number | null; recall: number | null; human: number; model: number }>;
+    false_downgrades: number;
+    false_alarms: number;
+}
+
+/** GET /agents/calibration: the Judge (and the gate) against people's relabels. */
+export interface VitaCalibration {
+    days: number;
+    since: string;
+    judge: VitaAgreement;
+    gate: VitaAgreement;
+    by_source: Record<string, VitaAgreement>;
+    raw_labels_found: number;
+    alerts: string[];
+    healthy: boolean;
+}
+
+// ---- Known findings (vita/api/quality_routes.py) --------------------------------------------------------------------------
+
+export type VitaBaselineState = 'still failing' | 'fixed' | 'not run yet' | 'unknown case' | string;
+
+export interface VitaBaselineItem {
+    skill: string;
+    title: string;
+    case_id: string | null;
+    state: VitaBaselineState;
+    last: { status: string; run_id: string; at: string; message: string } | null;
+}
+
+export interface VitaBaseline {
+    repo: string;
+    file: string | null;
+    exists: boolean;
+    listed: number;
+    counts: Record<string, number>;
+    by_skill: Record<string, number>;
+    items: VitaBaselineItem[];
+}
+
+export interface VitaBaselineRequest {
+    run_id: string;
+    skills?: string[];
+    note?: string;
+}
+
+export interface VitaBaselinePreview {
+    repo: string;
+    run_id: string;
+    count: number;
+    by_skill: Record<string, number>;
+    keys: string[];
+}
+
+export interface VitaBaselineWritten {
+    repo: string;
+    file: string;
+    count: number;
+    text: string;
+}
+
+// ---- AI agents (ai-agent skill pack) -------------------------------------------------------------------------------------
+
+export type VitaTranscriptRow =
+    | { user: string }
+    | { agent: { text: string; kind: string; emergency: boolean; specialties: string[]; status: number; latency_ms: number } };
+
+export interface VitaAiScenario {
+    id: string;
+    about: string | null;
+    severity: 'critical' | 'high' | 'medium' | 'low' | string;
+    owasp: string[];
+    trials: number;
+    conclusive: number;
+    passed: number;
+    pass_at_1: number | null;
+    pass_hat_k: boolean | null;
+    failed: string[];
+    errors: string[];
+    transcript: VitaTranscriptRow[];
+}
+
+export interface VitaAiSuite {
+    case_id: string;
+    repo: string;
+    run_id: string;
+    trigger: string;
+    target: string;
+    at: string;
+    status: VitaResultStatus;
+    message: string;
+    suite: string | null;
+    agent: string | null;
+    adapter: string | null;
+    trials: number | null;
+    owasp: string[];
+    summary: { scenarios?: number; conclusive?: number; pass_at_1?: number; pass_hat_k_rate?: number; critical_failed?: string[] };
+    model_grader?: boolean;
+    simulator?: string;
+    scenarios: VitaAiScenario[];
+    history: { run_id: string; at: string; status: string; pass_hat_k_rate: number | null }[];
+}
+
+export interface VitaAiEvals {
+    repo: string | null;
+    suites: VitaAiSuite[];
 }

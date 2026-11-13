@@ -19,7 +19,7 @@ import PartnerDashboard from './features/partners/pages/PartnerDashboard';
 import UsersAccess from './features/admin/pages/UsersAccess';
 import MarketingPage from './features/marketing/pages/MarketingPage';
 import VitaAgentsPage from './features/vitaAgents/pages/VitaAgentsPage';
-import { VitaLayout, VitaOverviewPage, VitaRunsPage, VitaCasesPage, VitaCoveragePage, VitaSchedulesPage, VitaLearningPage, VitaSettingsPage } from './features/vitaAgents';
+import { VitaLayout, VitaOverviewPage, VitaRunsPage, VitaCasesPage, VitaCoveragePage, VitaSchedulesPage, VitaLearningPage, VitaSettingsPage, VitaKnownFindingsPage, VitaAgentKitPage, VitaAgentTryPage, VitaAiAgentsPage } from './features/vitaAgents';
 import HealthWikiPage from './features/healthWiki/pages/HealthWikiPage';
 import ArticleEditorPage from './features/healthWiki/pages/ArticleEditorPage';
 import ContributorsPage from './features/healthWiki/pages/ContributorsPage';
@@ -128,6 +128,10 @@ function App() {
               <Route path="runs" element={<VitaRunsPage />} />
               <Route path="cases" element={<VitaCasesPage />} />
               <Route path="coverage" element={<VitaCoveragePage />} />
+              <Route path="known" element={<VitaKnownFindingsPage />} />
+              <Route path="agents" element={<VitaAgentKitPage />} />
+              <Route path="agents/:name" element={<VitaAgentTryPage />} />
+              <Route path="ai" element={<VitaAiAgentsPage />} />
               <Route path="schedules" element={<VitaSchedulesPage />} />
               <Route path="learning" element={<VitaLearningPage />} />
               <Route path="settings" element={<VitaSettingsPage />} />
