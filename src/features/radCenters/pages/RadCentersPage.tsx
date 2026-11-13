@@ -1,159 +1,125 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react';
-import { toast } from 'sonner';
-import { useSearchParams } from 'react-router-dom';
-import CustomerTabs from '../../../components/CustomerTabs';
-import '../../dashboard/pages/customers.css';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, ChevronRight } from 'lucide-react';
 import { getRadHospitals, type RadHospitalItem } from '../services/radHospitalsService';
+import CustomerTabs from '../../../components/CustomerTabs';
+import { radTone, radStatusText, editionOf } from './radFormat';
+import '../../dashboard/pages/customers.css';
 
-const badge = (text: string, color: string, bg: string): React.ReactNode => (
-    <span style={{
-        display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: 999,
-        fontSize: 11, fontWeight: 700, color, background: bg,
-    }}>
-        {text}
-    </span>
-);
-
-const subscriptionBadge = (status: string) => {
-    const s = status.toLowerCase();
-    if (s === 'active') return badge(status, '#16a34a', '#dcfce7');
-    if (s === 'expiring') return badge(status, '#d97706', '#fef3c7');
-    if (s === 'expired' || s === 'locked') return badge(status, '#dc2626', '#fee2e2');
-    return badge(status, '#475569', '#f1f5f9');
-};
-
-export const RadCentersPage: React.FC = () => {
-    const [centers, setCenters] = useState<RadHospitalItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    // ?q= pre-fills the search (Ctrl K search opens a centre this way).
+/**
+ * Customers › Diagnostic centres · 1Rad. Same list look as 1HMS hospitals:
+ * plan chips, search, one row per centre opening its own page.
+ */
+const RadCentersPage: React.FC = () => {
+    const navigate = useNavigate();
     const [params] = useSearchParams();
+    const [centres, setCentres] = useState<RadHospitalItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [version, setVersion] = useState(0);
+    // ?q= pre-fills the search (Ctrl K search opens a centre this way).
     const [search, setSearch] = useState(() => params.get('q') || '');
-    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [chip, setChip] = useState('');
 
     useEffect(() => {
-        (async () => {
-            setLoading(true);
-            try {
-                const data = await getRadHospitals();
-                setCenters(data);
-            } catch {
-                toast.error('Could not load 1Rad diagnostic centers.');
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+        let alive = true;
+        getRadHospitals()
+            .then(list => { if (alive) { setCentres(list || []); setError(null); } })
+            .catch(() => { if (alive) setError('Could not load 1Rad centres.'); })
+            .finally(() => { if (alive) setLoading(false); });
+        return () => { alive = false; };
+    }, [version]);
 
-    const filtered = useMemo(() => {
+    const statuses = useMemo(() => {
+        const m = new Map<string, number>();
+        centres.forEach(c => m.set(c.subscriptionStatus || 'None', (m.get(c.subscriptionStatus || 'None') || 0) + 1));
+        return [...m.entries()].sort((a, b) => b[1] - a[1]);
+    }, [centres]);
+
+    const list = useMemo(() => {
         const q = search.trim().toLowerCase();
-        if (!q) return centers;
-        return centers.filter(c =>
-            c.hospitalName.toLowerCase().includes(q) ||
-            c.hospitalAddress.toLowerCase().includes(q) ||
-            (c.registrationNumber ?? '').toLowerCase().includes(q)
-        );
-    }, [centers, search]);
+        return centres
+            .filter(c => !chip || (c.subscriptionStatus || 'None') === chip)
+            .filter(c => !q || [c.hospitalName, c.hospitalAddress, c.registrationNumber, c.gstin, c.nabhNumber].some(v => (v || '').toLowerCase().includes(q)))
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [centres, search, chip]);
 
     return (
-        <div className="ne-page cu">
-            <div className="ne-page-head">
+        <div className="cu">
+            <header className="ne-page-head">
                 <div>
                     <h1>Customers</h1>
-                    <p>Every diagnostic centre on 1Rad, with its active staff.</p>
+                    <p>Every diagnostic centre on 1Rad, its plan and its team.</p>
                 </div>
-            </div>
+            </header>
             <CustomerTabs />
+
             <div className="cu-bar">
                 <label className="cu-search">
                     <Search size={16} aria-hidden="true" />
-                    <input
-                        type="text"
-                        placeholder="Name, address or registration number"
-                        aria-label="Search centres"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                    />
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, address, GSTIN or registration number" aria-label="Search centres" />
                 </label>
             </div>
+            {statuses.length > 1 && (
+                <div className="cu-chips" role="radiogroup" aria-label="Plan">
+                    <button type="button" role="radio" aria-checked={chip === ''} className={`cu-chip ${chip === '' ? 'is-on' : ''}`} onClick={() => setChip('')}>All · {centres.length}</button>
+                    {statuses.map(([s, n]) => (
+                        <button key={s} type="button" role="radio" aria-checked={chip === s} className={`cu-chip ${chip === s ? 'is-on' : ''}`} onClick={() => setChip(s)}>
+                            {radStatusText(s)} · {n}
+                        </button>
+                    ))}
+                </div>
+            )}
 
-            <div className="premium-table-card">
-                {loading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                        <Loader2 className="animate-spin" size={22} color="#94a3b8" />
-                    </div>
-                ) : (
-                    <div className="premium-responsive-wrapper">
-                        <table className="premium-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Center</th>
-                                    <th>Address</th>
-                                    <th>Subscription</th>
-                                    <th>Modules</th>
-                                    <th>Staff</th>
-                                    <th>Registered</th>
+            {error && <div className="cu-error" role="alert">{error} <button type="button" onClick={() => { setLoading(true); setVersion(v => v + 1); }}>Try again</button></div>}
+
+            <div className="cu-card">
+                <div className="cu-table-wrap">
+                    <table className="cu-table">
+                        <thead>
+                            <tr>
+                                <th scope="col"><span className="cu-sort">Centre</span></th>
+                                <th scope="col"><span className="cu-sort">Plan</span></th>
+                                <th scope="col"><span className="cu-sort">Modules</span></th>
+                                <th scope="col" className="num"><span className="cu-sort">Staff</span></th>
+                                <th scope="col"><span className="cu-sort">Joined</span></th>
+                                <th scope="col" aria-label="Open"></th>
+                            </tr>
+                        </thead>
+                        <tbody className={loading ? 'is-loading' : ''}>
+                            {list.map(c => (
+                                <tr key={c.hospitalId} onClick={() => navigate(`/rad-centers/${c.hospitalId}`)}>
+                                    <td>
+                                        <Link to={`/rad-centers/${c.hospitalId}`} className="cu-name" onClick={e => e.stopPropagation()}>{c.hospitalName}</Link>
+                                        <span className="cu-sub">{c.hospitalAddress || '—'}</span>
+                                    </td>
+                                    <td>
+                                        <span className="cu-plan">
+                                            <span className="cu-plan-name">{c.billingCycle || '—'}</span>
+                                            <span className="cu-plan-meta"><span className={`cu-pill ${radTone(c.subscriptionStatus)}`}>{radStatusText(c.subscriptionStatus)}</span></span>
+                                        </span>
+                                    </td>
+                                    <td>{editionOf(c.modules)}</td>
+                                    <td className="num">{c.staff.length}</td>
+                                    <td className="cu-muted">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                    <td className="cu-go"><ChevronRight size={16} aria-hidden="true" /></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map(c => {
-                                    const expanded = expandedId === c.hospitalId;
-                                    return (
-                                        <React.Fragment key={c.hospitalId}>
-                                            <tr className="premium-row" style={{ cursor: 'pointer' }} onClick={() => setExpandedId(expanded ? null : c.hospitalId)}>
-                                                <td style={{ width: 28 }}>{expanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}</td>
-                                                <td className="premium-hospital-name">{c.hospitalName}</td>
-                                                <td style={{ maxWidth: 260, fontSize: 12 }}>{c.hospitalAddress}</td>
-                                                <td>{subscriptionBadge(c.subscriptionStatus)} <span style={{ marginLeft: 6, fontSize: 11, color: '#94a3b8' }}>{c.billingCycle}</span></td>
-                                                <td style={{ fontSize: 12, color: '#475569' }}>{c.modules}</td>
-                                                <td>{c.staff.length}</td>
-                                                <td style={{ fontSize: 12, color: '#64748b' }}>{new Date(c.createdAt).toLocaleDateString()}</td>
-                                            </tr>
-                                            {expanded && (
-                                                <tr>
-                                                    <td colSpan={7} style={{ background: '#f8fafc', padding: 16 }}>
-                                                        {c.staff.length === 0 ? (
-                                                            <div style={{ fontSize: 12, color: '#94a3b8' }}>No active staff on record.</div>
-                                                        ) : (
-                                                            <table className="premium-table">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Name</th>
-                                                                        <th>Designation</th>
-                                                                        <th>Specialization</th>
-                                                                        <th>Email</th>
-                                                                        <th>Mobile</th>
-                                                                        <th>Status</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {c.staff.map(s => (
-                                                                        <tr key={s.staffId} className="premium-row">
-                                                                            <td>{s.fullName}</td>
-                                                                            <td>{s.designation || '—'}</td>
-                                                                            <td>{s.specialization || '—'}</td>
-                                                                            <td>{s.email || '—'}</td>
-                                                                            <td>{s.mobile || '—'}</td>
-                                                                            <td>{s.status}</td>
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </React.Fragment>
-                                    );
-                                })}
-                                {filtered.length === 0 && (
-                                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>No diagnostic centers found.</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <div className="cu-cards">
+                    {list.map(c => (
+                        <Link key={c.hospitalId} to={`/rad-centers/${c.hospitalId}`} className="cu-mcard">
+                            <span className="cu-mcard-top"><span className="cu-name">{c.hospitalName}</span><ChevronRight size={16} aria-hidden="true" /></span>
+                            <span className="cu-sub">{c.hospitalAddress}</span>
+                            <span className="cu-plan-meta"><span className={`cu-pill ${radTone(c.subscriptionStatus)}`}>{radStatusText(c.subscriptionStatus)}</span><span className="cu-flag">{editionOf(c.modules)} · {c.billingCycle}</span></span>
+                            <span className="cu-mcard-stats"><span><strong>{c.staff.length}</strong> staff</span></span>
+                        </Link>
+                    ))}
+                </div>
+                {!loading && list.length === 0 && !error && <p className="cu-empty">No centres match. Try another chip or clear the search.</p>}
+                <div className="cu-foot"><span>{list.length} of {centres.length} centres</span></div>
             </div>
         </div>
     );

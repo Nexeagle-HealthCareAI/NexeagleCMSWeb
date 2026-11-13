@@ -154,7 +154,7 @@ const ApprovalsInbox: React.FC = () => {
     }, []);
 
     const setProduct = (p: ProductFilter) => { setParams(p === 'all' ? {} : { product: p }, { replace: true }); open(null); };
-    const customerLink = (p: Payment) => p.product === '1rad' ? `/rad-centers?q=${encodeURIComponent(p.hospitalName)}` : `/hospital/${p.hospitalId}`;
+    const customerLink = (p: Payment) => p.key.startsWith('rad-') ? `/rad-centers/${p.hospitalId}` : `/hospital/${p.hospitalId}`;
 
     return (
         <div className={`ap ${selected ? 'has-open' : ''}`}>

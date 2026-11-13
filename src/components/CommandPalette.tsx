@@ -42,7 +42,7 @@ const loadCustomers = (perms: string[]): Promise<Customer[]> => {
         jobs.push(getRadHospitals().then(list => (list || []).map(h => ({
             id: h.hospitalId, kind: '1rad' as const, name: h.hospitalName,
             sub: ['1Rad', h.hospitalAddress, h.subscriptionStatus].filter(Boolean).join(' · '),
-            to: `/rad-centers?q=${encodeURIComponent(h.hospitalName)}`,
+            to: `/rad-centers/${h.hospitalId}`,
         }))).catch(() => []));
     }
     customerLoad = Promise.all(jobs).then(parts => (customerCache = parts.flat()));
