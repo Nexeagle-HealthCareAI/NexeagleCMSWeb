@@ -25,16 +25,6 @@ const Dashboard: React.FC = () => {
     const [statsError, setStatsError] = React.useState<string | null>(null);
     const [timeRange, setTimeRange] = React.useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
 
-    // Date and Time State
-    const [currentDateTime, setCurrentDateTime] = React.useState(new Date());
-
-    React.useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentDateTime(new Date());
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
     React.useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -56,18 +46,10 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="dashboard-container">
-            <header className="dashboard-header">
+            <header className="ne-page-head">
                 <div>
-                    <h1 className="dashboard-title">Dashboard Overview</h1>
-                    <p className="dashboard-subtitle">Welcome back to the CMS.</p>
-                </div>
-                <div className="dashboard-datetime">
-                    <div className="time">
-                        {currentDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    <div className="date">
-                        {currentDateTime.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                    </div>
+                    <h1>Platform growth</h1>
+                    <p>How many hospitals, doctors, patients and staff have joined over time.</p>
                 </div>
             </header>
 
@@ -80,29 +62,29 @@ const Dashboard: React.FC = () => {
             {dashboardStats && (
                 <div className="stats-grid">
                     <StatCard
-                        icon={<Building2 size={24} color="#FFF" />}
-                        title="Total Hospital OnBoarded"
+                        icon={<Building2 size={24}  />}
+                        title="Hospitals"
                         value={dashboardStats.totalHospitals.value.toLocaleString()}
                         change={formatChange(dashboardStats.totalHospitals)}
                         gradient="linear-gradient(135deg, #6366f1 0%, #4338ca 100%)"
                     />
                     <StatCard
-                        icon={<Stethoscope size={24} color="#FFF" />}
-                        title="Total Doctors Onboarded"
+                        icon={<Stethoscope size={24}  />}
+                        title="Doctors"
                         value={dashboardStats.totalDoctors.value.toLocaleString()}
                         change={formatChange(dashboardStats.totalDoctors)}
                         gradient="linear-gradient(135deg, #10b981 0%, #059669 100%)"
                     />
                     <StatCard
-                        icon={<Users size={24} color="#FFF" />}
-                        title="Total Patients"
+                        icon={<Users size={24}  />}
+                        title="Patients"
                         value={dashboardStats.totalPatients.value.toLocaleString()}
                         change={formatChange(dashboardStats.totalPatients)}
                         gradient="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
                     />
                     <StatCard
-                        icon={<UserPlus size={24} color="#FFF" />}
-                        title="Total Users Onboarded"
+                        icon={<UserPlus size={24}  />}
+                        title="Staff users"
                         value={dashboardStats.totalUsers.value.toLocaleString()}
                         change={formatChange(dashboardStats.totalUsers)}
                         gradient="linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
@@ -114,10 +96,7 @@ const Dashboard: React.FC = () => {
             {dashboardStats && (
                 <div className="analytics-section">
                     <div className="analytics-header">
-                        <div className="analytics-title">
-                            <Building2 size={20} color="#FFFFFF" />
-                            Analytics Overview
-                        </div>
+                        <div className="analytics-title">Joined over time</div>
                         <div className="time-range-selector">
                             {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((range) => (
                                 <button

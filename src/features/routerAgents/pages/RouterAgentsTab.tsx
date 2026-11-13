@@ -74,7 +74,7 @@ export const RouterAgentsTab: React.FC = () => {
                 <div className="vita-title">
                     <div className="vita-title-icon"><Brain size={22} /></div>
                     <div>
-                        <h1>AI Agents</h1>
+                        <h1>Symptom router</h1>
                         <p>What the NLP-router agents decide, where they get it wrong, and how each mistake is taught back.</p>
                     </div>
                 </div>

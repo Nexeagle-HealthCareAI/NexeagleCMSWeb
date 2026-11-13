@@ -44,12 +44,8 @@ export const InsightsPage: React.FC = () => (
     </div>
 );
 
-export const SymptomRouterPage: React.FC = () => (
-    <div className="ne-page">
-        <PageHead title="Symptom router" sub="How the router sends patients to the right doctor, and what it is learning." />
-        <RouterAgentsTab />
-    </div>
-);
+// The router page already has its own heading and live status, so no second heading here.
+export const SymptomRouterPage: React.FC = () => <RouterAgentsTab />;
 
 export const FreeTierPage: React.FC = () => (
     <div className="ne-page">

@@ -149,3 +149,36 @@ a {
 .ne-tabsbar-item:hover { color: var(--ink); }
 .ne-tabsbar-item.is-on { color: var(--ink); border-bottom-color: #4F46E5; }
 
+
+/* Number card (Platform growth) */
+.ne-stat { background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-card); }
+.ne-stat-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ne-stat-title { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.ne-stat-ico { width: 32px; height: 32px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+.ne-stat-ico svg { width: 16px; height: 16px; }
+.ne-stat-num { font-size: 32px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ne-stat-sub { font-size: 13px; color: var(--ink-2); }
+
+/* One heading style for every page, whatever its own stylesheet says. */
+.main-content .hw-h1,
+.main-content .dashboard-title,
+.main-content .settings-title,
+.main-content .vita-head h1 {
+  font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.025em; color: var(--ink); margin: 0;
+}
+.main-content .hw-h1 > svg,
+.main-content .dashboard-title > svg,
+.main-content .vita-title-icon { display: none; }
+.main-content .vita-head p,
+.main-content .settings-subtitle,
+.main-content .dashboard-subtitle { font-size: 15px; color: var(--ink-2); }
+@media (max-width: 768px) {
+  .main-content .hw-h1, .main-content .dashboard-title, .main-content .settings-title, .main-content .vita-head h1 { font-size: 22px; }
+}
+
+/* Pages bring no padding of their own: the shell's main area sets it, so every page lines up. */
+.main-content .settings-container,
+.main-content .hw-page,
+.main-content .dashboard-container { padding-left: 0; padding-right: 0; padding-top: 0; }
+.main-content .hw-sub { font-size: 15px; color: var(--ink-2); margin-top: 4px; }
+.main-content .hw-page { font-size: 14px; }
