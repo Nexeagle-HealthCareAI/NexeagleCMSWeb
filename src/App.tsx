@@ -33,6 +33,8 @@ import EmergencyPage from './features/emergency/EmergencyPage';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
 import InactivityTracker from './components/InactivityTracker';
+// Loaded last on purpose: brings the older pages' own styles onto the shared look.
+import './styles/harmony.css';
 
 // Auth gate: requires login, and forces a password change when flagged.
 const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { children: React.ReactElement; allowWhilePasswordChange?: boolean }) => {
