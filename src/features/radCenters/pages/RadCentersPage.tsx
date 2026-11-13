@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 import { getRadHospitals, type RadHospitalItem } from '../services/radHospitalsService';
 
 const badge = (text: string, color: string, bg: string): React.ReactNode => (
@@ -23,7 +24,9 @@ const subscriptionBadge = (status: string) => {
 export const RadCentersPage: React.FC = () => {
     const [centers, setCenters] = useState<RadHospitalItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    // ?q= pre-fills the search (Ctrl K search opens a centre this way).
+    const [params] = useSearchParams();
+    const [search, setSearch] = useState(() => params.get('q') || '');
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -51,13 +54,11 @@ export const RadCentersPage: React.FC = () => {
     }, [centers, search]);
 
     return (
-        <div style={{ padding: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div className="ne-page">
+            <div className="ne-page-head">
                 <div>
-                    <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: '#1e293b' }}>1Rad Diagnostic Centers</h1>
-                    <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
-                        Every diagnostic center registered on 1Rad, with its active staff roster.
-                    </p>
+                    <h1>Diagnostic centres</h1>
+                    <p>Every centre registered on 1Rad, with its active staff.</p>
                 </div>
                 <div style={{ position: 'relative' }}>
                     <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: 10, top: 11 }} />

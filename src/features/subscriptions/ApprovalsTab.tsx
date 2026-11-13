@@ -174,7 +174,7 @@ export const ApprovalsTab: React.FC = () => {
     return (
         <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-                <p style={{ color: '#64748b', margin: 0 }}>Review and verify manual payments — 1Rad and EasyHMS requests both appear here, tagged by product.</p>
+                <p style={{ color: '#64748b', margin: 0 }}>Manual payments for 1HMS plans. Check the reference before you approve.</p>
                 <div className="application-tabs" style={{ margin: 0 }}>
                     <button
                         className={`tab-btn ${viewMode === 'pending' ? 'active' : ''}`}

@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/useAuthStore';
 const renderSidebar = () =>
   render(
     <MemoryRouter>
-      <Sidebar isOpen toggle={() => {}} isMobile={false} />
+      <Sidebar collapsed={false} onToggle={() => {}} />
     </MemoryRouter>,
   );
 

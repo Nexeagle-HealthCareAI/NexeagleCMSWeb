@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getHospitals, type Hospital } from '../services/hospitalService';
-import { HospitalOperationsTab } from '../../operations/components/HospitalOperationsTab';
 import './Dashboard.css';
 import './PremiumHospitals.css';
 import '../../doctors/pages/DoctorsPage.css';
@@ -53,7 +52,6 @@ const SubscriptionCell: React.FC<{ hospital: Hospital }> = ({ hospital }) => {
 
 const OnboardedHospitals: React.FC = () => {
     const navigate = useNavigate();
-    const [pageTab, setPageTab] = useState<'hospitals' | 'operations'>('hospitals');
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -133,29 +131,11 @@ const OnboardedHospitals: React.FC = () => {
         <div className="premium-container">
             <header className="premium-header">
                 <div>
-                    <h1 className="premium-title">Onboarded Hospitals</h1>
-                    <p className="premium-subtitle">Manage and view all registered hospitals.</p>
+                    <h1 className="premium-title">Hospitals</h1>
+                    <p className="premium-subtitle">Every 1HMS hospital, its plan and how much it is used.</p>
                 </div>
             </header>
 
-            <div className="doctor-page-tabs">
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'hospitals' ? 'active' : ''}`}
-                    onClick={() => setPageTab('hospitals')}
-                >
-                    Hospitals
-                </button>
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'operations' ? 'active' : ''}`}
-                    onClick={() => setPageTab('operations')}
-                >
-                    Hospital Operations
-                </button>
-            </div>
-
-            {pageTab === 'operations' && <HospitalOperationsTab />}
-
-            {pageTab === 'hospitals' && (
             <div className="premium-table-card">
                 <div className="premium-controls">
                     <h2 className="premium-table-title">
@@ -437,7 +417,6 @@ const OnboardedHospitals: React.FC = () => {
                     </>
                 )}
             </div>
-            )}
         </div>
     );
 };
