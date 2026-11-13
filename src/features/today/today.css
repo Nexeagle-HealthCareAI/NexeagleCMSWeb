@@ -112,3 +112,9 @@ a.td-line:hover .td-row-title { color: #4338CA; }
   .td-card-head { padding: 14px; }
   .td-pad { padding: 14px; }
 }
+
+.td-line.td-renew { grid-template-columns: minmax(0, 1fr) auto auto; }
+.td-renew-name { text-decoration: none; color: inherit; }
+.td-renew-name:hover .td-row-title { color: #4338CA; }
+.td-remind { height: 36px; padding: 0 12px; font-size: 13px; }
+.td-remind-none { width: 76px; text-align: center; color: var(--ink-3); }

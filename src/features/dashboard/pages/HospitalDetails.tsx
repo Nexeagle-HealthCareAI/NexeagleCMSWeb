@@ -1,52 +1,55 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-    ArrowLeft, MapPin, Phone, Mail, Building2, ChevronDown, ChevronUp,
-    Users, Stethoscope, CreditCard, Calendar, Activity, GraduationCap,
-    FileText, Shield, TrendingUp, Receipt, UserCog, Globe, Building,
-    AlertTriangle, ArchiveRestore, Archive as ArchiveIcon
-} from 'lucide-react';
-import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from 'recharts';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, AlertTriangle, ArchiveRestore, Archive as ArchiveIcon, MessageCircle, MapPin, ExternalLink } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
 import HospitalLocationMap from '../components/HospitalLocationMap';
-import './HospitalDetails.css';
-import '../../partners/pages/PartnersPage.css';
+import { whatsappLink, renewalText } from '../../../utils/whatsapp';
+import './customers.css';
+import './customer.css';
 
+/**
+ * Customers › one 1HMS hospital. Plan, use and contact first; staff and
+ * doctors, plan and payments, activity charts and the map behind tabs.
+ * Everything the old page showed is still here.
+ */
+type Tab = 'overview' | 'people' | 'plan' | 'activity' | 'location';
 type DateFilterMode = 'today' | 'all' | 'custom';
+type Range = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 const toDateInputValue = (d: Date): string => {
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
-
-const statusStyles: Record<string, string> = {
-    Trial: 'sub-badge-trial',
-    Active: 'sub-badge-active',
-    Approved: 'sub-badge-active',
-    Expired: 'sub-badge-danger',
-    Blocked: 'sub-badge-danger',
-    Rejected: 'sub-badge-danger',
-    Pending: 'sub-badge-pending',
-    PendingApproval: 'sub-badge-pending',
+const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const fmtDateTime = (iso?: string | null) => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '—';
+const inr = (n?: number | null) => n == null ? '—' : '₹' + Number(n).toLocaleString('en-IN');
+const tone = (s?: string | null) => {
+    switch ((s || '').toLowerCase()) {
+        case 'active': case 'approved': return 'ok';
+        case 'trial': return 'info';
+        case 'pending': case 'pendingapproval': return 'warn';
+        case 'expired': case 'blocked': case 'rejected': return 'bad';
+        default: return 'muted';
+    }
 };
+const statusText = (s?: string | null) => s === 'Active' ? 'Paying' : s === 'PendingApproval' ? 'Payment waiting' : s || 'No plan';
 
 const HospitalDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
     const [hospital, setHospital] = useState<Hospital | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [tab, setTab] = useState<Tab>('overview');
+    const [range, setRange] = useState<Range>('monthly');
 
     const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('all');
     const [customFrom, setCustomFrom] = useState('');
     const [customTo, setCustomTo] = useState('');
     const [apptStats, setApptStats] = useState<HospitalAppointmentSourceStats | null>(null);
-    const [apptStatsLoading, setApptStatsLoading] = useState(false);
+    const [apptStatsLoading, setApptStatsLoading] = useState(true);
 
     const canManageHospitals = useAuthStore((s) => s.hasAccess('hospitals.manage'));
     const [showArchiveModal, setShowArchiveModal] = useState(false);
@@ -55,39 +58,31 @@ const HospitalDetails: React.FC = () => {
     const [isRestoring, setIsRestoring] = useState(false);
 
     React.useEffect(() => {
-        const fetchHospital = async () => {
-            if (!id) return;
-            try {
-                setLoading(true);
-                const data = await getHospitalById(id);
-                setHospital(data);
-            } catch (err) {
-                setError('Failed to fetch hospital details');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchHospital();
+        if (!id) return;
+        let alive = true;
+        getHospitalById(id)
+            .then(d => { if (alive) setHospital(d); })
+            .catch(() => { if (alive) setError('Failed to fetch hospital details'); })
+            .finally(() => { if (alive) setLoading(false); });
+        return () => { alive = false; };
     }, [id]);
 
     React.useEffect(() => {
         if (!id) return;
         // Custom range: wait until both bounds are picked rather than firing on every half-typed date.
         if (dateFilterMode === 'custom' && (!customFrom || !customTo)) return;
-
         const today = toDateInputValue(new Date());
         const from = dateFilterMode === 'today' ? today : dateFilterMode === 'custom' ? customFrom : undefined;
         const to = dateFilterMode === 'today' ? today : dateFilterMode === 'custom' ? customTo : undefined;
-
         let cancelled = false;
-        setApptStatsLoading(true);
         getHospitalAppointmentStats(id, from, to)
             .then(stats => { if (!cancelled) setApptStats(stats); })
             .catch(() => { if (!cancelled) setApptStats(null); })
             .finally(() => { if (!cancelled) setApptStatsLoading(false); });
         return () => { cancelled = true; };
     }, [id, dateFilterMode, customFrom, customTo]);
+
+    const pickDateMode = (m: DateFilterMode) => { setApptStatsLoading(true); setDateFilterMode(m); };
 
     const handleArchive = async () => {
         if (!hospital || archiveConfirmText !== hospital.name) return;
@@ -121,709 +116,316 @@ const HospitalDetails: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-700">Loading Hospital Details...</h2>
-                    <p className="text-gray-500 text-sm mt-2">Please wait while we fetch the latest data.</p>
-                </div>
+            <div className="cx" aria-busy="true">
+                <div className="cx-skel" aria-hidden="true"><span className="h" /><span /><span /></div>
+                <p className="cx-loading">Loading hospital…</p>
+            </div>
+        );
+    }
+    if (error || !hospital) {
+        return (
+            <div className="cx">
+                <Link to="/onboarded-hospitals" className="cx-back"><ArrowLeft size={16} /> Customers</Link>
+                <div className="cu-error" role="alert">{error || 'Hospital not found'}</div>
             </div>
         );
     }
 
-    if (error || !hospital) {
-        return <div className="p-8 text-center text-red-600">{error || 'Hospital not found'}</div>;
-    }
+    const h = hospital;
+    const plan = h.subscriptionIsEnterprise ? 'Enterprise' : (h.subscriptionPlanName || (h.subscriptionStatus ? 'No plan picked' : 'No plan'));
+    const days = h.subscriptionStatus === 'Active' ? h.subscriptionDaysRemaining : null;
+    const place = `${h.city}, ${h.state}`;
+    const people = (h.users?.length || 0);
+    const doctors = h.doctors?.length ?? h.totalDoctors ?? 0;
+    const payments = h.paymentHistory || [];
+    const waiting = payments.find(p => p.status === 'PendingApproval');
+    const remind = whatsappLink(h.contactNumber, renewalText(h.name, h.subscriptionPlanName, days));
+    const hasLocation = h.latitude != null && h.longitude != null;
 
-    const getStatusClass = (status: string) => {
-        switch (status) {
-            case 'Active': return 'status-active';
-            case 'Revoked': return 'status-revoked';
-            default: return 'status-inactive';
-        }
-    };
+    const TABS: { key: Tab; label: string }[] = [
+        { key: 'overview', label: 'Overview' },
+        { key: 'people', label: `Staff & doctors · ${people + (h.doctors?.length || 0)}` },
+        { key: 'plan', label: 'Plan & payments' },
+        { key: 'activity', label: 'Activity' },
+        { key: 'location', label: 'Location' },
+    ];
 
     return (
-        <div className="hospital-details-container">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <button
-                    onClick={() => navigate('/onboarded-hospitals')}
-                    className="back-button"
-                >
-                    <ArrowLeft size={16} />
-                    Back to Onboarded Hospitals
-                </button>
+        <div className="cx">
+            <Link to="/onboarded-hospitals" className="cx-back"><ArrowLeft size={16} /> Customers</Link>
 
-                {canManageHospitals && (
-                    hospital.isArchived ? (
-                        <button
-                            onClick={handleRestore}
-                            disabled={isRestoring}
-                            className="btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                        >
-                            <ArchiveRestore size={16} />
-                            {isRestoring ? 'Restoring…' : 'Restore Hospital'}
+            {h.isArchived && (
+                <div className="cx-banner" role="status">
+                    <AlertTriangle size={18} aria-hidden="true" />
+                    <span>Archived{h.archivedAt ? ` on ${fmtDate(h.archivedAt)}` : ''}. Staff cannot sign in and the hospital is hidden from patients.</span>
+                    {canManageHospitals && (
+                        <button type="button" className="cu-btn" onClick={handleRestore} disabled={isRestoring}>
+                            <ArchiveRestore size={16} /> {isRestoring ? 'Restoring…' : 'Restore'}
                         </button>
-                    ) : (
-                        <button
-                            onClick={() => setShowArchiveModal(true)}
-                            className="btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', borderColor: '#fecaca' }}
-                        >
-                            <ArchiveIcon size={16} />
-                            Archive Hospital
-                        </button>
-                    )
-                )}
-            </div>
+                    )}
+                </div>
+            )}
 
-            {/* Header Section */}
-            <div className="hospital-header">
-                <div className="header-content">
-                    <div className="header-icon-box">
-                        <Building2 size={40} color="#FFFFFF" />
+            <header className="cx-head">
+                <div className="cx-head-main">
+                    <div className="cx-title-row">
+                        <h1>{h.name}</h1>
+                        <span className="cx-chip p-hms">1HMS</span>
+                        <span className={`cu-pill ${tone(h.subscriptionStatus)}`}>{statusText(h.subscriptionStatus)}</span>
+                        {days != null && days <= 7 && <span className="cu-pill warn">{days <= 0 ? 'Ends today' : days === 1 ? 'Ends tomorrow' : `Ends in ${days} days`}</span>}
                     </div>
-                    <div>
-                        <h1 className="header-title">{hospital.name}</h1>
-                        <div className="header-meta">
-                            <span>ID: {hospital.id}</span>
-                            <span>•</span>
-                            <span>{hospital.city}, {hospital.state}</span>
-                            <span className={`status-badge ${getStatusClass(hospital.status)}`} style={{ marginLeft: '12px' }}>
-                                {hospital.status}
-                            </span>
-                            {hospital.isArchived && (
-                                <span className="status-badge status-inactive" style={{ marginLeft: '8px' }}>
-                                    Archived{hospital.archivedAt ? ` on ${new Date(hospital.archivedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                    <p className="cx-meta">
+                        <span>{place}</span>
+                        <span>Joined {fmtDate(h.registeredOn)}</span>
+                        {h.partnerName && <span>Brought by {h.partnerName}</span>}
+                        <span className={`cu-pill ${h.status === 'Active' ? 'ok' : 'warn'}`}>{h.status === 'Active' ? 'Onboarded' : h.status}</span>
+                    </p>
+                </div>
+                <div className="cx-actions">
+                    {remind && (
+                        <a className="cu-btn cx-btn" href={remind} target="_blank" rel="noopener noreferrer">
+                            <MessageCircle size={16} /> {days != null && days <= 14 ? 'Remind on WhatsApp' : 'WhatsApp'}
+                        </a>
+                    )}
+                    {waiting && <Link className="cu-btn cx-btn cx-primary" to="/approvals?product=1hms">Review waiting payment</Link>}
+                    {canManageHospitals && !h.isArchived && (
+                        <button type="button" className="cu-btn cx-btn cx-danger-text" onClick={() => setShowArchiveModal(true)}>
+                            <ArchiveIcon size={16} /> Archive
+                        </button>
+                    )}
+                </div>
+            </header>
+
+            <nav className="ne-tabsbar" aria-label="Hospital sections" role="tablist">
+                {TABS.map(t => (
+                    <button key={t.key} type="button" role="tab" aria-selected={tab === t.key}
+                        className={`ne-tabsbar-item cx-tab ${tab === t.key ? 'is-on' : ''}`} onClick={() => setTab(t.key)}>
+                        {t.label}
+                    </button>
+                ))}
+            </nav>
+
+            {tab === 'overview' && (
+                <>
+                    <div className="cx-grid3">
+                        <section className="cx-card">
+                            <h2>Plan</h2>
+                            <span className="cx-big">{plan}</span>
+                            {h.subscriptionStatus === 'Trial' ? (
+                                <span className="cx-line">Free tier this month: {h.freeTierUsedCount != null && h.freeTierLimit != null
+                                    ? `${h.freeTierUsedCount} of ${h.freeTierLimit}${h.freeTierUsedCount >= h.freeTierLimit ? ' — limit reached' : ''}` : '—'}</span>
+                            ) : (
+                                <span className="cx-line">{h.subscriptionEndDate ? `Ends ${fmtDate(h.subscriptionEndDate)}` : days != null ? `${days} days left` : 'No end date'}</span>
+                            )}
+                            <span className="cx-line">{payments[0] ? `Last payment ${inr(payments[0].amount)} · ${fmtDate(payments[0].submittedAt)}` : 'No payments yet'}</span>
+                        </section>
+                        <section className="cx-card">
+                            <div className="cx-card-head">
+                                <h2>Appointments</h2>
+                                <select className="cx-mini-select" value={dateFilterMode} onChange={e => pickDateMode(e.target.value as DateFilterMode)} aria-label="Appointments for">
+                                    <option value="all">All time</option>
+                                    <option value="today">Today</option>
+                                    <option value="custom">Dates…</option>
+                                </select>
+                            </div>
+                            <span className="cx-big">{apptStatsLoading ? '…' : (apptStats?.totalAppointments ?? '—').toLocaleString('en-IN')}</span>
+                            <span className="cx-line">{apptStatsLoading ? '' : `${apptStats?.onlineAppointments ?? '—'} booked online · ${apptStats?.hospitalAppointments ?? '—'} at the hospital`}</span>
+                            {dateFilterMode === 'custom' && (
+                                <span className="cx-dates">
+                                    <input type="date" value={customFrom} onChange={e => { setApptStatsLoading(true); setCustomFrom(e.target.value); }} aria-label="From" />
+                                    <span>to</span>
+                                    <input type="date" value={customTo} onChange={e => { setApptStatsLoading(true); setCustomTo(e.target.value); }} aria-label="To" />
                                 </span>
                             )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="header-divider"></div>
-
-                <div className="header-details-grid">
-                    <div className="header-info-item">
-                        <MapPin size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Address</span>
-                            <div className="header-info-value">{hospital.address}, {hospital.city}, {hospital.state}</div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <Phone size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Contact</span>
-                            <div className="header-info-value">{hospital.contactNumber}</div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <Mail size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Email</span>
-                            <div className="header-info-value">{hospital.email}</div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <Activity size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Type</span>
-                            <div className="header-info-value">{hospital.hospitalType}</div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <Shield size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Partner</span>
-                            <div className="header-info-value">{hospital.partnerName}</div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <Calendar size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Registered On</span>
-                            <div className="header-info-value">
-                                {new Date(hospital.registeredOn).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, {new Date(hospital.registeredOn).getFullYear()}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <FileText size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Subscription</span>
-                            <div className="header-info-value">
-                                {hospital.subscriptionIsEnterprise ? 'Enterprise' : (hospital.subscriptionPlanName || 'No Plan Selected')}
-                                {hospital.subscriptionStatus && (
-                                    <span className={`sub-badge ${statusStyles[hospital.subscriptionStatus] || 'sub-badge-neutral'}`} style={{ marginLeft: '8px', verticalAlign: 'middle' }}>
-                                        {hospital.subscriptionStatus}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="header-info-item">
-                        <CreditCard size={16} className="header-info-icon" />
-                        <div>
-                            <span className="header-info-label">Days Remaining</span>
-                            <div className="header-info-value">
-                                {hospital.subscriptionDaysRemaining != null ? `${hospital.subscriptionDaysRemaining} days` : '—'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="details-content">
-
-                {/* Quick Stats: headcounts + online vs hospital appointment counts */}
-                <div className="quick-stats-section">
-                    <div className="quick-stats-grid">
-                        <div className="quick-stat-card">
-                            <div className="quick-stat-icon quick-stat-icon-doctors"><Stethoscope size={18} /></div>
-                            <div>
-                                <div className="quick-stat-value">{hospital.totalDoctors ?? hospital.doctors?.length ?? 0}</div>
-                                <div className="quick-stat-label">Total Doctors</div>
-                            </div>
-                        </div>
-                        <div className="quick-stat-card">
-                            <div className="quick-stat-icon quick-stat-icon-users"><UserCog size={18} /></div>
-                            <div>
-                                <div className="quick-stat-value">{hospital.totalNonDoctorUsers ?? 0}</div>
-                                <div className="quick-stat-label">Other Users</div>
-                            </div>
-                        </div>
-                        <div className="quick-stat-card">
-                            <div className="quick-stat-icon quick-stat-icon-online"><Globe size={18} /></div>
-                            <div>
-                                <div className="quick-stat-value">{apptStatsLoading ? '…' : (apptStats?.onlineAppointments ?? '—')}</div>
-                                <div className="quick-stat-label">Online Appointments</div>
-                            </div>
-                        </div>
-                        <div className="quick-stat-card">
-                            <div className="quick-stat-icon quick-stat-icon-hospital"><Building size={18} /></div>
-                            <div>
-                                <div className="quick-stat-value">{apptStatsLoading ? '…' : (apptStats?.hospitalAppointments ?? '—')}</div>
-                                <div className="quick-stat-label">Hospital Appointments</div>
-                            </div>
-                        </div>
+                        </section>
+                        <section className="cx-card">
+                            <h2>Team</h2>
+                            <span className="cx-big">{doctors} {doctors === 1 ? 'doctor' : 'doctors'}</span>
+                            <span className="cx-line">{h.totalNonDoctorUsers ?? 0} other staff · {(h.totalPatients ?? 0).toLocaleString('en-IN')} patients</span>
+                            <button type="button" className="cx-link" onClick={() => setTab('people')}>See everyone</button>
+                        </section>
                     </div>
 
-                    <div className="quick-stats-filter">
-                        <span className="quick-stats-filter-label">Appointment counts for:</span>
-                        <div className="quick-stats-filter-toggle">
-                            {(['all', 'today', 'custom'] as const).map(mode => (
-                                <button
-                                    key={mode}
-                                    className={`quick-stats-filter-btn ${dateFilterMode === mode ? 'active' : ''}`}
-                                    onClick={() => setDateFilterMode(mode)}
-                                >
-                                    {mode === 'all' ? 'All time' : mode === 'today' ? 'Today' : 'Custom range'}
+                    <section className="cx-card">
+                        <h2>Details</h2>
+                        <dl className="cx-dl">
+                            <dt>Address</dt><dd>{[h.address, h.city, h.state].filter(Boolean).join(', ') || '—'}</dd>
+                            <dt>Phone</dt><dd>{h.contactNumber || '—'}</dd>
+                            <dt>Email</dt><dd>{h.email || '—'}</dd>
+                            <dt>Type</dt><dd>{h.hospitalType || '—'}</dd>
+                            <dt>Partner</dt><dd>{h.partnerName || '—'}</dd>
+                            <dt>Hospital ID</dt><dd className="cx-mono">{h.id}</dd>
+                        </dl>
+                    </section>
+                </>
+            )}
+
+            {tab === 'people' && (
+                <>
+                    <section className="cx-card cx-flush">
+                        <div className="cx-card-head cx-pad"><h2>Staff · {people}</h2></div>
+                        <div className="cu-table-wrap">
+                            <table className="cu-table cx-table">
+                                <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Email</th><th>Last sign-in</th><th>How</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    {(h.users || []).map((u, i) => (
+                                        <tr key={`${u.email}-${i}`}>
+                                            <td className="cx-strong">{u.name}</td><td>{u.role}</td><td>{u.contact || '—'}</td><td>{u.email || '—'}</td>
+                                            <td>{fmtDateTime(u.lastLoginTime)}</td><td>{u.loginMethod || '—'}</td>
+                                            <td><span className={`cu-pill ${u.status === 'Active' ? 'ok' : 'muted'}`}>{u.status}</span></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="cu-cards">
+                            {(h.users || []).map((u, i) => (
+                                <div className="cu-mcard" key={`m-${u.email}-${i}`}>
+                                    <span className="cu-name">{u.name}</span>
+                                    <span className="cu-sub">{u.role} · {u.contact || u.email || '—'}</span>
+                                    <span className="cu-sub">Last sign-in {fmtDateTime(u.lastLoginTime)}{u.loginMethod ? ` · ${u.loginMethod}` : ''}</span>
+                                </div>
+                            ))}
+                        </div>
+                        {people === 0 && <p className="cu-empty">No staff yet.</p>}
+                    </section>
+
+                    <section className="cx-card cx-flush">
+                        <div className="cx-card-head cx-pad"><h2>Doctors · {h.doctors?.length || 0}</h2></div>
+                        <div className="cu-table-wrap">
+                            <table className="cu-table cx-table">
+                                <thead><tr><th>Doctor</th><th>Degree</th><th>Departments</th><th>Reg. no.</th><th className="num">Appointments (day · week · month · year)</th><th className="num">Patients (day · week · month · year)</th></tr></thead>
+                                <tbody>
+                                    {(h.doctors || []).map((d, i) => (
+                                        <tr key={d.id || i}>
+                                            <td><span className="cx-strong">{d.name}</span><span className="cu-sub">{d.speciality}</span></td>
+                                            <td>{d.degree || '—'}</td><td>{(d.departments || []).join(', ') || '—'}</td><td className="cx-mono">{d.registrationNumber || '—'}</td>
+                                            <td className="num">{d.appointments ? `${d.appointments.daily} · ${d.appointments.weekly} · ${d.appointments.monthly} · ${d.appointments.yearly}` : '—'}</td>
+                                            <td className="num">{d.uniquePatients ? `${d.uniquePatients.daily} · ${d.uniquePatients.weekly} · ${d.uniquePatients.monthly} · ${d.uniquePatients.yearly}` : '—'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="cu-cards">
+                            {(h.doctors || []).map((d, i) => (
+                                <div className="cu-mcard" key={`md-${d.id || i}`}>
+                                    <span className="cu-name">{d.name}</span>
+                                    <span className="cu-sub">{[d.degree, (d.departments || []).join(', ')].filter(Boolean).join(' · ')}</span>
+                                    <span className="cu-sub">This month: {d.appointments?.monthly ?? 0} appointments · {d.uniquePatients?.monthly ?? 0} patients</span>
+                                </div>
+                            ))}
+                        </div>
+                        {!h.doctors?.length && <p className="cu-empty">No doctors yet.</p>}
+                    </section>
+                </>
+            )}
+
+            {tab === 'plan' && (
+                <>
+                    <section className="cx-card">
+                        <h2>Current plan</h2>
+                        <dl className="cx-dl">
+                            <dt>Plan</dt><dd>{plan}</dd>
+                            <dt>Status</dt><dd><span className={`cu-pill ${tone(h.subscriptionStatus)}`}>{statusText(h.subscriptionStatus)}</span></dd>
+                            {h.subscriptionStatus === 'Trial' ? (
+                                <><dt>Free tier this month</dt><dd>{h.freeTierUsedCount != null && h.freeTierLimit != null ? `${h.freeTierUsedCount} of ${h.freeTierLimit}` : '—'}</dd></>
+                            ) : (
+                                <>
+                                    <dt>Started</dt><dd>{fmtDate(h.subscriptionStartDate)}</dd>
+                                    <dt>Ends</dt><dd>{fmtDate(h.subscriptionEndDate)}{days != null ? ` · ${days} days left` : ''}</dd>
+                                </>
+                            )}
+                        </dl>
+                    </section>
+                    <section className="cx-card cx-flush">
+                        <div className="cx-card-head cx-pad"><h2>Payments · {payments.length}</h2></div>
+                        <div className="cu-table-wrap">
+                            <table className="cu-table cx-table">
+                                <thead><tr><th>Sent</th><th>Plan</th><th className="num">Amount</th><th>Method</th><th>Reference</th><th>Status</th><th>Decided</th></tr></thead>
+                                <tbody>
+                                    {payments.map((p, i) => (
+                                        <tr key={`${p.reference}-${i}`}>
+                                            <td>{fmtDate(p.submittedAt)}</td><td>{p.planName}</td><td className="num">{inr(p.amount)}</td><td>{p.paymentMode || '—'}</td>
+                                            <td className="cx-mono">{p.reference || '—'}</td>
+                                            <td><span className={`cu-pill ${tone(p.status)}`}>{p.status === 'PendingApproval' ? 'Waiting' : p.status}</span>{p.rejectionReason && <span className="cu-sub">{p.rejectionReason}</span>}</td>
+                                            <td>{fmtDate(p.reviewedAt)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="cu-cards">
+                            {payments.map((p, i) => (
+                                <div className="cu-mcard" key={`mp-${p.reference}-${i}`}>
+                                    <span className="cu-name">{inr(p.amount)} · {p.planName}</span>
+                                    <span className="cu-sub">{fmtDate(p.submittedAt)} · {p.paymentMode || '—'} · {p.reference || '—'}</span>
+                                    <span><span className={`cu-pill ${tone(p.status)}`}>{p.status === 'PendingApproval' ? 'Waiting' : p.status}</span></span>
+                                </div>
+                            ))}
+                        </div>
+                        {payments.length === 0 && <p className="cu-empty">No payments yet.</p>}
+                    </section>
+                </>
+            )}
+
+            {tab === 'activity' && (
+                h.stats ? (
+                    <>
+                        <div className="ne-seg" role="radiogroup" aria-label="Period">
+                            {(['daily', 'weekly', 'monthly', 'yearly'] as Range[]).map(r => (
+                                <button key={r} type="button" role="radio" aria-checked={range === r} className={range === r ? 'is-on' : ''} onClick={() => setRange(r)}>
+                                    {r === 'daily' ? 'By day' : r === 'weekly' ? 'By week' : r === 'monthly' ? 'By month' : 'By year'}
                                 </button>
                             ))}
                         </div>
-                        {dateFilterMode === 'custom' && (
-                            <div className="quick-stats-filter-dates">
-                                <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="quick-stats-date-input" />
-                                <span>to</span>
-                                <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="quick-stats-date-input" />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Analytics Section */}
-                {hospital.stats && (
-                    <div className="analytics-section" style={{ marginBottom: '1.5rem' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginBottom: '1rem',
-                            background: '#1e3a8a',
-                            padding: '1rem',
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                            flexWrap: 'wrap',
-                            gap: '12px'
-                        }}>
-                            <div className="analytics-section-title" style={{
-                                fontSize: '18px',
-                                fontWeight: 600,
-                                color: '#FFFFFF',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                marginBottom: 0
-                            }}>
-                                <TrendingUp size={20} color="#FFFFFF" />
-                                Analytics Overview
-                            </div>
-
-                            <div className="time-range-selector" style={{ display: 'flex', background: 'rgba(255,255,255,0.2)', padding: '4px', borderRadius: '8px', gap: '4px' }}>
-                                {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((range) => (
-                                    <button
-                                        key={range}
-                                        onClick={() => setTimeRange(range)}
-                                        style={{
-                                            border: 'none',
-                                            background: timeRange === range ? '#FFFFFF' : 'transparent',
-                                            color: timeRange === range ? '#1e3a8a' : '#E0E7FF',
-                                            padding: '4px 12px',
-                                            borderRadius: '6px',
-                                            fontSize: '12px',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            textTransform: 'capitalize',
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
-                                        {range}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="cx-grid2">
+                            {([['Different patients', h.stats.uniquePatients[range], '#4F46E5'], ['Appointments', h.stats.appointments[range], '#079455']] as const).map(([title, data, color]) => (
+                                <section className="cx-card" key={title}>
+                                    <h2>{title}</h2>
+                                    <div className="cx-chart">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={data as { label: string; value: number }[]} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                                                <CartesianGrid stroke="#EAECF0" vertical={false} />
+                                                <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#667085' }} axisLine={false} tickLine={false} />
+                                                <YAxis tick={{ fontSize: 12, fill: '#667085' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                                                <Tooltip />
+                                                <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={false} />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </section>
+                            ))}
                         </div>
+                    </>
+                ) : <p className="cu-empty">No activity data for this hospital yet.</p>
+            )}
 
-                        <div className="analytics-grid">
-                            {/* Unique Patients Chart */}
-                            <div className="chart-container">
-                                <h3 className="chart-title">Total Unique Patients ({timeRange})</h3>
-                                <div className="chart-wrapper">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={hospital.stats.uniquePatients[timeRange]}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                            <XAxis
-                                                dataKey="label"
-                                                tick={{ fontSize: 11, fill: '#6B7280' }}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <YAxis
-                                                tick={{ fontSize: 11, fill: '#6B7280' }}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <Tooltip
-                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="value"
-                                                stroke="#2563eb"
-                                                strokeWidth={2}
-                                                dot={{ r: 3, fill: '#2563eb' }}
-                                                activeDot={{ r: 5 }}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
+            {tab === 'location' && (
+                <section className="cx-card">
+                    <h2>Location</h2>
+                    {hasLocation ? (
+                        <>
+                            <HospitalLocationMap latitude={h.latitude as number} longitude={h.longitude as number} label={h.name} />
+                            <a className="cx-link" href={`https://www.google.com/maps?q=${h.latitude},${h.longitude}`} target="_blank" rel="noopener noreferrer">
+                                <MapPin size={15} /> Open in Google Maps <ExternalLink size={13} />
+                            </a>
+                        </>
+                    ) : <p className="cx-line">The hospital has not set its map pin yet (1HMS › branding settings).</p>}
+                </section>
+            )}
 
-                            {/* Appointments Chart */}
-                            <div className="chart-container">
-                                <h3 className="chart-title">Appointments ({timeRange})</h3>
-                                <div className="chart-wrapper">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={hospital.stats.appointments[timeRange]}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                            <XAxis
-                                                dataKey="label"
-                                                tick={{ fontSize: 11, fill: '#6B7280' }}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <YAxis
-                                                tick={{ fontSize: 11, fill: '#6B7280' }}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <Tooltip
-                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="value"
-                                                stroke="#10b981"
-                                                strokeWidth={2}
-                                                dot={{ r: 3, fill: '#10b981' }}
-                                                activeDot={{ r: 5 }}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-
-
-                {/* User Info */}
-                <CollapsibleCard title="User Info" icon={<Users size={20} />}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                            Total User Count: <span style={{ color: 'var(--primary)', fontSize: '16px' }}>{hospital.users?.length || 0}</span>
-                        </div>
-                    </div>
-                    {/* Desktop View: Table */}
-                    <div className="table-wrapper details-desktop-table">
-                        <table className="details-table">
-                            <thead>
-                                <tr className="table-head-row">
-                                    <th className="table-th">Name</th>
-                                    <th className="table-th">Role</th>
-                                    <th className="table-th">Contact</th>
-                                    <th className="table-th">Email</th>
-                                    <th className="table-th">Last Login</th>
-                                    <th className="table-th">Method</th>
-                                    <th className="table-th">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {hospital.users?.map((user, idx) => (
-                                    <tr key={idx} className="table-tr">
-                                        <td className="table-td">{user.name}</td>
-                                        <td className="table-td">{user.role}</td>
-                                        <td className="table-td">{user.contact}</td>
-                                        <td className="table-td">{user.email}</td>
-                                        <td className="table-td">
-                                            {user.lastLoginTime ? new Date(user.lastLoginTime).toLocaleString('en-GB', {
-                                                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                                            }) : '-'}
-                                        </td>
-                                        <td className="table-td">{user.loginMethod || '-'}</td>
-                                        <td className="table-td">
-                                            <span className={`status-badge ${getStatusClass(user.status)}`}>
-                                                {user.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {(!hospital.users || hospital.users.length === 0) && (
-                                    <tr>
-                                        <td colSpan={7} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No users found</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Mobile View: Cards */}
-                    <div className="details-mobile-cards">
-                        {hospital.users?.map((user, idx) => (
-                            <div key={idx} className="details-mobile-card">
-                                <div className="details-card-header">
-                                    <div className="details-card-avatar">
-                                        {user.name?.[0]?.toUpperCase() || '?'}
-                                    </div>
-                                    <div className="details-card-meta">
-                                        <h4>{user.name}</h4>
-                                        <p>{user.role}</p>
-                                    </div>
-                                    <span className={`status-badge ${getStatusClass(user.status)}`}>
-                                        {user.status}
-                                    </span>
-                                </div>
-                                <div className="details-card-fields">
-                                    <div className="card-field-row">
-                                        <span className="field-label">Email</span>
-                                        <span className="field-value">{user.email}</span>
-                                    </div>
-                                    <div className="card-field-row">
-                                        <span className="field-label">Contact</span>
-                                        <span className="field-value">{user.contact}</span>
-                                    </div>
-                                    <div className="card-field-row">
-                                        <span className="field-label">Last Login</span>
-                                        <span className="field-value">
-                                            {user.lastLoginTime ? new Date(user.lastLoginTime).toLocaleString('en-IN') : '-'}
-                                        </span>
-                                    </div>
-                                    <div className="card-field-row">
-                                        <span className="field-label">Method</span>
-                                        <span className="field-value">{user.loginMethod || '-'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        {(!hospital.users || hospital.users.length === 0) && (
-                            <div className="details-empty-mobile">No users found.</div>
-                        )}
-                    </div>
-                </CollapsibleCard>
-
-                {/* Doctors */}
-                <CollapsibleCard title="Doctors" icon={<Stethoscope size={20} />}>
-                    {/* Desktop View: Table */}
-                    <div className="table-wrapper details-desktop-table">
-                        <table className="details-table">
-                            <thead>
-                                <tr className="table-head-row">
-                                    <th className="table-th">Doctor Name</th>
-                                    <th className="table-th">Details</th>
-                                    <th className="table-th">Registration</th>
-                                    <th className="table-th">Appointments (D/W/M/Y)</th>
-                                    <th className="table-th">Unique Patients (D/W/M/Y)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {hospital.doctors?.map((doc, idx) => (
-                                    <tr key={idx} className="table-tr">
-                                        <td className="table-td">
-                                            <div style={{ fontWeight: 600 }}>{doc.name}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{doc.speciality}</div>
-                                        </td>
-                                        <td className="table-td">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><GraduationCap size={12} /> {doc.degree}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Dept: {doc.departments.join(', ')}</div>
-                                        </td>
-                                        <td className="table-td">
-                                            <div>{doc.registrationNumber}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Reg: {doc.registeredOn}</div>
-                                        </td>
-                                        <td className="table-td">
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11px' }}>
-                                                <span>D: {doc.appointments.daily}</span>
-                                                <span>W: {doc.appointments.weekly}</span>
-                                                <span>M: {doc.appointments.monthly}</span>
-                                                <span>Y: {doc.appointments.yearly}</span>
-                                            </div>
-                                        </td>
-                                        <td className="table-td">
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11px' }}>
-                                                <span>D: {doc.uniquePatients.daily}</span>
-                                                <span>W: {doc.uniquePatients.weekly}</span>
-                                                <span>M: {doc.uniquePatients.monthly}</span>
-                                                <span>Y: {doc.uniquePatients.yearly}</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {(!hospital.doctors || hospital.doctors.length === 0) && (
-                                    <tr>
-                                        <td colSpan={5} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No doctors found</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Mobile View: Cards */}
-                    <div className="details-mobile-cards">
-                        {hospital.doctors?.map((doc, idx) => (
-                            <div key={idx} className="details-mobile-card">
-                                <div className="details-card-header">
-                                    <div className="details-card-avatar doctor">
-                                        Dr
-                                    </div>
-                                    <div className="details-card-meta">
-                                        <h4>{doc.name}</h4>
-                                        <p>{doc.speciality}</p>
-                                    </div>
-                                </div>
-                                <div className="details-card-fields">
-                                    <div className="card-field-row">
-                                        <span className="field-label">Degree</span>
-                                        <span className="field-value">{doc.degree}</span>
-                                    </div>
-                                    <div className="card-field-row">
-                                        <span className="field-label">Departments</span>
-                                        <span className="field-value">{doc.departments.join(', ')}</span>
-                                    </div>
-                                    <div className="card-field-row">
-                                        <span className="field-label">Reg No</span>
-                                        <span className="field-value">{doc.registrationNumber} (since {doc.registeredOn})</span>
-                                    </div>
-                                    <div className="card-stats-block">
-                                        <div className="card-stat-subrow">
-                                            <span className="stat-heading">Appointments</span>
-                                            <span className="stat-values">
-                                                D: {doc.appointments.daily} | W: {doc.appointments.weekly} | M: {doc.appointments.monthly} | Y: {doc.appointments.yearly}
-                                            </span>
-                                        </div>
-                                        <div className="card-stat-subrow">
-                                            <span className="stat-heading">Unique Patients</span>
-                                            <span className="stat-values">
-                                                D: {doc.uniquePatients.daily} | W: {doc.uniquePatients.weekly} | M: {doc.uniquePatients.monthly} | Y: {doc.uniquePatients.yearly}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        {(!hospital.doctors || hospital.doctors.length === 0) && (
-                            <div className="details-empty-mobile">No doctors found.</div>
-                        )}
-                    </div>
-                </CollapsibleCard>
-
-                {/* Subscription & Payments */}
-                <CollapsibleCard title="Subscription & Payments" icon={<Receipt size={20} />} defaultOpen>
-                    <div className="info-grid" style={{ marginBottom: '1.5rem' }}>
-                        <div className="info-item">
-                            <FileText size={16} className="info-icon" />
-                            <div>
-                                <div className="info-label">Plan</div>
-                                <div className="info-value">
-                                    {hospital.subscriptionIsEnterprise ? 'Enterprise' : (hospital.subscriptionPlanName || 'No Plan Selected')}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="info-item">
-                            <Activity size={16} className="info-icon" />
-                            <div>
-                                <div className="info-label">Status</div>
-                                <div className="info-value">
-                                    {hospital.subscriptionStatus ? (
-                                        <span className={`sub-badge ${statusStyles[hospital.subscriptionStatus] || 'sub-badge-neutral'}`}>
-                                            {hospital.subscriptionStatus}
-                                        </span>
-                                    ) : '—'}
-                                </div>
-                            </div>
-                        </div>
-                        {hospital.subscriptionStatus === 'Trial' ? (
-                            <div className="info-item">
-                                <Activity size={16} className="info-icon" />
-                                <div>
-                                    <div className="info-label">Free Tier Usage This Month</div>
-                                    <div className="info-value">
-                                        {hospital.freeTierUsedCount != null && hospital.freeTierLimit != null
-                                            ? `${hospital.freeTierUsedCount} / ${hospital.freeTierLimit}${hospital.freeTierUsedCount >= hospital.freeTierLimit ? ' — over limit' : ''}`
-                                            : '—'}
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="info-item">
-                                <Calendar size={16} className="info-icon" />
-                                <div>
-                                    <div className="info-label">Subscription Ends</div>
-                                    <div className="info-value">
-                                        {hospital.subscriptionEndDate
-                                            ? new Date(hospital.subscriptionEndDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : '—'}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                        Payment History
-                    </div>
-                    <div className="table-wrapper">
-                        <table className="details-table">
-                            <thead>
-                                <tr className="table-head-row">
-                                    <th className="table-th">Plan</th>
-                                    <th className="table-th">Amount</th>
-                                    <th className="table-th">Mode</th>
-                                    <th className="table-th">Reference</th>
-                                    <th className="table-th">Submitted</th>
-                                    <th className="table-th">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {hospital.paymentHistory?.map((payment, idx) => (
-                                    <tr key={idx} className="table-tr">
-                                        <td className="table-td">{payment.planName}</td>
-                                        <td className="table-td">₹{payment.amount}</td>
-                                        <td className="table-td">{payment.paymentMode || '—'}</td>
-                                        <td className="table-td" style={{ fontFamily: 'monospace', fontSize: '12px' }}>{payment.reference}</td>
-                                        <td className="table-td">
-                                            {new Date(payment.submittedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                        </td>
-                                        <td className="table-td">
-                                            <span className={`sub-badge ${statusStyles[payment.status] || 'sub-badge-neutral'}`}>
-                                                {payment.status}
-                                            </span>
-                                            {payment.status === 'Rejected' && payment.rejectionReason && (
-                                                <div style={{ fontSize: '11px', color: '#991B1B', marginTop: '4px', maxWidth: '220px' }}>{payment.rejectionReason}</div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {(!hospital.paymentHistory || hospital.paymentHistory.length === 0) && (
-                                    <tr>
-                                        <td colSpan={6} style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No payments submitted yet</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </CollapsibleCard>
-
-                {/* Location */}
-                <CollapsibleCard title="Location" icon={<MapPin size={20} />}>
-                    {hospital.latitude != null && hospital.longitude != null ? (
-                        <HospitalLocationMap
-                            latitude={hospital.latitude}
-                            longitude={hospital.longitude}
-                            label={hospital.name}
-                        />
-                    ) : (
-                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                            This hospital hasn't set a GPS location yet — they can set one from the "GPS Location" section
-                            of their Hospital Branding settings in easyHMSWeb.
-                        </div>
-                    )}
-                </CollapsibleCard>
-
-            </div>
-
-            {/* Archive Confirmation Modal */}
             {showArchiveModal && (
-                <div className="modal-backdrop">
-                    <div className="modal-content" style={{ maxWidth: '420px' }}>
-                        <div className="modal-header">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%' }}>
-                                    <AlertTriangle size={20} />
-                                </div>
-                                <h2 className="modal-title" style={{ margin: 0, color: '#0f172a' }}>Archive Hospital</h2>
-                            </div>
-                            <button className="modal-close" onClick={() => { setShowArchiveModal(false); setArchiveConfirmText(''); }}>&times;</button>
-                        </div>
-
-                        <div className="modal-body" style={{ marginTop: '16px' }}>
-                            <p style={{ color: '#475569', fontSize: '14px', marginBottom: '16px' }}>
-                                This hides <strong>{hospital.name}</strong> and all its data — staff access, patient
-                                records, and its public listing — everywhere. Nothing is deleted; you can restore it
-                                from this page at any time.
-                            </p>
-
-                            <div className="form-group">
-                                <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>
-                                    Please type <strong>{hospital.name}</strong> to confirm.
-                                </label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={archiveConfirmText}
-                                    onChange={(e) => setArchiveConfirmText(e.target.value)}
-                                    placeholder={hospital.name}
-                                    autoComplete="off"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="modal-footer" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                className="btn-secondary"
-                                onClick={() => { setShowArchiveModal(false); setArchiveConfirmText(''); }}
-                                disabled={isArchiving}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn-primary"
-                                style={{ background: '#ef4444', opacity: archiveConfirmText === hospital.name ? 1 : 0.5 }}
-                                disabled={archiveConfirmText !== hospital.name || isArchiving}
-                                onClick={handleArchive}
-                            >
-                                {isArchiving ? 'Archiving…' : 'Archive Hospital'}
+                <div className="cx-modal-back" onClick={() => setShowArchiveModal(false)}>
+                    <div className="cx-modal" role="dialog" aria-modal="true" aria-labelledby="cx-arch" onClick={e => e.stopPropagation()}>
+                        <h2 id="cx-arch">Archive {h.name}?</h2>
+                        <p>This hides <strong>{h.name}</strong> and all its data — staff access, patient records and appointments. You can restore it later.</p>
+                        <label htmlFor="cx-arch-name">Type <strong>{h.name}</strong> to confirm</label>
+                        <input id="cx-arch-name" value={archiveConfirmText} onChange={e => setArchiveConfirmText(e.target.value)} placeholder={h.name} autoFocus />
+                        <div className="cx-modal-actions">
+                            <button type="button" className="cu-btn" onClick={() => { setShowArchiveModal(false); setArchiveConfirmText(''); }}>Cancel</button>
+                            <button type="button" className="cu-btn cx-danger" disabled={archiveConfirmText !== h.name || isArchiving} onClick={handleArchive}>
+                                {isArchiving ? 'Archiving…' : 'Archive hospital'}
                             </button>
                         </div>
                     </div>
@@ -832,36 +434,5 @@ const HospitalDetails: React.FC = () => {
         </div>
     );
 };
-
-// Start of Helper Components
-
-const CollapsibleCard: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon, children, defaultOpen = false }) => {
-    const [isOpen, setIsOpen] = useState(defaultOpen);
-
-    return (
-        <div className="collapsible-card">
-            <div
-                onClick={() => setIsOpen(!isOpen)}
-                className={`card-header ${isOpen ? 'card-header-active' : ''}`}
-            >
-                <div className="card-title-group">
-                    <div className="card-icon">
-                        {icon}
-                    </div>
-                    <span className="card-title">{title}</span>
-                </div>
-                {isOpen ? <ChevronUp size={20} color="var(--text-secondary)" /> : <ChevronDown size={20} color="var(--text-secondary)" />}
-            </div>
-
-            <div className="card-content-wrapper" style={{ maxHeight: isOpen ? '2000px' : '0', opacity: isOpen ? 1 : 0 }}>
-                <div className="card-body">
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 
 export default HospitalDetails;

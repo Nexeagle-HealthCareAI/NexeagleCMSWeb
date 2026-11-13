@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { CreditCard, MessageSquare, BookOpen, Siren, AlertTriangle, Building2, ScanLine, Stethoscope, Users, Check, RefreshCw } from 'lucide-react';
+import { CreditCard, MessageCircle, MessageSquare, BookOpen, Siren, AlertTriangle, Building2, ScanLine, Stethoscope, Users, Check, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useSupportStore } from '../../store/useSupportStore';
 import { useCountsStore } from '../../store/useCountsStore';
 import { loadToday, waited, inr, type Product, type TodayData } from './todayService';
+import { whatsappLink, renewalText } from '../../utils/whatsapp';
 import './today.css';
 
 type Area = 'money' | 'support' | 'content' | 'admin';
@@ -239,11 +240,15 @@ const TodayPage: React.FC = () => {
                             {renewals.length === 0 && <p className="td-muted">No paid 1HMS plan ends in the next 7 days.</p>}
                             {renewals.map(h => {
                                 const d = h.subscriptionDaysRemaining ?? 0;
+                                const wa = whatsappLink(h.contactNumber, renewalText(h.name, h.subscriptionPlanName, d));
                                 return (
-                                    <Link to={`/hospital/${h.id}`} className="td-line" key={h.id}>
-                                        <span className="td-line-text"><span className="td-row-title">{h.name}</span><span className="td-row-sub">1HMS · {h.subscriptionPlanName || 'paid plan'}{h.city ? ` · ${h.city}` : ''}</span></span>
+                                    <div className="td-line td-renew" key={h.id}>
+                                        <Link to={`/hospital/${h.id}`} className="td-line-text td-renew-name"><span className="td-row-title">{h.name}</span><span className="td-row-sub">1HMS · {h.subscriptionPlanName || 'paid plan'}{h.city ? ` · ${h.city}` : ''}</span></Link>
                                         <span className={`td-tag ${d <= 2 ? 'bad' : d <= 4 ? 'warn' : ''}`}>{d <= 0 ? 'ends today' : d === 1 ? '1 day' : `${d} days`}</span>
-                                    </Link>
+                                        {wa
+                                            ? <a className="td-btn td-remind" href={wa} target="_blank" rel="noopener noreferrer" aria-label={`Remind ${h.name} on WhatsApp`}><MessageCircle size={15} /> Remind</a>
+                                            : <span className="td-remind-none" title="No phone number on file">—</span>}
+                                    </div>
                                 );
                             })}
                         </section>

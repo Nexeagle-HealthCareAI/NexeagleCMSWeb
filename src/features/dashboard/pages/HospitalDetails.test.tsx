@@ -83,7 +83,7 @@ describe('HospitalDetails Component', () => {
 
         await waitFor(() => {
             expect(screen.getByText('Test Hospital')).toBeInTheDocument();
-            expect(screen.getByText('Metropolis, NY')).toBeInTheDocument();
+            expect(screen.getAllByText('Metropolis, NY').length).toBeGreaterThan(0);
         });
     });
 
