@@ -38,7 +38,7 @@ describe('Dashboard Component', () => {
                 <Dashboard />
             </BrowserRouter>
         );
-        expect(screen.getByText('Dashboard Overview')).toBeInTheDocument();
+        expect(screen.getByText('Platform growth')).toBeInTheDocument();
     });
 
     it('should fetch and display stats', async () => {
@@ -49,7 +49,7 @@ describe('Dashboard Component', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Total Hospital OnBoarded')).toBeInTheDocument();
+            expect(screen.getByText('Hospitals')).toBeInTheDocument();
             // Checking values might need more specific queries if formating is applied (e.g. 10.toLocaleString())
             // But '10' should be present
             expect(screen.getByText('10')).toBeInTheDocument();

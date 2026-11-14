@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import CustomerTabs from '../../../components/CustomerTabs';
 import { Star, EyeOff, Percent, Stethoscope, Eye, ListChecks, X, BadgeCheck, AlertTriangle } from 'lucide-react';
 import { getDoctors, updateDoctorMarketing, type DoctorListItem } from '../services/doctorService';
 import { DoctorDetailModal } from '../components/DoctorDetailModal';
 import { BulkEditModal } from '../components/BulkEditModal';
-import { InsightsTab } from '../../insights/components/InsightsTab';
-import { RouterAgentsTab } from '../../routerAgents/pages/RouterAgentsTab';
 import '../../dashboard/pages/Dashboard.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './DoctorsPage.css';
@@ -70,7 +69,6 @@ interface EditFormState {
 }
 
 const DoctorsPage: React.FC = () => {
-    const [pageTab, setPageTab] = useState<'doctors' | 'insights' | 'nlp'>('doctors');
     const [doctors, setDoctors] = useState<DoctorListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -206,36 +204,12 @@ const DoctorsPage: React.FC = () => {
         <div className="premium-container">
             <header className="premium-header">
                 <div>
-                    <h1 className="premium-title">Doctor Dekho — Doctors</h1>
-                    <p className="premium-subtitle">Feature, discount, or delist any doctor across every hospital on the platform.</p>
+                    <h1 className="premium-title">Customers</h1>
+                    <p className="premium-subtitle">Doctor Dekho: feature, discount or delist any doctor across every hospital.</p>
                 </div>
             </header>
+            <div style={{ marginBottom: 16 }}><CustomerTabs /></div>
 
-            <div className="doctor-page-tabs">
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'doctors' ? 'active' : ''}`}
-                    onClick={() => setPageTab('doctors')}
-                >
-                    Doctors
-                </button>
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'insights' ? 'active' : ''}`}
-                    onClick={() => setPageTab('insights')}
-                >
-                    Insights
-                </button>
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'nlp' ? 'active' : ''}`}
-                    onClick={() => setPageTab('nlp')}
-                >
-                    AI Agents
-                </button>
-            </div>
-
-            {pageTab === 'insights' && <InsightsTab />}
-            {pageTab === 'nlp' && <RouterAgentsTab />}
-
-            {pageTab === 'doctors' && (
             <div className="premium-table-card">
                 <div className="premium-controls">
                     <h2 className="premium-table-title">
@@ -498,7 +472,6 @@ const DoctorsPage: React.FC = () => {
                     </>
                 )}
             </div>
-            )}
 
             {editingDoctor && form && (
                 <div className="reject-modal-overlay" onClick={closeEdit}>
