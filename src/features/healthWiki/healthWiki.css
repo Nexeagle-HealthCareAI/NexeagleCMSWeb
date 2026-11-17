@@ -239,3 +239,6 @@
 .hw-linkbtn { background: none; border: 0; padding: 0; color: var(--text-secondary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
 .hw-linkbtn:hover { color: var(--primary); }
 .hw-linkbtn:disabled { opacity: .5; cursor: not-allowed; }
+.hw-hint { margin: 0; padding: 6px 12px; font-size: 12px; color: var(--text-secondary); border: 1px solid var(--border); border-top: 0; background: #fafafa; }
+.hw-editor-content img.ProseMirror-selectednode { outline: 3px solid var(--primary); outline-offset: 2px; cursor: grab; }
+.dd-refs a { color: var(--dd-teal, var(--primary)); font-weight: 600; word-break: break-word; }
