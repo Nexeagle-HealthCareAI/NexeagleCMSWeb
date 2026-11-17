@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CONTRIBUTOR_TYPE_LABEL, type ArticleType, type Contributor } from '../types';
+import { ReferenceText } from './ReferenceText';
 
 interface Props {
   type: ArticleType;
@@ -97,7 +98,7 @@ export default function ArticlePagePreview({ type, title, description, coverUrl,
             {references && (
               <div className="dd-refs">
                 <h2>References</h2>
-                <ol>{references.split('\n').map((r) => r.trim()).filter(Boolean).map((r, i) => <li key={i}>{r}</li>)}</ol>
+                <ol>{references.split('\n').map((r) => r.trim()).filter(Boolean).map((r, i) => <li key={i}><ReferenceText text={r} /></li>)}</ol>
               </div>
             )}
           </article>

@@ -370,6 +370,7 @@ export default function ArticleEditorPage() {
           <div className="hw-field">
             <label className="hw-label" htmlFor="hw-refs">References <span className="hw-muted">(optional)</span></label>
             <textarea id="hw-refs" value={references} disabled={locked} placeholder="One source per line, for example a guideline or study" onChange={(e) => setReferences(e.target.value)} />
+            <p className="hw-muted">To link a source, write <code>[Name of the source](https://address)</code> or paste the https:// address on the line. The page preview shows it as a link.</p>
             <div className="hw-hint"><span>Shown at the end of the article.</span></div>
           </div>
           <div className="hw-field">

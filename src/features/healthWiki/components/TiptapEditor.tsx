@@ -76,6 +76,9 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
       quote: e?.isActive('blockquote') ?? false,
       link: e?.isActive('link') ?? false,
       block: e?.isActive('heading', { level: 2 }) ? 'h2' : e?.isActive('heading', { level: 3 }) ? 'h3' : 'p',
+      image: e?.isActive('image') ?? false,
+      imageAlt: (e?.getAttributes('image').alt as string | undefined) ?? '',
+      imageAt: e?.isActive('image') ? e.state.selection.from : -1,
       canUndo: e?.can().undo() ?? false,
       canRedo: e?.can().redo() ?? false,
     }),
@@ -133,6 +136,13 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
     setAdded(null);
   };
 
+  const removePicture = () => {
+    // The picture is selected (just added, or clicked): delete it, and close the "just added" box.
+    if (added) editor.chain().focus().setNodeSelection(added.pos).deleteSelection().run();
+    else editor.chain().focus().deleteSelection().run();
+    setAdded(null);
+  };
+
   const tb = (active: boolean) => `hw-tb${active ? ' on' : ''}`;
   const off = !!disabled;
 
@@ -184,8 +194,20 @@ export default function TiptapEditor({ initialMarkdown, disabled, onChange, uplo
               onChange={(e) => setAlt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveAlt()} />
           </div>
           <button type="button" className="hw-btn hw-btn-primary hw-sm" onClick={saveAlt}>{alt.trim() ? 'Save' : 'Done'}</button>
+          <button type="button" className="hw-btn hw-sm" onClick={removePicture}>Remove picture</button>
         </div>
       )}
+      {s.image && !added && (
+        <div className="hw-inline-box">
+          <div className="hw-grow">
+            <label htmlFor="hw-img-alt2">Picture selected. Describe it for screen readers <span className="hw-opt">(optional)</span></label>
+            <input id="hw-img-alt2" key={s.imageAt} type="text" defaultValue={s.imageAlt} maxLength={200} placeholder="What the picture shows" disabled={off}
+              onChange={(e) => editor.chain().updateAttributes('image', { alt: e.target.value.trim() }).run()} />
+          </div>
+          <button type="button" className="hw-btn hw-sm" disabled={off} onClick={removePicture}>Remove picture</button>
+        </div>
+      )}
+      {!off && <p className="hw-hint">To put a picture in a particular place, click there in the text first, then press the picture button. Click a picture to remove or describe it, or drag it to move it.</p>}
 
       <EditorContent editor={editor} />
     </div>
