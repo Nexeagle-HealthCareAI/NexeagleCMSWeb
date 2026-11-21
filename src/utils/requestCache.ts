@@ -8,12 +8,13 @@
  * Correctness rules (see api.ts):
  *  - any successful POST/PUT/PATCH/DELETE clears everything, so a change is never hidden;
  *  - logout, a finished offline sync and a hot-lead alert clear everything;
- *  - auth and chat calls are never cached (session state and live conversations).
+ *  - auth, chat and work-board calls are never cached (session state, live conversations, shared board).
  */
 
 export const TTL_MS = 30_000;
 
-const NEVER_CACHE = ['/auth/', '/chat/'];
+// '/work/': the Daily Work Board is shared and changes all day; a 30-second-old list would hide a teammate's update.
+const NEVER_CACHE = ['/auth/', '/chat/', '/work/'];
 
 interface Entry<T> {
     at: number;
