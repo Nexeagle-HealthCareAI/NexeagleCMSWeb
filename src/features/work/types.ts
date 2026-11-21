@@ -37,6 +37,37 @@ export interface WorkProjectAccess {
   log: { action: AccessAction; targetName: string | null; actorName: string; createdAt: string }[];
 }
 
+/** A person's own sign-in details, as the API recorded them. */
+export interface MyPresence {
+  openedAt: string | null;
+  ip: string | null;
+  previousOpenedAt: string | null;
+  previousIp: string | null;
+}
+export interface LastSeen { userId: string; lastSeenAt: string; isOnline: boolean }
+export type GuardEvent = 'CopyBlocked' | 'PrintBlocked' | 'SaveBlocked' | 'ScreenshotKey';
+export type ActivitySource = 'items' | 'comments' | 'access' | 'docs' | 'sessions';
+
+/** One line of the activity log. */
+export interface WorkActivity {
+  source: ActivitySource;
+  /** items: the changed field. Otherwise the action. */
+  action: string;
+  actorUserId: string | null;
+  actorName: string;
+  projectKey: string | null;
+  workItemId: string | null;
+  itemKey: string | null;
+  itemTitle: string | null;
+  documentId: string | null;
+  documentName: string | null;
+  oldValue: string | null;
+  newValue: string | null;
+  detail: string | null;
+  createdAt: string;
+}
+export interface ActivityQuery { userId?: string; projectId?: string; source?: ActivitySource; from?: string; before?: string; take?: number }
+
 export interface WorkUser {
   userId: string;
   fullName: string;

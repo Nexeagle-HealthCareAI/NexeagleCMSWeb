@@ -1,5 +1,5 @@
 import type {
-  AccessAction, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
+  AccessAction, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
 } from '../types';
 import { allowedParentTypes, parentRequired } from '../workMeta';
 
@@ -29,6 +29,12 @@ const projects: WorkProject[] = [
 ];
 const members: Record<string, string[]> = {};
 const accessLog: Record<string, WorkProjectAccess['log']> = {};
+const sessions: WorkActivity[] = [];
+const visit: MyPresence = { openedAt: null, ip: '127.0.0.1', previousOpenedAt: new Date(Date.now() - 20 * 3600_000).toISOString(), previousIp: '127.0.0.1' };
+const sessionRow = (action: string): WorkActivity => ({
+  source: 'sessions', action, actorUserId: ME, actorName: nameOf(ME) || 'Someone', projectKey: null, workItemId: null, itemKey: null, itemTitle: null,
+  documentId: null, documentName: null, oldValue: null, newValue: null, detail: '127.0.0.1 · this browser', createdAt: new Date().toISOString(),
+});
 const nextNumber: Record<string, number> = { 'p-hms': 1, 'p-rad': 1, 'p-web': 1 };
 const items: Stored[] = [];
 const comments: Record<string, WorkComment[]> = {};
@@ -142,6 +148,45 @@ export const mockWork = {
     projects.push(project);
     nextNumber[project.projectId] = 1;
     return wait(copy(project));
+  },
+  touch: async (p: { opened?: boolean; event?: GuardEvent }): Promise<MyPresence> => {
+    if (p.opened) { visit.openedAt = new Date().toISOString(); sessions.unshift(sessionRow('Opened')); }
+    if (p.event) sessions.unshift(sessionRow(p.event));
+    return wait({ ...visit });
+  },
+  lastSeen: async (): Promise<LastSeen[]> => wait([
+    { userId: ME, lastSeenAt: new Date().toISOString(), isOnline: true },
+    { userId: 'u-2', lastSeenAt: new Date(Date.now() - 40_000).toISOString(), isOnline: true },
+    { userId: 'u-3', lastSeenAt: new Date(Date.now() - 26 * 3600_000).toISOString(), isOnline: false },
+  ]),
+  activity: async (q: ActivityQuery): Promise<WorkActivity[]> => {
+    const rows: WorkActivity[] = [...sessions];
+    const blank = { documentId: null, documentName: null, detail: null };
+    for (const item of items) {
+      const of = { projectKey: item.key.split('-')[0], workItemId: item.workItemId, itemKey: item.key, itemTitle: item.title };
+      for (const h of history[item.workItemId] || []) {
+        const actor = users.find(u => u.fullName === h.actorName);
+        const quiet = h.field === 'description';
+        rows.push({ source: 'items', action: h.field, actorUserId: actor?.userId ?? null, actorName: h.actorName, ...of, ...blank, oldValue: quiet ? null : h.oldValue, newValue: quiet ? null : h.newValue, createdAt: h.createdAt });
+      }
+      for (const c of comments[item.workItemId] || []) {
+        rows.push({ source: 'comments', action: 'commented', actorUserId: c.authorUserId, actorName: c.authorName, ...of, ...blank, oldValue: null, newValue: null, createdAt: c.createdAt });
+      }
+    }
+    for (const p of projects) {
+      for (const l of accessLog[p.projectId] || []) {
+        rows.push({ source: 'access', action: l.action, actorUserId: ME, actorName: l.actorName, projectKey: p.key, workItemId: null, itemKey: null, itemTitle: null, documentId: null, documentName: null, oldValue: null, newValue: null, detail: l.targetName, createdAt: l.createdAt });
+      }
+    }
+    const projectKey = q.projectId ? projects.find(p => p.projectId === q.projectId)?.key : null;
+    const kept = rows
+      .filter(r => !q.userId || r.actorUserId === q.userId)
+      .filter(r => !q.source || r.source === q.source)
+      .filter(r => !q.projectId || r.projectKey === projectKey)
+      .filter(r => !q.from || r.createdAt >= q.from)
+      .filter(r => !q.before || r.createdAt < q.before)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return wait(kept.slice(0, q.take || 100));
   },
   projectAccess: async (projectId: string): Promise<WorkProjectAccess> => {
     const project = projects.find(x => x.projectId === projectId);

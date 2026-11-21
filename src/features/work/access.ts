@@ -17,6 +17,9 @@ export const canDeleteWork = (permissions: string[]): boolean => WORK_MOCK || pe
 export const WORK_MEMBERS = 'work.members';
 /** Copy out of, print and download from the board. Without it the screen is protected (ScreenGuard). */
 export const WORK_EXPORT = 'work.export';
+/** Read the activity log. */
+export const WORK_AUDIT = 'work.audit';
+export const canAuditWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_AUDIT);
 export const canManageMembers = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_MEMBERS);
 /** No example-data shortcut here: the protected screen is the normal case and should be seen in review. */
 export const canExportWork = (permissions: string[]): boolean => permissions.includes(WORK_EXPORT);

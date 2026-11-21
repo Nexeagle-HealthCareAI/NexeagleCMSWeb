@@ -4,6 +4,8 @@ import { EyeOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { guardCopy, guardPaste, watermarkImage } from '../guard';
+import type { GuardEvent } from '../types';
+import { GUARD_EVENT } from './PresenceBar';
 
 const stamp = () => new Date().toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
@@ -18,28 +20,31 @@ export default function ScreenGuard() {
   const [now, setNow] = useState(stamp);
   const lastNotice = useRef(0);
 
-  const notice = (message: string) => {
+  // Says what was stopped, and reports it for the activity log (PresenceBar sends it).
+  const notice = (message: string, kind: GuardEvent) => {
     if (Date.now() - lastNotice.current < 4000) return;
     lastNotice.current = Date.now();
     toast.message(message);
+    window.dispatchEvent(new CustomEvent(GUARD_EVENT, { detail: kind }));
   };
 
   useEffect(() => {
-    const onCopy = (e: ClipboardEvent) => { if (guardCopy(e)) notice('Copied for use inside the work board only. It cannot be pasted elsewhere.'); };
+    const onCopy = (e: ClipboardEvent) => { if (guardCopy(e)) notice('Copied for use inside the work board only. It cannot be pasted elsewhere.', 'CopyBlocked'); };
     const onPaste = (e: ClipboardEvent) => { guardPaste(e); };
     const onDrag = (e: DragEvent) => { e.preventDefault(); };
     const onKey = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
       if (mod && !e.altKey && (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S')) {
         e.preventDefault();
-        notice(e.key.toLowerCase() === 'p' ? 'Printing the work board is turned off.' : 'Saving this page is turned off.');
+        if (e.key.toLowerCase() === 'p') notice('Printing the work board is turned off.', 'PrintBlocked');
+        else notice('Saving this page is turned off.', 'SaveBlocked');
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key !== 'PrintScreen') return;
       // The capture has been taken by now; replace it on the clipboard where the browser allows.
       void navigator.clipboard?.writeText('').catch(() => undefined);
-      notice('Screenshots of the work board are not allowed. This screen is watermarked with your name.');
+      notice('Screenshots of the work board are not allowed. This screen is watermarked with your name.', 'ScreenshotKey');
     };
     const veil = () => setVeiled(true);
     const unveil = () => { if (!document.hidden) { setVeiled(false); setNow(stamp()); } };

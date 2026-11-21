@@ -10,7 +10,7 @@ vi.mock('../access', () => ({
   canViewWork: () => true, canEditWork: () => true, canManageWork: () => true,
   // Deleting is a separate permission; the tests flip it.
   canDeleteWork: () => allowDelete.value,
-  canManageMembers: () => true, canExportWork: () => allowExport.value,
+  canManageMembers: () => true, canAuditWork: () => true, canExportWork: () => allowExport.value,
   canViewDocs: () => true, canEditDocs: () => true, canDeleteDocs: () => true, canSeeSensitiveDocs: () => true,
 }));
 const allowDelete = vi.hoisted(() => ({ value: true }));
