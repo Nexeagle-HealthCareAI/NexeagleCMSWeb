@@ -35,6 +35,8 @@ export interface Message {
 export const MAX_MESSAGE_LENGTH = 2000; // ChatHub.MaxMessageLength
 const TYPING_SHOW_FOR_MS = 4000;
 const TYPING_SEND_EVERY_MS = 2500;
+/** Waits between reconnect attempts. The last one repeats for as long as the page is open. */
+const RECONNECT_DELAYS_MS = [0, 2000, 5000, 10000, 30000];
 
 interface SupportState {
     connection: signalR.HubConnection | null;
@@ -91,6 +93,11 @@ const browserNotify = (title: string, body: string) => {
 
 const typingTimers = new Map<string, ReturnType<typeof setTimeout>>();
 let lastTypingSentAt = 0;
+let startTimer: ReturnType<typeof setTimeout> | null = null;
+let wakeListener: (() => void) | null = null;
+
+/** A chat whose last message is the visitor's is waiting for an answer. */
+const waiting = (s: Pick<Session, 'lastSenderType'>) => (s.lastSenderType === 'Guest' ? 1 : 0);
 
 export const useSupportStore = create<SupportState>((set, get) => ({
     connection: null,
@@ -110,7 +117,10 @@ export const useSupportStore = create<SupportState>((set, get) => ({
 
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(SIGNALR_URL, { accessTokenFactory: () => useAuthStore.getState().token ?? '' })
-            .withAutomaticReconnect()
+            // Never give up: an agent who is silently disconnected shows as "away" to every visitor.
+            .withAutomaticReconnect({
+                nextRetryDelayInMilliseconds: ctx => RECONNECT_DELAYS_MS[Math.min(ctx.previousRetryCount, RECONNECT_DELAYS_MS.length - 1)],
+            })
             .build();
 
         const joinAgents = () =>
@@ -120,19 +130,25 @@ export const useSupportStore = create<SupportState>((set, get) => ({
             set(state => ({ typing: { ...state.typing, [sessionId]: on } }));
 
         connection.on('ActiveSessions', (sessions: Session[]) => {
-            // Keep unread counts this agent already had for chats that are still open.
+            // Keep unread counts this agent already had for chats that are still open. A chat this
+            // agent has not seen yet counts as unread when the visitor wrote last: messages left
+            // while nobody was signed in must not sit there unnoticed.
             const previous = new Map(get().sessions.map(s => [s.sessionId, s.unread ?? 0]));
-            const merged = sessions.map(s => ({ ...s, unread: previous.get(s.sessionId) ?? 0 })).sort(byActivity);
+            const openId = get().activeSession?.sessionId;
+            const merged = sessions
+                .map(s => ({ ...s, unread: s.sessionId === openId ? 0 : previous.get(s.sessionId) ?? waiting(s) }))
+                .sort(byActivity);
             set({ sessions: merged, unreadCount: totalUnread(merged) });
         });
 
+        // Sent with the visitor's first message, which is in the summary (lastMessageText).
         connection.on('NewSession', (session: Session) => {
-            set(state =>
-                state.sessions.some(s => s.sessionId === session.sessionId)
-                    ? state
-                    : { sessions: [{ ...session, unread: 0 }, ...state.sessions].sort(byActivity) }
-            );
-            toast.info(`New chat from ${guestLabel(session)}`, { description: 'A visitor is waiting for support.' });
+            set(state => {
+                if (state.sessions.some(s => s.sessionId === session.sessionId)) return state;
+                const sessions = [{ ...session, unread: waiting(session) }, ...state.sessions].sort(byActivity);
+                return { sessions, unreadCount: totalUnread(sessions) };
+            });
+            toast.info(`New chat from ${guestLabel(session)}`, { description: session.lastMessageText || 'A visitor is waiting for support.' });
             playNotify();
             browserNotify('New support chat', `${guestLabel(session)} is waiting for support.`);
         });
@@ -205,21 +221,51 @@ export const useSupportStore = create<SupportState>((set, get) => ({
             set({ connected: true });
             joinAgents(); // re-register: a reconnect is a fresh connection on the server
         });
-        connection.onclose(() => set({ connected: false }));
+        // start() does not retry by itself, and the connection also closes for good when the server
+        // refuses a reconnect (an expired sign-in, say). Either way keep trying while this is still
+        // the store's connection, so the agent comes back without reloading the page.
+        let attempt = 0;
+        const start = () => {
+            if (get().connection !== connection || connection.state !== signalR.HubConnectionState.Disconnected) return;
+            connection
+                .start()
+                .then(() => {
+                    attempt = 0;
+                    set({ connected: true });
+                    joinAgents();
+                })
+                .catch(err => {
+                    console.error('Support connection error:', err);
+                    const delay = RECONNECT_DELAYS_MS[Math.min(++attempt, RECONNECT_DELAYS_MS.length - 1)];
+                    if (startTimer) clearTimeout(startTimer);
+                    startTimer = setTimeout(start, delay);
+                });
+        };
+        connection.onclose(() => {
+            set({ connected: false });
+            if (startTimer) clearTimeout(startTimer);
+            startTimer = setTimeout(start, RECONNECT_DELAYS_MS[1]);
+        });
 
-        connection
-            .start()
-            .then(() => {
-                set({ connected: true });
-                joinAgents();
-            })
-            .catch(err => console.error('Support connection error:', err));
+        // Back on the network or back on this tab: try at once instead of waiting out the delay.
+        wakeListener = () => { if (!document.hidden) start(); };
+        window.addEventListener('online', wakeListener);
+        document.addEventListener('visibilitychange', wakeListener);
 
         set({ connection });
+        start();
     },
 
     disconnect: () => {
         const { connection } = get();
+        // Cleared first, so the close that follows does not start it again.
+        set({ connection: null });
+        if (startTimer) { clearTimeout(startTimer); startTimer = null; }
+        if (wakeListener) {
+            window.removeEventListener('online', wakeListener);
+            document.removeEventListener('visibilitychange', wakeListener);
+            wakeListener = null;
+        }
         if (connection) void connection.stop().catch(() => {});
         typingTimers.forEach(t => clearTimeout(t));
         typingTimers.clear();
@@ -284,7 +330,8 @@ export const useSupportStore = create<SupportState>((set, get) => ({
     },
 
     resetUnread: () => {
-        // Sidebar "seen" action: clears the badge without marking individual chats as read.
-        set({ unreadCount: 0 });
+        // Kept for callers; it no longer clears anything. The badge is the number of unanswered
+        // visitor messages, and it used to drop to zero on a click on the menu item while the chats
+        // themselves stayed unread, then jump back with the next message. Opening a chat clears it.
     },
 }));
