@@ -6,9 +6,9 @@ let n = 0;
 function item(itemType: ItemType, title: string, parentId: string | null = null, extra: Partial<WorkItem> = {}): WorkItem {
   n += 1;
   return {
-    workItemId: `w${n}`, projectId: 'p', key: `HMS-${n}`, number: n, itemType, title, status: 'ToDo', priority: 'Medium', storyPoints: null,
+    workItemId: `w${n}`, projectId: 'p', key: `HMS-${n}`, number: n, itemType, title, status: 'ToDo', statusName: 'To do', statusCategory: 'ToDo', priority: 'Medium', storyPoints: null,
     assigneeUserId: null, assigneeName: null, reporterUserId: null, reporterName: null, parentId, parentKey: null, parentTitle: null, parentType: null,
-    sprintId: null, labels: [], dueDate: null, isBlocked: false, blockedReason: null, rank: n, childCount: 0, doneChildCount: 0,
+    sprintId: null, labels: [], startDate: null, dueDate: null, isBlocked: false, blockedReason: null, rank: n, childCount: 0, doneChildCount: 0,
     createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z', completedAt: null, ...extra,
   };
 }
@@ -63,7 +63,8 @@ describe('buildTree', () => {
 
 describe('small helpers', () => {
   it('writes history as a sentence', () => {
-    expect(describeChange('status', 'ToDo', 'InProgress')).toBe('changed the status from To do to In progress');
+    expect(describeChange('status', 'To do', 'In progress')).toBe('changed the status from To do to In progress');
+    expect(describeChange('startDate', null, '2026-12-01')).toBe('set the start date to 2026-12-01');
     expect(describeChange('assignee', null, 'Asha Rao')).toBe('set the assignee to Asha Rao');
     expect(describeChange('dueDate', '2026-12-01', null)).toBe('cleared the due date');
     expect(describeChange('created', null, 'Bug')).toBe('created this bug');
@@ -80,6 +81,6 @@ describe('small helpers', () => {
     const today = new Date(2026, 10, 21);
     expect(isOverdue(item('Task', 'a', null, { dueDate: '2026-11-20' }), today)).toBe(true);
     expect(isOverdue(item('Task', 'b', null, { dueDate: '2026-11-21' }), today)).toBe(false);
-    expect(isOverdue(item('Task', 'c', null, { dueDate: '2026-11-01', status: 'Done' }), today)).toBe(false);
+    expect(isOverdue(item('Task', 'c', null, { dueDate: '2026-11-01', status: 'Done', statusCategory: 'Done' }), today)).toBe(false);
   });
 });

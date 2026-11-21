@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Bookmark, Bug, ChevronDown, ChevronsDown, ChevronsUp, ChevronUp, CornerDownRight, Equal, Package, SquareCheck, Zap } from 'lucide-react';
-import type { ItemPriority, ItemStatus, ItemType } from '../types';
-import { initialsOf, STATUS_LABEL } from '../workMeta';
+import type { ItemPriority, ItemType, StatusCategory } from '../types';
+import { initialsOf } from '../workMeta';
 
 // Small pieces used across the board: type icon, status pill, priority mark, avatar, dialog.
 
@@ -17,8 +17,9 @@ export function TypeIcon({ type, withLabel }: { type: ItemType; withLabel?: bool
   );
 }
 
-export function StatusPill({ status }: { status: ItemStatus }) {
-  return <span className={`wk-status wk-status-${status.toLowerCase()}`}>{STATUS_LABEL[status]}</span>;
+/** Colour comes from what the column means (not started, under way, finished); the text is the team's own name for it. */
+export function StatusPill({ name, category }: { name: string; category: StatusCategory }) {
+  return <span className={`wk-status wk-status-${category.toLowerCase()}`}>{name}</span>;
 }
 
 const PRIORITY_ICON = { Highest: ChevronsUp, High: ChevronUp, Medium: Equal, Low: ChevronDown, Lowest: ChevronsDown } as const;

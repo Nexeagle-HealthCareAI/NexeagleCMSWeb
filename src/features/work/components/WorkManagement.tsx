@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Ban, CalendarClock, ChevronDown, ChevronRight, Columns3, List as ListIcon, Plus, Search } from 'lucide-react';
+import { Ban, Columns3, List as ListIcon, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { canEditWork, canManageWork } from '../access';
-import type { ItemStatus, ItemType, WorkItem, WorkProject, WorkUser } from '../types';
-import { buildTree, formatDay, isOverdue, ITEM_TYPES, STATUSES, STATUS_LABEL, toUpdatePayload } from '../workMeta';
+import { loadColumns, saveColumns, type ColumnKey } from '../listColumns';
+import type { ItemType, UpdateItemPayload, WorkItem, WorkProject, WorkStatus, WorkUser } from '../types';
+import { buildTree, isDone, ITEM_TYPES, toUpdatePayload } from '../workMeta';
 import { errorMessage, workService } from '../services/workService';
-import { Avatar, PriorityMark, StatusPill, TypeIcon } from './parts';
 import BoardView from './BoardView';
+import { ColumnDialog, RemoveColumnDialog } from './ColumnDialogs';
 import CreateItemDialog from './CreateItemDialog';
 import ItemDrawer from './ItemDrawer';
+import ListView, { ColumnPicker } from './ListView';
 import NewProjectDialog from './NewProjectDialog';
 
 const PROJECT_KEY = 'wk.project';
@@ -21,7 +23,7 @@ type View = 'list' | 'board';
 const VIEW_KEY = 'wk.view';
 const rememberedView = (): View => { try { return localStorage.getItem(VIEW_KEY) === 'board' ? 'board' : 'list'; } catch { return 'list'; } };
 
-/** Tab 1 of the Daily Work Board: every item of one project, nested by parent, with filters. */
+/** Tab 1 of the Daily Work Board: one project's items as a nested list or a drag-and-drop board. */
 export default function WorkManagement() {
   const permissions = useAuthStore(s => s.permissions) || [];
   const me = useAuthStore(s => s.user);
@@ -40,15 +42,21 @@ export default function WorkManagement() {
 
   const [query, setQuery] = useState('');
   const [type, setType] = useState<ItemType | ''>('');
-  const [status, setStatus] = useState<ItemStatus | 'open' | ''>('');
+  /** '' all, 'open' not finished, otherwise a column's key. */
+  const [status, setStatus] = useState('');
   const [assignee, setAssignee] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState<{ parent: WorkItem | null } | null>(null);
   const [addingProject, setAddingProject] = useState(false);
   const [view, setView] = useState<View>(rememberedView);
-  const chooseView = (next: View) => { setView(next); try { localStorage.setItem(VIEW_KEY, next); } catch { /* nothing to keep */ } };
+  const [columns, setColumns] = useState<ColumnKey[]>(loadColumns);
+  const [columnForm, setColumnForm] = useState<{ status: WorkStatus | null } | null>(null);
+  const [removing, setRemoving] = useState<WorkStatus | null>(null);
 
-  // Projects and people, once.
+  const chooseView = (next: View) => { setView(next); try { localStorage.setItem(VIEW_KEY, next); } catch { /* nothing to keep */ } };
+  const chooseColumns = (next: ColumnKey[]) => { setColumns(next); saveColumns(next); };
+
+  // Projects (with their board columns) and people, once.
   useEffect(() => {
     let alive = true;
     Promise.all([workService.projects(), workService.users()])
@@ -77,17 +85,19 @@ export default function WorkManagement() {
   }, [projectId, version]);
 
   const reload = useCallback(() => setVersion(v => v + 1), []);
-  const project = projects.find(p => p.projectId === projectId) || null;
+  /** After the columns change: fetch them again, and the items, whose status names may have changed. */
+  const reloadColumns = useCallback(async () => {
+    try {
+      const p = await workService.projects();
+      setProjects(p.filter(x => !x.isArchived));
+    } catch (e) {
+      toast.error(errorMessage(e, 'Could not refresh the columns.'));
+    }
+    setVersion(v => v + 1);
+  }, []);
 
-  const chooseProject = (id: string) => {
-    if (id === projectId) return;
-    remember(id);
-    setItems([]);
-    setLoading(true);
-    setProjectId(id);
-    setCollapsed(new Set());
-    closeItem();
-  };
+  const project = projects.find(p => p.projectId === projectId) || null;
+  const statuses = useMemo(() => project?.statuses ?? [], [project]);
 
   const openItem = useCallback((id: string) => {
     setParams(prev => { const next = new URLSearchParams(prev); next.set('item', id); return next; });
@@ -96,12 +106,23 @@ export default function WorkManagement() {
     setParams(prev => { const next = new URLSearchParams(prev); next.delete('item'); return next; });
   }, [setParams]);
 
+  const chooseProject = (id: string) => {
+    if (id === projectId) return;
+    remember(id);
+    setItems([]);
+    setLoading(true);
+    setProjectId(id);
+    setCollapsed(new Set());
+    setStatus('');
+    closeItem();
+  };
+
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     const ids = new Set<string>();
     for (const i of items) {
       if (type && i.itemType !== type) continue;
-      if (status === 'open' ? i.status === 'Done' : status && i.status !== status) continue;
+      if (status === 'open' ? isDone(i) : status && i.status !== status) continue;
       if (assignee === 'none' ? i.assigneeUserId !== null : assignee && i.assigneeUserId !== assignee) continue;
       if (q && !(`${i.key} ${i.title} ${i.labels.join(' ')} ${i.assigneeName || ''}`.toLowerCase().includes(q))) continue;
       ids.add(i.workItemId);
@@ -121,26 +142,52 @@ export default function WorkManagement() {
   );
 
   const counts = useMemo(() => {
-    const c: Record<ItemStatus, number> = { ToDo: 0, InProgress: 0, InReview: 0, Done: 0 };
-    for (const i of items) c[i.status]++;
+    const c = new Map<string, number>();
+    for (const i of items) c.set(i.status, (c.get(i.status) || 0) + 1);
     return c;
   }, [items]);
-  const blocked = items.filter(i => i.isBlocked && i.status !== 'Done').length;
+  const blocked = items.filter(i => i.isBlocked && !isDone(i)).length;
 
   const toggle = (id: string) => setCollapsed(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
-  /** Status straight from the list. The API wants the whole item, so it is read first. */
-  const changeStatus = async (item: WorkItem, next: ItemStatus) => {
+  /**
+   * A change made straight from the list or the board (status, assignee). The API wants the whole
+   * item, so it is read first. The screen changes at once and goes back if the save fails.
+   */
+  const patchItem = async (item: WorkItem, patch: Partial<UpdateItemPayload>) => {
     const before = items;
-    setItems(items.map(i => (i.workItemId === item.workItemId ? { ...i, status: next } : i)));
+    const next = statuses.find(s => s.key === patch.status);
+    const person = patch.assigneeUserId === undefined ? undefined : users.find(u => u.userId === patch.assigneeUserId);
+    setItems(items.map(i => (i.workItemId !== item.workItemId ? i : {
+      ...i,
+      ...(next ? { status: next.key, statusName: next.name, statusCategory: next.category } : {}),
+      ...(patch.assigneeUserId === undefined ? {} : { assigneeUserId: patch.assigneeUserId, assigneeName: person?.fullName ?? null }),
+    })));
     try {
       const detail = await workService.item(item.workItemId);
-      await workService.updateItem(item.workItemId, { ...toUpdatePayload(detail), status: next });
+      await workService.updateItem(item.workItemId, { ...toUpdatePayload(detail), ...patch });
       reload();
     } catch (e) {
       setItems(before);
-      toast.error(errorMessage(e, 'Could not change the status.'));
+      toast.error(errorMessage(e, 'Could not save the change.'));
     }
+  };
+
+  /** Move a board column one place left or right. */
+  const shiftColumn = async (target: WorkStatus, by: -1 | 1) => {
+    if (!project) return;
+    const order = [...statuses];
+    const at = order.findIndex(s => s.statusId === target.statusId);
+    const to = at + by;
+    if (at < 0 || to < 0 || to >= order.length) return;
+    [order[at], order[to]] = [order[to], order[at]];
+    setProjects(prev => prev.map(p => (p.projectId === project.projectId ? { ...p, statuses: order } : p)));
+    try {
+      await workService.reorderStatuses(project.projectId, order.map(s => s.statusId));
+    } catch (e) {
+      toast.error(errorMessage(e, 'Could not move the column.'));
+    }
+    void reloadColumns();
   };
 
   const clearFilters = () => { setQuery(''); setType(''); setStatus(''); setAssignee(''); };
@@ -156,6 +203,8 @@ export default function WorkManagement() {
       </div>
     );
   }
+
+  const showBoard = view === 'board' && !loading && items.length > 0;
 
   return (
     <div className={`wk-layout ${openId ? 'has-drawer' : ''}`}>
@@ -174,6 +223,7 @@ export default function WorkManagement() {
               <button type="button" className={view === 'list' ? 'is-on' : ''} aria-pressed={view === 'list'} onClick={() => chooseView('list')}><ListIcon size={16} aria-hidden="true" /> List</button>
               <button type="button" className={view === 'board' ? 'is-on' : ''} aria-pressed={view === 'board'} onClick={() => chooseView('board')}><Columns3 size={16} aria-hidden="true" /> Board</button>
             </div>
+            {view === 'list' && <ColumnPicker columns={columns} onChange={chooseColumns} />}
             {canEdit && project && (
               <button type="button" className="wk-btn is-primary" onClick={() => setCreating({ parent: null })}><Plus size={16} aria-hidden="true" /> New item</button>
             )}
@@ -183,7 +233,7 @@ export default function WorkManagement() {
         {project && (
           <div className="wk-summary" aria-label={`${project.name} at a glance`}>
             <strong>{project.name}</strong>
-            {STATUSES.map(s => <span key={s}><b>{counts[s]}</b> {STATUS_LABEL[s].toLowerCase()}</span>)}
+            {statuses.map(s => <span key={s.key}>{s.name} <b>{counts.get(s.key) || 0}</b></span>)}
             {blocked > 0 && <span className="is-blocked"><Ban size={14} aria-hidden="true" /><b>{blocked}</b> blocked</span>}
           </div>
         )}
@@ -197,10 +247,10 @@ export default function WorkManagement() {
             <option value="">All types</option>
             {ITEM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select value={status} onChange={e => setStatus(e.target.value as ItemStatus | 'open' | '')} aria-label="Status">
+          <select value={status} onChange={e => setStatus(e.target.value)} aria-label="Status">
             <option value="">All statuses</option>
-            <option value="open">Not done</option>
-            {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+            <option value="open">Not finished</option>
+            {statuses.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}
           </select>
           <select value={assignee} onChange={e => setAssignee(e.target.value)} aria-label="Assignee">
             <option value="">Everyone</option>
@@ -213,75 +263,52 @@ export default function WorkManagement() {
 
         {error && <div className="wk-error" role="alert">{error} <button type="button" className="wk-link" onClick={() => { setLoading(true); reload(); }}>Try again</button></div>}
 
-        {view === 'board' && !loading && items.length > 0 ? (
+        {showBoard && project ? (
           <>
-            <BoardView items={boardItems} openId={openId} canEdit={canEdit} onOpen={openItem} onMove={(item, next) => void changeStatus(item, next)} />
+            <BoardView
+              items={boardItems} statuses={statuses} openId={openId} canEdit={canEdit} canManage={canManage}
+              onOpen={openItem} onMove={(item, key) => void patchItem(item, { status: key })}
+              onAddColumn={() => setColumnForm({ status: null })}
+              onEditColumn={s => setColumnForm({ status: s })}
+              onRemoveColumn={setRemoving}
+              onShiftColumn={(s, by) => void shiftColumn(s, by)}
+            />
             <p className="wk-muted wk-board-note">
               {boardItems.length} cards{type ? '' : ' · epics and features are in the list view'}{canEdit ? ' · drag a card to change its status' : ''}
             </p>
           </>
         ) : (
-        <div className="wk-card">
-          {loading ? <p className="wk-muted wk-pad">Loading…</p> : rows.length === 0 ? (
-            <div className="wk-empty is-inline">
-              {items.length === 0 ? (
-                <>
-                  <h2>Nothing in {project?.name} yet</h2>
-                  <p>Start with an epic for a large goal, or a task for a single job.</p>
-                  {canEdit && <button type="button" className="wk-btn is-primary" onClick={() => setCreating({ parent: null })}><Plus size={16} aria-hidden="true" /> New item</button>}
-                </>
-              ) : (
-                <>
-                  <h2>No items match</h2>
-                  <p>Try other words or clear the filters.</p>
-                  <button type="button" className="wk-btn" onClick={clearFilters}>Clear filters</button>
-                </>
-              )}
-            </div>
-          ) : (
-            <ul className="wk-list" aria-label="Work items">
-              {rows.map(({ item, depth, hasChildren }) => {
-                const closed = collapsed.has(item.workItemId) && !filtering;
-                const dimmed = filtering && !shown.has(item.workItemId);
-                return (
-                  <li key={item.workItemId} className={`wk-row ${openId === item.workItemId ? 'is-open' : ''} ${dimmed ? 'is-dim' : ''} ${item.status === 'Done' ? 'is-done' : ''}`} style={{ paddingLeft: 12 + depth * 22 }}>
-                    {hasChildren ? (
-                      <button type="button" className="wk-caret" onClick={() => toggle(item.workItemId)} aria-expanded={!closed} aria-label={`${closed ? 'Show' : 'Hide'} items under ${item.key}`} disabled={filtering}>
-                        {closed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                      </button>
-                    ) : <span className="wk-caret" aria-hidden="true" />}
-                    <TypeIcon type={item.itemType} />
-                    <button type="button" className="wk-row-main" onClick={() => openItem(item.workItemId)}>
-                      <span className="wk-key">{item.key}</span>
-                      <span className="wk-row-title">{item.title}</span>
-                    </button>
-                    <span className="wk-row-tags">
-                      {item.isBlocked && item.status !== 'Done' && <span className="wk-tag is-blocked" title={item.blockedReason || 'Blocked'}><Ban size={12} aria-hidden="true" /> Blocked</span>}
-                      {item.dueDate && <span className={`wk-tag ${isOverdue(item) ? 'is-late' : ''}`} title={isOverdue(item) ? 'Past its due date' : 'Due date'}><CalendarClock size={12} aria-hidden="true" /> {formatDay(item.dueDate)}</span>}
-                      {item.labels.slice(0, 2).map(l => <span key={l} className="wk-tag">{l}</span>)}
-                      {item.childCount > 0 && <span className="wk-tag" title="Items under this that are done">{item.doneChildCount}/{item.childCount}</span>}
-                    </span>
-                    {item.storyPoints !== null && <span className="wk-points" title="Story points">{item.storyPoints}</span>}
-                    <PriorityMark priority={item.priority} />
-                    {canEdit ? (
-                      <select className={`wk-status-select wk-status-${item.status.toLowerCase()}`} value={item.status} aria-label={`Status of ${item.key}`} onChange={e => void changeStatus(item, e.target.value as ItemStatus)}>
-                        {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-                      </select>
-                    ) : <StatusPill status={item.status} />}
-                    <Avatar name={item.assigneeName} />
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {!loading && items.length > 0 && <div className="wk-foot">{filtering ? `${shown.size} of ${items.length} items match` : `${items.length} items`}</div>}
-        </div>
+          <div className="wk-card">
+            {loading ? <p className="wk-muted wk-pad">Loading…</p> : rows.length === 0 ? (
+              <div className="wk-empty is-inline">
+                {items.length === 0 ? (
+                  <>
+                    <h2>Nothing in {project?.name} yet</h2>
+                    <p>Start with an epic for a large goal, or a task for a single job.</p>
+                    {canEdit && <button type="button" className="wk-btn is-primary" onClick={() => setCreating({ parent: null })}><Plus size={16} aria-hidden="true" /> New item</button>}
+                  </>
+                ) : (
+                  <>
+                    <h2>No items match</h2>
+                    <p>Try other words or clear the filters.</p>
+                    <button type="button" className="wk-btn" onClick={clearFilters}>Clear filters</button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <ListView
+                rows={rows} shown={shown} filtering={filtering} collapsed={collapsed} columns={columns} statuses={statuses} users={users}
+                openId={openId} canEdit={canEdit} onToggle={toggle} onOpen={openItem} onPatch={(item, patch) => void patchItem(item, patch)}
+              />
+            )}
+            {!loading && items.length > 0 && <div className="wk-foot">{filtering ? `${shown.size} of ${items.length} items match` : `${items.length} items`}</div>}
+          </div>
         )}
       </div>
 
       {openId && (
         <ItemDrawer
-          itemId={openId} items={items} users={users} currentUserId={me?.id ?? null} canEdit={canEdit} canManage={canManage}
+          itemId={openId} items={items} users={users} statuses={statuses} currentUserId={me?.id ?? null} canEdit={canEdit} canManage={canManage}
           onClose={closeItem} onChanged={reload} onOpen={openItem}
           onAddChild={parent => setCreating({ parent })}
           onDeleted={() => { closeItem(); reload(); }}
@@ -297,6 +324,16 @@ export default function WorkManagement() {
       )}
       {addingProject && (
         <NewProjectDialog onClose={() => setAddingProject(false)} onCreated={p => { setProjects(prev => [...prev, p]); setAddingProject(false); chooseProject(p.projectId); }} />
+      )}
+      {columnForm && project && (
+        <ColumnDialog project={project} status={columnForm.status} onClose={() => setColumnForm(null)} onSaved={() => { setColumnForm(null); void reloadColumns(); }} />
+      )}
+      {removing && project && (
+        <RemoveColumnDialog
+          project={project} status={removing} count={items.filter(i => i.status === removing.key).length}
+          onClose={() => setRemoving(null)}
+          onRemoved={() => { if (status === removing.key) setStatus(''); setRemoving(null); void reloadColumns(); }}
+        />
       )}
     </div>
   );

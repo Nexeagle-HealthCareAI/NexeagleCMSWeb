@@ -44,26 +44,51 @@
 .wk-iconbtn { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; color: var(--ink-2); }
 .wk-iconbtn:hover { background: #F2F4F7; color: var(--ink); }
 
-/* The list */
+/* The list: a table, one row per item, nested under its parent */
 .wk-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
-.wk-list { list-style: none; margin: 0; padding: 0; }
-.wk-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 12px; border-bottom: 1px solid var(--line); }
-.wk-row:last-child { border-bottom: none; }
-.wk-row:hover { background: #FAFAFC; }
-.wk-row.is-open { background: #EEF2FF; }
-.wk-row.is-dim .wk-row-title, .wk-row.is-dim .wk-key { color: var(--ink-3); }
-.wk-row.is-done .wk-row-title { color: var(--ink-3); text-decoration: line-through; }
+.wk-table-wrap { overflow-x: auto; }
+.wk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.wk-table thead th { position: sticky; top: 0; z-index: 1; padding: 10px 12px; background: #F9FAFB; border-bottom: 1px solid var(--line); text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+.wk-table tbody th, .wk-table tbody td { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; font-weight: 400; color: var(--ink-2); white-space: nowrap; }
+.wk-table tbody tr:last-child th, .wk-table tbody tr:last-child td { border-bottom: none; }
+.wk-table tbody tr:hover { background: #FAFAFC; }
+.wk-table tbody tr.is-open { background: #EEF2FF; }
+.wk-table tr.is-dim .wk-row-title, .wk-table tr.is-dim .wk-key { color: var(--ink-3); }
+.wk-table tr.is-done .wk-row-title { color: var(--ink-3); text-decoration: line-through; }
+.wk-th-work, .wk-td-work { min-width: 340px; width: 46%; }
+.wk-work { display: flex; align-items: center; gap: 8px; min-height: 40px; min-width: 0; }
 .wk-caret { flex: 0 0 24px; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--ink-3); }
 button.wk-caret:hover:not(:disabled) { background: #F2F4F7; color: var(--ink); }
 .wk-row-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 10px; padding: 8px 0; text-align: left; font: inherit; color: inherit; }
 .wk-key { flex: 0 0 auto; font-size: 13px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.wk-row-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 500; color: var(--ink); }
+.wk-row-title { min-width: 0; max-width: 52ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 500; color: var(--ink); }
 .wk-row-main:hover .wk-row-title { color: var(--primary); }
-.wk-row-tags { flex: 0 1 auto; display: flex; gap: 6px; min-width: 0; overflow: hidden; }
 .wk-tag { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 999px; background: #F2F4F7; color: var(--ink-2); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .wk-tag.is-blocked, .wk-tag.is-late { background: #FEE4E2; color: #B42318; }
 .wk-points { flex: 0 0 auto; min-width: 26px; height: 24px; padding: 0 7px; border-radius: 999px; background: #EEF2FF; color: #3730A3; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.wk-person { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+.wk-person .wk-avatar { flex-basis: 26px; width: 26px; height: 26px; font-size: 11px; }
+.wk-cell-select { max-width: 150px; height: 30px; padding: 0 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); font: 500 14px var(--font-family); cursor: pointer; }
+.wk-cell-select:hover { border-color: var(--line-strong); background: #fff; }
+.wk-cell-select:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.wk-labels { display: inline-flex; gap: 6px; }
+.wk-none { color: var(--line-strong); }
+.wk-late { color: #B42318; font-weight: 600; }
+.wk-parent-link { font-size: 13px; padding: 0; }
 .wk-foot { padding: 12px 16px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 13px; }
+
+/* Small menus: column picker on the list, column options on the board */
+.wk-menu { position: relative; display: inline-flex; }
+.wk-menu-list { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; min-width: 230px; padding: 6px; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 2px; }
+.wk-menu-list > button[role="menuitem"] { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 0 10px; border-radius: 8px; text-align: left; font: 500 14px var(--font-family); color: var(--ink); }
+.wk-menu-list > button[role="menuitem"]:hover:not(:disabled) { background: #F2F4F7; }
+.wk-menu-list > button[role="menuitem"]:disabled { color: var(--line-strong); cursor: default; }
+.wk-menu-list > button.is-danger { color: var(--danger); }
+.wk-menu-list.is-checks label { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; font-weight: 500; color: var(--ink); cursor: pointer; }
+.wk-menu-list.is-checks label:hover { background: #F2F4F7; }
+.wk-menu-list.is-checks input { width: 16px; height: 16px; accent-color: var(--primary); }
+.wk-menu-list.is-checks .wk-link { margin: 4px 10px 2px; font-size: 13px; justify-content: flex-start; }
+.wk-iconbtn.is-small { width: 28px; height: 28px; border-radius: 7px; }
 
 /* Type, status, priority, avatar */
 .wk-type { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; font-size: 13px; font-weight: 600; color: var(--ink-2); }
@@ -80,7 +105,6 @@ button.wk-caret:hover:not(:disabled) { background: #F2F4F7; color: var(--ink); }
 .wk-status-select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .wk-status-todo { background: #F2F4F7; color: #344054; }
 .wk-status-inprogress { background: #DBEAFE; color: #1E40AF; }
-.wk-status-inreview { background: #FEF0C7; color: #93370D; }
 .wk-status-done { background: #D1FADF; color: #05603A; }
 .wk-prio { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
 .wk-prio-highest { color: #B42318; } .wk-prio-high { color: #C4320A; } .wk-prio-medium { color: #B54708; }
@@ -183,26 +207,26 @@ button.wk-caret:hover:not(:disabled) { background: #F2F4F7; color: var(--ink); }
   .wk-drawer { position: fixed; inset: 0; z-index: 900; max-height: none; border-radius: 0; border: none; }
 }
 @media (max-width: 720px) {
-  .wk-row { flex-wrap: wrap; row-gap: 2px; padding-top: 8px; padding-bottom: 8px; }
-  .wk-row-main { flex: 1 1 60%; }
-  .wk-row-title { white-space: normal; }
-  .wk-row-tags { order: 5; flex: 1 1 100%; padding-left: 58px; flex-wrap: wrap; }
-  .wk-points { display: none; }
+  .wk-th-work, .wk-td-work { min-width: 260px; }
+  .wk-row-title { max-width: 30ch; }
   .wk-fields, .wk-form-row { grid-template-columns: minmax(0, 1fr); }
   .wk-filters select { flex: 1 1 30%; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .wk-row, .wk-btn, .wk-children button { transition: background-color .12s ease, border-color .12s ease; }
+  .wk-table tbody tr, .wk-btn, .wk-children button { transition: background-color .12s ease, border-color .12s ease; }
 }
-/* Beside the open item panel the list is narrow: keep key, title, status and person. */
-.wk-layout.has-drawer .wk-row-tags { display: none; }
 
 /* Board view: one column per status, cards dragged between them */
 .wk-bar-right { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.wk-board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; align-items: start; overflow-x: auto; padding-bottom: 4px; }
+/* min-height leaves room for a column's menu, which the sideways scroll would otherwise cut off */
+.wk-board { display: grid; gap: 12px; min-height: 340px; align-items: start; overflow-x: auto; padding-bottom: 4px; }
 .wk-col { background: #F2F4F7; border: 2px solid transparent; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
 .wk-col.is-over { border-color: var(--primary); background: #EEF2FF; }
-.wk-col-head { display: flex; align-items: center; gap: 8px; padding: 2px 4px; font-size: 14px; color: var(--ink); }
+.wk-col-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 0 0 4px; min-height: 28px; }
+.wk-col-head h3 { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; color: var(--ink); }
+.wk-col-add { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 2px dashed var(--line-strong); border-radius: 14px; color: var(--ink-2); font: 600 14px var(--font-family); }
+.wk-col-add:hover { border-color: var(--primary); color: var(--primary); background: #EEF2FF; }
+.wk-col-add:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .wk-col-head .wk-count { background: #fff; }
 .wk-col-dot { width: 10px; height: 10px; border-radius: 999px; border: 1px solid rgba(16, 24, 40, .15); }
 .wk-col-body { display: flex; flex-direction: column; gap: 8px; }
@@ -220,6 +244,5 @@ button.wk-caret:hover:not(:disabled) { background: #F2F4F7; color: var(--ink); }
 .wk-card-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--ink-3); }
 .wk-card-right { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .wk-board-note { font-size: 13px; }
-.wk-layout.has-drawer .wk-board { grid-template-columns: repeat(4, minmax(200px, 1fr)); }
-@media (max-width: 720px) { .wk-board { grid-template-columns: repeat(4, 82vw); scroll-snap-type: x proximity; } .wk-col { scroll-snap-align: start; } }
+@media (max-width: 720px) { .wk-board { scroll-snap-type: x proximity; } .wk-col { scroll-snap-align: start; min-width: 78vw; } }
 @media (prefers-reduced-motion: reduce) { .wk-card-face.is-lifted { transform: none; } }

@@ -1,18 +1,18 @@
-import type { ItemPriority, ItemStatus, ItemType, UpdateItemPayload, WorkItem, WorkItemDetail } from './types';
+import type { ItemPriority, ItemType, StatusCategory, UpdateItemPayload, WorkItem, WorkItemDetail } from './types';
 
 // Names, order and rules shared by the board's screens. The hierarchy rules repeat WorkRules in the
 // CMS API, so a wrong choice is stopped in the form before the API has to refuse it.
 
 export const ITEM_TYPES: ItemType[] = ['Epic', 'Feature', 'Story', 'Task', 'Bug', 'Subtask'];
-export const STATUSES: ItemStatus[] = ['ToDo', 'InProgress', 'InReview', 'Done'];
 export const PRIORITIES: ItemPriority[] = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 
-export const STATUS_LABEL: Record<ItemStatus, string> = {
-  ToDo: 'To do',
-  InProgress: 'In progress',
-  InReview: 'In review',
-  Done: 'Done',
+export const CATEGORIES: StatusCategory[] = ['ToDo', 'InProgress', 'Done'];
+export const CATEGORY_LABEL: Record<StatusCategory, string> = {
+  ToDo: 'Not started',
+  InProgress: 'Under way',
+  Done: 'Finished',
 };
+export const isDone = (item: Pick<WorkItem, 'statusCategory'>): boolean => item.statusCategory === 'Done';
 
 export const TYPE_HINT: Record<ItemType, string> = {
   Epic: 'A large goal that takes several sprints',
@@ -106,6 +106,7 @@ export function toUpdatePayload(item: WorkItemDetail): UpdateItemPayload {
     parentId: item.parentId,
     sprintId: item.sprintId,
     labels: item.labels,
+    startDate: item.startDate,
     dueDate: item.dueDate,
     isBlocked: item.isBlocked,
     blockedReason: item.blockedReason,
@@ -135,7 +136,7 @@ export function formatWhen(iso: string): string {
 
 /** Past its due date and not finished. */
 export function isOverdue(item: WorkItem, today: Date = new Date()): boolean {
-  if (!item.dueDate || item.status === 'Done') return false;
+  if (!item.dueDate || isDone(item)) return false;
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   return new Date(`${item.dueDate}T00:00:00`) < start;
 }
@@ -143,7 +144,7 @@ export function isOverdue(item: WorkItem, today: Date = new Date()): boolean {
 const FIELD_LABEL: Record<string, string> = {
   title: 'the title', description: 'the description', status: 'the status', priority: 'the priority',
   storyPoints: 'the story points', assignee: 'the assignee', parent: 'the parent', sprint: 'the sprint',
-  labels: 'the labels', dueDate: 'the due date', blocked: 'the blocked flag',
+  labels: 'the labels', startDate: 'the start date', dueDate: 'the due date', blocked: 'the blocked flag',
 };
 
 /** One history row as a sentence ending: "changed the status from To do to In progress". */
@@ -151,10 +152,9 @@ export function describeChange(field: string, oldValue: string | null, newValue:
   if (field === 'created') return `created this ${(newValue || 'item').toLowerCase()}`;
   if (field === 'deleted') return 'deleted this item';
   if (field === 'description') return 'changed the description';
-  const show = (v: string) => (field === 'status' ? STATUS_LABEL[v as ItemStatus] || v : v);
   const name = FIELD_LABEL[field] || field;
   if (field === 'blocked') return newValue ? `marked this blocked: ${newValue}` : 'removed the blocked flag';
-  if (oldValue && newValue) return `changed ${name} from ${show(oldValue)} to ${show(newValue)}`;
-  if (newValue) return `set ${name} to ${show(newValue)}`;
+  if (oldValue && newValue) return `changed ${name} from ${oldValue} to ${newValue}`;
+  if (newValue) return `set ${name} to ${newValue}`;
   return `cleared ${name}`;
 }

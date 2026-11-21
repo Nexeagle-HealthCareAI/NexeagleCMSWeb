@@ -19,7 +19,7 @@ describe('Daily Work Board', () => {
     expect(screen.getByRole('tab', { name: /Work management/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: /Docs/ })).toBeInTheDocument();
 
-    const list = await screen.findByRole('list', { name: 'Work items' });
+    const list = await screen.findByRole('table', { name: 'Work items' });
     expect(within(list).getByText('Faster billing at the counter')).toBeInTheDocument();
     expect(within(list).getByText('Search box for tests')).toBeInTheDocument();
   });
@@ -27,7 +27,7 @@ describe('Daily Work Board', () => {
   it('filters by words and keeps the parents of a match', async () => {
     const user = userEvent.setup();
     open();
-    const list = await screen.findByRole('list', { name: 'Work items' });
+    const list = await screen.findByRole('table', { name: 'Work items' });
 
     await user.type(screen.getByRole('searchbox', { name: 'Search items' }), 'price and tax');
 
@@ -40,7 +40,7 @@ describe('Daily Work Board', () => {
   it('creates a task and opens it', async () => {
     const user = userEvent.setup();
     open();
-    await screen.findByRole('list', { name: 'Work items' });
+    await screen.findByRole('table', { name: 'Work items' });
 
     await user.click(screen.getByRole('button', { name: /New item/ }));
     const dialog = screen.getByRole('dialog');
@@ -49,13 +49,13 @@ describe('Daily Work Board', () => {
 
     const panel = await screen.findByRole('complementary', { name: /Write the release note/ });
     expect(within(panel).getByLabelText('Title')).toHaveValue('Write the release note');
-    expect(within(screen.getByRole('list', { name: 'Work items' })).getByText('Write the release note')).toBeInTheDocument();
+    expect(within(screen.getByRole('table', { name: 'Work items' })).getByText('Write the release note')).toBeInTheDocument();
   });
 
   it('refuses a subtask without a parent in the form', async () => {
     const user = userEvent.setup();
     open();
-    await screen.findByRole('list', { name: 'Work items' });
+    await screen.findByRole('table', { name: 'Work items' });
     await user.click(screen.getByRole('button', { name: /New item/ }));
     // Subtask is only offered from a parent item, never from the top button.
     expect(within(screen.getByRole('dialog')).queryByRole('radio', { name: 'Subtask' })).not.toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('Daily Work Board', () => {
   it('switches to the board: one column per status, without epics and features', async () => {
     const user = userEvent.setup();
     open();
-    await screen.findByRole('list', { name: 'Work items' });
+    await screen.findByRole('table', { name: 'Work items' });
 
     await user.click(screen.getByRole('button', { name: /Board/ }));
 
@@ -75,6 +75,40 @@ describe('Daily Work Board', () => {
 
     await user.click(screen.getByRole('button', { name: /List/ }));
     expect(await screen.findByText('Faster billing at the counter')).toBeInTheDocument();
+  });
+
+  it('lets the list show the columns the person picks', async () => {
+    const user = userEvent.setup();
+    localStorage.removeItem('wk.columns');
+    open();
+    const table = await screen.findByRole('table', { name: 'Work items' });
+    expect(within(table).getByRole('columnheader', { name: 'Assignee' })).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: 'Start date' })).toBeInTheDocument();
+    expect(within(table).queryByRole('columnheader', { name: 'Reporter' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Columns/ }));
+    await user.click(screen.getByRole('checkbox', { name: 'Reporter' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Labels' }));
+
+    expect(within(table).getByRole('columnheader', { name: 'Reporter' })).toBeInTheDocument();
+    expect(within(table).queryByRole('columnheader', { name: 'Labels' })).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('wk.columns') || '[]')).toContain('reporter');
+    localStorage.removeItem('wk.columns');
+  });
+
+  it('adds a custom column to the board', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('wk.view', 'board');
+    open();
+    await screen.findByRole('region', { name: /^To do/ });
+
+    await user.click(screen.getByRole('button', { name: /Add column/ }));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Name'), 'Ready for QA');
+    await user.click(within(dialog).getByRole('button', { name: 'Add column' }));
+
+    expect(await screen.findByRole('region', { name: /^Ready for QA, 0 items/ })).toBeInTheDocument();
+    localStorage.removeItem('wk.view');
   });
 
   it('shows what is coming on the Docs tab', async () => {

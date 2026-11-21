@@ -23,6 +23,7 @@ export default function CreateItemDialog({ project, items, users, parent, onClos
   const [assignee, setAssignee] = useState('');
   const [priority, setPriority] = useState<ItemPriority>('Medium');
   const [points, setPoints] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -48,12 +49,14 @@ export default function CreateItemDialog({ project, items, users, parent, onClos
     const storyPoints = points.trim() === '' ? null : Number(points);
     if (storyPoints !== null && (Number.isNaN(storyPoints) || storyPoints < 0 || storyPoints > 999)) { setError('Story points must be a number from 0 to 999.'); return; }
 
+    if (startDate && dueDate && startDate > dueDate) { setError('The start date must be on or before the due date.'); return; }
+
     setSaving(true);
     setError('');
     try {
       const created = await workService.createItem({
         projectId: project.projectId, itemType, title: title.trim(), priority, storyPoints,
-        assigneeUserId: assignee || null, parentId: parentId || null, dueDate: dueDate || null,
+        assigneeUserId: assignee || null, parentId: parentId || null, startDate: startDate || null, dueDate: dueDate || null,
       });
       toast.success(`${created.key} created`);
       onCreated(created);
@@ -112,14 +115,19 @@ export default function CreateItemDialog({ project, items, users, parent, onClos
 
         <div className="wk-form-row">
           <label className="wk-field">
-            <span>Story points (optional)</span>
-            <input inputMode="decimal" value={points} onChange={e => setPoints(e.target.value)} placeholder="e.g. 3" />
+            <span>Start date (optional)</span>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           </label>
           <label className="wk-field">
             <span>Due date (optional)</span>
-            <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+            <input type="date" value={dueDate} min={startDate || undefined} onChange={e => setDueDate(e.target.value)} />
           </label>
         </div>
+
+        <label className="wk-field">
+          <span>Story points (optional)</span>
+          <input inputMode="decimal" value={points} onChange={e => setPoints(e.target.value)} placeholder="e.g. 3" />
+        </label>
 
         {error && <p className="wk-error" role="alert">{error}</p>}
 

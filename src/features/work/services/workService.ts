@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { WORK_MOCK } from '../access';
-import type { CreateItemPayload, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkUser } from '../types';
+import type { CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
 import { mockWork } from './mockWork';
 
 // Daily Work Board calls (CMS API: WorkController). Every answer is { success, data, message }.
@@ -10,6 +10,15 @@ const real = {
   projects: async () => (await api.get('/work/projects')).data.data as WorkProject[],
   createProject: async (p: { key: string; name: string; description?: string }) =>
     (await api.post('/work/projects', p)).data.data as WorkProject,
+  // Board columns. They come back with each project; these change them (work.manage).
+  addStatus: async (projectId: string, p: { name: string; category: StatusCategory }) =>
+    (await api.post(`/work/projects/${enc(projectId)}/statuses`, p)).data.data as WorkStatus,
+  updateStatus: async (statusId: string, p: { name: string; category: StatusCategory }) =>
+    (await api.put(`/work/statuses/${enc(statusId)}`, p)).data.data as WorkStatus,
+  reorderStatuses: async (projectId: string, statusIds: string[]) =>
+    (await api.put(`/work/projects/${enc(projectId)}/statuses/order`, { statusIds })).data.data as WorkStatus[],
+  /** moveTo: key of the column that takes this column's items. */
+  deleteStatus: async (statusId: string, moveTo?: string) => { await api.delete(`/work/statuses/${enc(statusId)}`, { params: moveTo ? { moveTo } : undefined }); },
   users: async () => (await api.get('/work/users')).data.data as WorkUser[],
   items: async (projectId: string) => (await api.get('/work/items', { params: { projectId } })).data.data as WorkItem[],
   item: async (id: string) => (await api.get(`/work/items/${enc(id)}`)).data.data as WorkItemDetail,

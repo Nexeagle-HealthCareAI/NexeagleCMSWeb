@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Ban, ChevronRight, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import type { ItemPriority, ItemStatus, UpdateItemPayload, WorkItem, WorkItemDetail, WorkUser } from '../types';
+import type { ItemPriority, UpdateItemPayload, WorkItem, WorkItemDetail, WorkStatus, WorkUser } from '../types';
 import {
-  allowedParentTypes, childTypesFor, describeChange, formatWhen, parentRequired, PRIORITIES, STATUSES, STATUS_LABEL, toUpdatePayload,
+  allowedParentTypes, childTypesFor, describeChange, formatWhen, parentRequired, PRIORITIES, toUpdatePayload,
 } from '../workMeta';
 import { errorMessage, workService } from '../services/workService';
 import { Avatar, Dialog, StatusPill, TypeIcon } from './parts';
@@ -13,6 +13,8 @@ interface Props {
   itemId: string;
   items: WorkItem[];
   users: WorkUser[];
+  /** The project's board columns. */
+  statuses: WorkStatus[];
   currentUserId: string | null;
   canEdit: boolean;
   canManage: boolean;
@@ -25,7 +27,7 @@ interface Props {
 }
 
 /** The item page, shown as a panel on the right so the list stays in view. */
-export default function ItemDrawer({ itemId, items, users, currentUserId, canEdit, canManage, onClose, onChanged, onOpen, onAddChild, onDeleted }: Props) {
+export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canManage, onClose, onChanged, onOpen, onAddChild, onDeleted }: Props) {
   const [item, setItem] = useState<WorkItemDetail | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -193,8 +195,9 @@ export default function ItemDrawer({ itemId, items, users, currentUserId, canEdi
       <div className="wk-fields">
         <label className="wk-field">
           <span>Status</span>
-          <select value={item.status} disabled={!canEdit} onChange={e => void save({ status: e.target.value as ItemStatus })}>
-            {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+          <select value={item.status} disabled={!canEdit} onChange={e => void save({ status: e.target.value })}>
+            {statuses.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}
+            {!statuses.some(s => s.key === item.status) && <option value={item.status}>{item.statusName}</option>}
           </select>
         </label>
         <label className="wk-field">
@@ -216,8 +219,12 @@ export default function ItemDrawer({ itemId, items, users, currentUserId, canEdi
           <input inputMode="decimal" value={points} readOnly={!canEdit} onChange={e => setPoints(e.target.value)} onBlur={commitPoints} placeholder="None" />
         </label>
         <label className="wk-field">
+          <span>Start date</span>
+          <input type="date" value={item.startDate || ''} max={item.dueDate || undefined} disabled={!canEdit} onChange={e => void save({ startDate: e.target.value || null })} />
+        </label>
+        <label className="wk-field">
           <span>Due date</span>
-          <input type="date" value={item.dueDate || ''} disabled={!canEdit} onChange={e => void save({ dueDate: e.target.value || null })} />
+          <input type="date" value={item.dueDate || ''} min={item.startDate || undefined} disabled={!canEdit} onChange={e => void save({ dueDate: e.target.value || null })} />
         </label>
         {parentTypes.length > 0 && (
           <label className="wk-field">
@@ -283,7 +290,7 @@ export default function ItemDrawer({ itemId, items, users, currentUserId, canEdi
                     <TypeIcon type={c.itemType} />
                     <span className="wk-key">{c.key}</span>
                     <span className="wk-children-title">{c.title}</span>
-                    <StatusPill status={c.status} />
+                    <StatusPill name={c.statusName} category={c.statusCategory} />
                     <Avatar name={c.assigneeName} />
                   </button>
                 </li>

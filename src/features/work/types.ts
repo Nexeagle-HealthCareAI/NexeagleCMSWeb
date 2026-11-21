@@ -1,7 +1,17 @@
 // Daily Work Board. These mirror the CMS API's Work* DTOs (CMSAPI.Application/Models/WorkModels.cs).
 
 export type ItemType = 'Epic' | 'Feature' | 'Story' | 'Task' | 'Bug' | 'Subtask';
-export type ItemStatus = 'ToDo' | 'InProgress' | 'InReview' | 'Done';
+/** What a board column means, whatever the team calls it. */
+export type StatusCategory = 'ToDo' | 'InProgress' | 'Done';
+
+/** A column of a project's board. Items carry `key`, which never changes; `name` can be renamed. */
+export interface WorkStatus {
+  statusId: string;
+  key: string;
+  name: string;
+  category: StatusCategory;
+  sortOrder: number;
+}
 export type ItemPriority = 'Highest' | 'High' | 'Medium' | 'Low' | 'Lowest';
 
 export interface WorkProject {
@@ -11,6 +21,8 @@ export interface WorkProject {
   description: string | null;
   sprintDays: number;
   isArchived: boolean;
+  /** The board's columns, in order. */
+  statuses: WorkStatus[];
 }
 
 export interface WorkUser {
@@ -27,7 +39,10 @@ export interface WorkItem {
   number: number;
   itemType: ItemType;
   title: string;
-  status: ItemStatus;
+  /** Key of one of the project's columns. */
+  status: string;
+  statusName: string;
+  statusCategory: StatusCategory;
   priority: ItemPriority;
   storyPoints: number | null;
   assigneeUserId: string | null;
@@ -40,6 +55,8 @@ export interface WorkItem {
   parentType: ItemType | null;
   sprintId: string | null;
   labels: string[];
+  /** yyyy-MM-dd */
+  startDate: string | null;
   /** yyyy-MM-dd */
   dueDate: string | null;
   isBlocked: boolean;
@@ -87,6 +104,7 @@ export interface CreateItemPayload {
   assigneeUserId?: string | null;
   parentId?: string | null;
   labels?: string[];
+  startDate?: string | null;
   dueDate?: string | null;
 }
 
@@ -94,13 +112,14 @@ export interface CreateItemPayload {
 export interface UpdateItemPayload {
   title: string;
   description: string | null;
-  status: ItemStatus;
+  status: string;
   priority: ItemPriority;
   storyPoints: number | null;
   assigneeUserId: string | null;
   parentId: string | null;
   sprintId: string | null;
   labels: string[];
+  startDate: string | null;
   dueDate: string | null;
   isBlocked: boolean;
   blockedReason: string | null;
