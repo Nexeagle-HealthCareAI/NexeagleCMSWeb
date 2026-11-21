@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Ban, ChevronRight, Link2, Plus, Trash2, X } from 'lucide-react';
+import { Ban, ChevronRight, Link2, Plus, Siren, Trash2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { ItemPriority, UpdateItemPayload, WorkItem, WorkItemDetail, WorkStatus, WorkUser } from '../types';
@@ -8,6 +8,7 @@ import {
 } from '../workMeta';
 import { errorMessage, workService } from '../services/workService';
 import { Avatar, Dialog, StatusPill, TypeIcon } from './parts';
+import EscalateDialog from './EscalateDialog';
 import WorkEditor from './WorkEditor';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { canEditDocs, canViewDocs } from '../access';
@@ -50,6 +51,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
   const [comment, setComment] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [escalating, setEscalating] = useState(false);
   const [typedKey, setTypedKey] = useState('');
   const panel = useRef<HTMLElement>(null);
   const navigate = useNavigate();
@@ -66,6 +68,11 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
     setLabels(d.labels.join(', '));
     setBlockReason(d.blockedReason || '');
   }, []);
+
+  /** After something outside the form changed the item (an escalation adds a history line). */
+  const reloadItem = useCallback(async () => {
+    try { show(await workService.item(itemId)); } catch { /* the panel keeps what it has */ }
+  }, [itemId, show]);
 
   useEffect(() => {
     let alive = true;
@@ -214,6 +221,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
           {saving && <span className="wk-muted" role="status">Saving…</span>}
         </div>
         <div className="wk-drawer-tools">
+          {canEdit && <button type="button" className="wk-iconbtn" onClick={() => setEscalating(true)} aria-label="Escalate" title="Escalate"><Siren size={17} /></button>}
           {canDelete && <button type="button" className="wk-iconbtn" onClick={() => { setTypedKey(''); setConfirmDelete(true); }} aria-label="Delete item" title="Delete"><Trash2 size={17} /></button>}
           <button type="button" className="wk-iconbtn" onClick={onClose} aria-label="Close" title="Close"><X size={18} /></button>
         </div>
@@ -401,6 +409,9 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
 
       {picking && <DocPicker alreadyLinked={linked.map(d => d.documentId)} onClose={() => setPicking(false)} onPick={d => void linkDoc(d)} />}
 
+      {escalating && (
+        <EscalateDialog item={item} users={users} currentUserId={currentUserId} onClose={() => setEscalating(false)} onDone={() => { setEscalating(false); void reloadItem(); }} />
+      )}
       {confirmDelete && (
         <Dialog title={`Delete ${item.key}?`} onClose={() => setConfirmDelete(false)}>
           <p className="wk-dialog-text">“{item.title}” will be removed from the board for everyone, with its comments and history.</p>

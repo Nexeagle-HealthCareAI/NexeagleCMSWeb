@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { WORK_MOCK } from '../access';
-import type { ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
+import type { ChatChannel, ChatMessage, ChatState, SendMessagePayload, WorkNotification, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
 import { mockWork } from './mockWork';
 
 // Daily Work Board calls (CMS API: WorkController). Every answer is { success, data, message }.
@@ -19,6 +19,25 @@ const real = {
   lastSeen: async () => (await api.get('/work/presence')).data.data as LastSeen[],
   /** The activity log, newest first (work.audit). */
   activity: async (q: ActivityQuery) => (await api.get('/work/activity', { params: q })).data.data as WorkActivity[],
+  // Team chat (CMS API: WorkChatController). The open board asks chatState every few seconds.
+  chatState: async (channelId?: string, after?: string) =>
+    (await api.get('/work/chat/state', { params: channelId && after ? { channelId, after } : undefined })).data.data as ChatState,
+  chatMessages: async (channelId: string, q: { before?: string; important?: boolean } = {}) =>
+    (await api.get(`/work/chat/channels/${enc(channelId)}/messages`, { params: q })).data.data as ChatMessage[],
+  sendMessage: async (channelId: string, p: SendMessagePayload) =>
+    (await api.post(`/work/chat/channels/${enc(channelId)}/messages`, p)).data.data as ChatMessage,
+  markChannelRead: async (channelId: string) => { await api.post(`/work/chat/channels/${enc(channelId)}/read`); },
+  markImportant: async (messageId: string, isImportant: boolean) =>
+    (await api.put(`/work/chat/messages/${enc(messageId)}/important`, { isImportant })).data.data as ChatMessage,
+  deleteMessage: async (messageId: string) => { await api.delete(`/work/chat/messages/${enc(messageId)}`); },
+  createGroup: async (p: { name: string; memberUserIds: string[] }) => (await api.post('/work/chat/groups', p)).data.data as ChatChannel,
+  openDirect: async (userId: string) => (await api.post('/work/chat/direct', { userId })).data.data as ChatChannel,
+  /** Posts in the item's board conversation, tags these people and notifies them. */
+  escalateItem: async (workItemId: string, p: { userIds: string[]; note?: string }) =>
+    (await api.post(`/work/items/${enc(workItemId)}/escalate`, p)).data.data as ChatMessage,
+  notifications: async () => (await api.get('/work/notifications')).data.data as WorkNotification[],
+  /** No ids: every notification. */
+  readNotifications: async (notificationIds: string[] = []) => { await api.post('/work/notifications/read', { notificationIds }); },
   // Board columns. They come back with each project; these change them (work.manage).
   addStatus: async (projectId: string, p: { name: string; category: StatusCategory }) =>
     (await api.post(`/work/projects/${enc(projectId)}/statuses`, p)).data.data as WorkStatus,

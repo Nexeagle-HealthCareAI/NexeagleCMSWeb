@@ -1,5 +1,5 @@
 import type {
-  AccessAction, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
+  AccessAction, ChatChannel, ChatMessage, ChatState, SendMessagePayload, WorkNotification, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
 } from '../types';
 import { allowedParentTypes, parentRequired } from '../workMeta';
 
@@ -29,6 +29,62 @@ const projects: WorkProject[] = [
 ];
 const members: Record<string, string[]> = {};
 const accessLog: Record<string, WorkProjectAccess['log']> = {};
+// ── Team chat ──
+interface StoredChannel { channelId: string; kind: ChatChannel['kind']; name: string; projectId: string | null; memberUserIds: string[] }
+const channels: StoredChannel[] = [];
+const messages: ChatMessage[] = [];
+const readAt: Record<string, string> = {};
+const notes: WorkNotification[] = [];
+const boardChannel = (projectId: string): StoredChannel => {
+  let c = channels.find(x => x.kind === 'Board' && x.projectId === projectId);
+  if (!c) { c = { channelId: id('ch'), kind: 'Board', name: '', projectId, memberUserIds: [] }; channels.push(c); }
+  return c;
+};
+/** Different every time, and always later than the one before, so "newer than" works within a millisecond. */
+let lastStamp = 0;
+const stamp = () => { lastStamp = Math.max(Date.now(), lastStamp + 1); return new Date(lastStamp).toISOString(); };
+function post(channelId: string, authorUserId: string, p: SendMessagePayload, at = stamp()): ChatMessage {
+  const item = p.workItemId ? items.find(i => i.workItemId === p.workItemId && !i.deleted) : undefined;
+  const message: ChatMessage = {
+    messageId: id('m'), channelId, authorUserId, authorName: nameOf(authorUserId) || 'Someone', body: p.body.trim(),
+    isImportant: !!p.isImportant || !!p.isEscalation, isEscalation: !!p.isEscalation, isDeleted: false, mentionUserIds: p.mentionUserIds || [],
+    workItemId: item?.workItemId ?? null, workItemKey: item?.key ?? null, workItemTitle: item?.title ?? null, createdAt: at,
+  };
+  messages.push(message);
+  const channel = channels.find(c => c.channelId === channelId)!;
+  const tell = (kind: WorkNotification['kind']) => notes.unshift({
+    notificationId: id('n'), kind, channelId, channelName: channelView(channel).name, messageId: message.messageId,
+    actorName: message.authorName, text: message.body.slice(0, 90), isRead: false, createdAt: at,
+  });
+  if (authorUserId !== ME) {
+    if (message.mentionUserIds.includes(ME)) tell(message.isEscalation ? 'Escalation' : 'Mention');
+    else if (channel.kind === 'Direct') tell('Direct');
+  }
+  return message;
+}
+function channelView(c: StoredChannel): ChatChannel {
+  const project = c.projectId ? projects.find(p => p.projectId === c.projectId) : undefined;
+  const other = c.kind === 'Direct' ? c.memberUserIds.find(u => u !== ME) ?? null : null;
+  const own = messages.filter(m => m.channelId === c.channelId);
+  const last = own[own.length - 1];
+  const read = readAt[c.channelId];
+  return {
+    channelId: c.channelId, kind: c.kind, name: c.kind === 'Board' ? project?.name || 'Board' : c.kind === 'Direct' ? nameOf(other) || 'Direct message' : c.name,
+    projectId: c.projectId, projectKey: project?.key ?? null, otherUserId: other, memberUserIds: [...c.memberUserIds],
+    unread: own.filter(m => !m.isDeleted && m.authorUserId !== ME && (!read || m.createdAt > read)).length,
+    lastMessageText: last ? (last.isDeleted ? 'Message removed' : last.body.slice(0, 90)) : null, lastMessageBy: last?.authorName ?? null, lastMessageAt: last?.createdAt ?? null,
+  };
+}
+const visibleChannels = () => { projects.filter(p => !p.isArchived).forEach(p => boardChannel(p.projectId)); return channels; };
+const channelOrder = (c: ChatChannel) => (c.kind === 'Board' ? 0 : c.kind === 'Group' ? 1 : 2);
+const copyMessage = (m: ChatMessage): ChatMessage => (m.isDeleted
+  ? { ...m, body: '', isImportant: false, isEscalation: false, mentionUserIds: [], workItemId: null, workItemKey: null, workItemTitle: null }
+  : { ...m, mentionUserIds: [...m.mentionUserIds] });
+/** The example teammate answers, so tagging and notifications can be tried without a second person. */
+function teammateReplies(channelId: string, to: string) {
+  setTimeout(() => { post(channelId, to, { body: `@${nameOf(ME)} got it, looking now.`, mentionUserIds: [ME] }); }, 1500);
+}
+
 const sessions: WorkActivity[] = [];
 const visit: MyPresence = { openedAt: null, ip: '127.0.0.1', previousOpenedAt: new Date(Date.now() - 20 * 3600_000).toISOString(), previousIp: '127.0.0.1' };
 const sessionRow = (action: string): WorkActivity => ({
@@ -148,6 +204,72 @@ export const mockWork = {
     projects.push(project);
     nextNumber[project.projectId] = 1;
     return wait(copy(project));
+  },
+  chatState: async (channelId?: string, after?: string): Promise<ChatState> => wait({
+    channels: visibleChannels().map(channelView).sort((x, y) => channelOrder(x) - channelOrder(y) || (x.projectKey || x.name).localeCompare(y.projectKey || y.name)),
+    newMessages: channelId && after ? messages.filter(m => m.channelId === channelId && m.createdAt > after).map(copyMessage) : [],
+    unreadNotifications: notes.filter(n => !n.isRead).length,
+  }),
+  chatMessages: async (channelId: string, q: { before?: string; important?: boolean } = {}): Promise<ChatMessage[]> => {
+    if (!visibleChannels().some(c => c.channelId === channelId)) throw fail(404, 'Conversation not found.');
+    const own = messages.filter(m => m.channelId === channelId && (!q.before || m.createdAt < q.before) && (!q.important || ((m.isImportant || m.isEscalation) && !m.isDeleted)));
+    return wait(own.slice(-50).map(copyMessage));
+  },
+  sendMessage: async (channelId: string, p: SendMessagePayload): Promise<ChatMessage> => {
+    const channel = visibleChannels().find(c => c.channelId === channelId);
+    if (!channel) throw fail(404, 'Conversation not found.');
+    if (!p.body.trim()) throw fail(400, 'Write a message first.');
+    if (p.body.trim().length > 4000) throw fail(400, 'A message can be up to 4000 characters.');
+    const tagged = (p.mentionUserIds || []).filter(u => u !== ME);
+    if (p.isEscalation && tagged.length === 0) throw fail(400, 'Tag at least one person to escalate to.');
+    if (channel.kind !== 'Board' && tagged.some(u => !channel.memberUserIds.includes(u))) throw fail(400, 'Someone you tagged is not in this conversation.');
+    const message = post(channelId, ME, { ...p, mentionUserIds: tagged });
+    readAt[channelId] = message.createdAt;
+    if (p.isEscalation && message.workItemId) log(message.workItemId, 'escalated', null, tagged.map(nameOf).join(', '));
+    const answerer = tagged[0] ?? (channel.kind === 'Direct' ? channel.memberUserIds.find(u => u !== ME) : undefined);
+    if (answerer) teammateReplies(channelId, answerer);
+    return wait(copyMessage(message));
+  },
+  markChannelRead: async (channelId: string) => {
+    readAt[channelId] = stamp();
+    notes.filter(n => n.channelId === channelId).forEach(n => { n.isRead = true; });
+    await wait(null);
+  },
+  markImportant: async (messageId: string, isImportant: boolean): Promise<ChatMessage> => {
+    const message = messages.find(m => m.messageId === messageId && !m.isDeleted);
+    if (!message) throw fail(404, 'Message not found.');
+    if (message.isEscalation && !isImportant) throw fail(400, 'An escalation always stays marked important.');
+    message.isImportant = isImportant;
+    return wait(copyMessage(message));
+  },
+  deleteMessage: async (messageId: string) => {
+    const message = messages.find(m => m.messageId === messageId && !m.isDeleted);
+    if (!message) throw fail(404, 'Message not found.');
+    message.isDeleted = true;
+    await wait(null);
+  },
+  createGroup: async (p: { name: string; memberUserIds: string[] }): Promise<ChatChannel> => {
+    const others = p.memberUserIds.filter(u => u !== ME);
+    if (!p.name.trim()) throw fail(400, 'Give the group a name.');
+    if (others.length === 0) throw fail(400, 'Choose at least one other person.');
+    const channel: StoredChannel = { channelId: id('ch'), kind: 'Group', name: p.name.trim(), projectId: null, memberUserIds: [ME, ...others] };
+    channels.push(channel);
+    return wait(channelView(channel));
+  },
+  openDirect: async (userId: string): Promise<ChatChannel> => {
+    if (userId === ME) throw fail(400, 'Choose someone else to message.');
+    let channel = channels.find(c => c.kind === 'Direct' && c.memberUserIds.includes(userId));
+    if (!channel) { channel = { channelId: id('ch'), kind: 'Direct', name: '', projectId: null, memberUserIds: [ME, userId] }; channels.push(channel); }
+    return wait(channelView(channel));
+  },
+  escalateItem: async (workItemId: string, p: { userIds: string[]; note?: string }): Promise<ChatMessage> => {
+    const item = find(workItemId);
+    return mockWork.sendMessage(boardChannel(item.projectId).channelId, { body: p.note?.trim() || 'This needs attention.', isEscalation: true, isImportant: true, mentionUserIds: p.userIds, workItemId });
+  },
+  notifications: async (): Promise<WorkNotification[]> => wait(notes.slice(0, 50).map(n => ({ ...n }))),
+  readNotifications: async (notificationIds: string[] = []) => {
+    notes.filter(n => notificationIds.length === 0 || notificationIds.includes(n.notificationId)).forEach(n => { n.isRead = true; });
+    await wait(null);
   },
   touch: async (p: { opened?: boolean; event?: GuardEvent }): Promise<MyPresence> => {
     if (p.opened) { visit.openedAt = new Date().toISOString(); sessions.unshift(sessionRow('Opened')); }
@@ -323,3 +445,13 @@ export const mockWork = {
     await wait(undefined);
   },
 };
+
+// Example conversation, so the Chat tab is not empty on first open.
+{
+  const hms = boardChannel('p-hms').channelId;
+  const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+  const story = items.find(i => i.itemType === 'Story');
+  post(hms, 'u-2', { body: 'Morning all. The billing demo is on Friday at 3 pm.', isImportant: true }, ago(180));
+  post(hms, 'u-3', { body: 'Noted. I will have the tax line fixed by Thursday.' }, ago(170));
+  post(hms, 'u-2', { body: `@${nameOf(ME)} can you look at this one before stand-up?`, mentionUserIds: [ME], workItemId: story?.workItemId }, ago(12));
+}
