@@ -8,7 +8,7 @@ const allowExport = vi.hoisted(() => ({ value: false }));
 vi.mock('./access', () => ({
   WORK_MOCK: true,
   canViewWork: () => true, canEditWork: () => true, canManageWork: () => true, canDeleteWork: () => true,
-  canManageMembers: () => true, canExportWork: () => allowExport.value,
+  canManageMembers: () => true, canAuditWork: () => true, canExportWork: () => allowExport.value,
   canViewDocs: () => true, canEditDocs: () => true, canDeleteDocs: () => true, canSeeSensitiveDocs: () => true,
 }));
 

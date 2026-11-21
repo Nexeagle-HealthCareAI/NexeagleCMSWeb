@@ -1,7 +1,9 @@
 import { useSearchParams } from 'react-router-dom';
-import { FileText, ListChecks } from 'lucide-react';
+import { FileText, History, ListChecks } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { canExportWork, canViewDocs } from '../access';
+import { canAuditWork, canExportWork, canViewDocs } from '../access';
+import ActivityTab from '../components/ActivityTab';
+import PresenceBar from '../components/PresenceBar';
 import ScreenGuard, { ProtectedBadge } from '../components/ScreenGuard';
 import WorkManagement from '../components/WorkManagement';
 import DocsTab from '../docs/DocsTab';
@@ -11,13 +13,16 @@ import '../docs/docs.css';
 const TABS = [
   { key: 'work', label: 'Work management', Icon: ListChecks },
   { key: 'docs', label: 'Docs', Icon: FileText },
+  { key: 'activity', label: 'Activity', Icon: History },
 ] as const;
 
 /** Daily Work Board: the team's own tracker (tab 1) and document space (tab 2). */
 export default function WorkBoardPage() {
   const [params, setParams] = useSearchParams();
   const permissions = useAuthStore(s => s.permissions) || [];
-  const tab = params.get('tab') === 'docs' ? 'docs' : 'work';
+  const audit = canAuditWork(permissions);
+  const asked = params.get('tab');
+  const tab = asked === 'docs' ? 'docs' : asked === 'activity' && audit ? 'activity' : 'work';
   const guarded = !canExportWork(permissions);
 
   const choose = (key: string) => {
@@ -35,16 +40,17 @@ export default function WorkBoardPage() {
           <p>Plan, track and finish the team's work in one place.</p>
         </div>
       </header>
+      <PresenceBar />
 
       <div className="ne-tabsbar" role="tablist" aria-label="Daily Work Board">
-        {TABS.map(({ key, label, Icon }) => (
+        {TABS.filter(t => t.key !== 'activity' || audit).map(({ key, label, Icon }) => (
           <button key={key} type="button" role="tab" aria-selected={tab === key} className={`ne-tabsbar-item wk-tab ${tab === key ? 'is-on' : ''}`} onClick={() => choose(key)}>
             <Icon size={17} aria-hidden="true" /> {label}
           </button>
         ))}
       </div>
 
-      {tab === 'work' ? <WorkManagement /> : canViewDocs(permissions) ? <DocsTab /> : (
+      {tab === 'activity' ? <ActivityTab /> : tab === 'work' ? <WorkManagement /> : canViewDocs(permissions) ? <DocsTab /> : (
         <div className="wk-empty">
           <h2>You do not have access to Docs</h2>
           <p>Ask an administrator for the “View documents” permission, then sign in again.</p>

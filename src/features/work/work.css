@@ -273,3 +273,31 @@ html.wk-veiled #root { filter: blur(18px); }
   html.wk-guarded body > * { display: none !important; }
   html.wk-guarded body::before { content: "Printing the NexEagle Daily Work Board is turned off."; display: block; padding: 40px; font: 600 16px system-ui, sans-serif; color: #101828; }
 }
+
+/* ── Sign-in details, last seen ── */
+.wk-presence { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin: -6px 0 2px; }
+.wk-presence-me { margin: 0; font-size: 13px; color: var(--ink-2); }
+.wk-presence-me strong { color: var(--ink); }
+.wk-presence-btn { height: 36px; padding: 0 12px; font-size: 13px; }
+.wk-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #98A2B3; }
+.wk-dot.is-on { background: #12B76A; }
+.wk-presence-list { min-width: 300px; max-height: 340px; overflow-y: auto; }
+.wk-presence-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; font-size: 14px; color: var(--ink); }
+.wk-presence-row > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wk-presence-row small { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+
+/* ── Activity log ── */
+.wk-activity { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; }
+.wk-activity .wk-filters select { flex: 0 1 200px; }
+.wk-activity-flag { margin-right: auto; }
+.wk-activity-list { display: flex; flex-direction: column; gap: 18px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+.wk-activity-list h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.wk-activity-list ul { list-style: none; margin: 0; padding: 0; }
+.wk-activity-list li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 6px; border-radius: 10px; font-size: 14px; color: var(--ink-2); }
+.wk-activity-list li + li { border-top: 1px solid var(--line); border-radius: 0; }
+.wk-activity-list li.is-flagged { background: #FFFAEB; }
+.wk-activity-list time { flex: none; width: 44px; padding-top: 3px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.wk-activity-list p { flex: 1; min-width: 0; margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.wk-activity-list p strong { color: var(--ink); }
+.wk-activity-list p small { display: block; color: var(--ink-3); font-size: 12px; }
+.wk-activity-mark { flex: none; color: #B54708; margin-top: 3px; }

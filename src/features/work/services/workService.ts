@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { WORK_MOCK } from '../access';
-import type { WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
+import type { ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
 import { mockWork } from './mockWork';
 
 // Daily Work Board calls (CMS API: WorkController). Every answer is { success, data, message }.
@@ -14,6 +14,11 @@ const real = {
   projectAccess: async (projectId: string) => (await api.get(`/work/projects/${enc(projectId)}/access`)).data.data as WorkProjectAccess,
   saveProjectAccess: async (projectId: string, p: { isRestricted: boolean; memberUserIds: string[] }) =>
     (await api.put(`/work/projects/${enc(projectId)}/access`, p)).data.data as WorkProjectAccess,
+  // Called while the board is open (about once a minute). Answers with the caller's own sign-in details.
+  touch: async (p: { opened?: boolean; event?: GuardEvent }) => (await api.post('/work/presence', p)).data.data as MyPresence,
+  lastSeen: async () => (await api.get('/work/presence')).data.data as LastSeen[],
+  /** The activity log, newest first (work.audit). */
+  activity: async (q: ActivityQuery) => (await api.get('/work/activity', { params: q })).data.data as WorkActivity[],
   // Board columns. They come back with each project; these change them (work.manage).
   addStatus: async (projectId: string, p: { name: string; category: StatusCategory }) =>
     (await api.post(`/work/projects/${enc(projectId)}/statuses`, p)).data.data as WorkStatus,
