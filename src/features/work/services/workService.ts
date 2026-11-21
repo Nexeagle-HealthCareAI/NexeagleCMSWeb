@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { WORK_MOCK } from '../access';
-import type { CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
+import type { WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
 import { mockWork } from './mockWork';
 
 // Daily Work Board calls (CMS API: WorkController). Every answer is { success, data, message }.
@@ -10,6 +10,10 @@ const real = {
   projects: async () => (await api.get('/work/projects')).data.data as WorkProject[],
   createProject: async (p: { key: string; name: string; description?: string }) =>
     (await api.post('/work/projects', p)).data.data as WorkProject,
+  // Who can open a board (work.members). Saving sends the whole state: the switch and every member.
+  projectAccess: async (projectId: string) => (await api.get(`/work/projects/${enc(projectId)}/access`)).data.data as WorkProjectAccess,
+  saveProjectAccess: async (projectId: string, p: { isRestricted: boolean; memberUserIds: string[] }) =>
+    (await api.put(`/work/projects/${enc(projectId)}/access`, p)).data.data as WorkProjectAccess,
   // Board columns. They come back with each project; these change them (work.manage).
   addStatus: async (projectId: string, p: { name: string; category: StatusCategory }) =>
     (await api.post(`/work/projects/${enc(projectId)}/statuses`, p)).data.data as WorkStatus,

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Ban, Columns3, List as ListIcon, Plus, Search } from 'lucide-react';
+import { Ban, Columns3, List as ListIcon, Lock, Plus, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { canDeleteWork, canEditWork, canManageWork } from '../access';
+import { canDeleteWork, canEditWork, canManageMembers, canManageWork } from '../access';
 import { loadColumns, saveColumns, type ColumnKey } from '../listColumns';
 import type { ItemType, UpdateItemPayload, WorkItem, WorkProject, WorkStatus, WorkUser } from '../types';
 import { buildTree, isDone, ITEM_TYPES, toUpdatePayload } from '../workMeta';
@@ -13,6 +13,7 @@ import { ColumnDialog, RemoveColumnDialog } from './ColumnDialogs';
 import CreateItemDialog from './CreateItemDialog';
 import ItemDrawer from './ItemDrawer';
 import ListView, { ColumnPicker } from './ListView';
+import MembersDialog from './MembersDialog';
 import NewProjectDialog from './NewProjectDialog';
 
 const PROJECT_KEY = 'wk.project';
@@ -30,6 +31,7 @@ export default function WorkManagement() {
   const canEdit = canEditWork(permissions);
   const canManage = canManageWork(permissions);
   const canDelete = canDeleteWork(permissions);
+  const canMembers = canManageMembers(permissions);
   const [params, setParams] = useSearchParams();
   const openId = params.get('item');
 
@@ -49,6 +51,7 @@ export default function WorkManagement() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState<{ parent: WorkItem | null } | null>(null);
   const [addingProject, setAddingProject] = useState(false);
+  const [managingMembers, setManagingMembers] = useState(false);
   const [view, setView] = useState<View>(rememberedView);
   const [columns, setColumns] = useState<ColumnKey[]>(loadColumns);
   const [columnForm, setColumnForm] = useState<{ status: WorkStatus | null } | null>(null);
@@ -214,7 +217,7 @@ export default function WorkManagement() {
           <div className="ne-seg" role="tablist" aria-label="Project">
             {projects.map(p => (
               <button key={p.projectId} type="button" role="tab" aria-selected={p.projectId === projectId} className={p.projectId === projectId ? 'is-on' : ''} onClick={() => chooseProject(p.projectId)} title={p.name}>
-                {p.key}
+                {p.isRestricted && <Lock size={13} aria-label="Members only" />}{p.key}
               </button>
             ))}
             {canManage && <button type="button" onClick={() => setAddingProject(true)} aria-label="New project" title="New project"><Plus size={16} aria-hidden="true" /></button>}
@@ -225,6 +228,9 @@ export default function WorkManagement() {
               <button type="button" className={view === 'board' ? 'is-on' : ''} aria-pressed={view === 'board'} onClick={() => chooseView('board')}><Columns3 size={16} aria-hidden="true" /> Board</button>
             </div>
             {view === 'list' && <ColumnPicker columns={columns} onChange={chooseColumns} />}
+            {canMembers && project && (
+              <button type="button" className="wk-btn" onClick={() => setManagingMembers(true)}><Users size={16} aria-hidden="true" /> Members</button>
+            )}
             {canEdit && project && (
               <button type="button" className="wk-btn is-primary" onClick={() => setCreating({ parent: null })}><Plus size={16} aria-hidden="true" /> New item</button>
             )}
@@ -325,6 +331,12 @@ export default function WorkManagement() {
       )}
       {addingProject && (
         <NewProjectDialog onClose={() => setAddingProject(false)} onCreated={p => { setProjects(prev => [...prev, p]); setAddingProject(false); chooseProject(p.projectId); }} />
+      )}
+      {managingMembers && project && (
+        <MembersDialog
+          project={project} users={users} onClose={() => setManagingMembers(false)}
+          onSaved={access => { setProjects(prev => prev.map(p => (p.projectId === access.projectId ? { ...p, isRestricted: access.isRestricted } : p))); setManagingMembers(false); }}
+        />
       )}
       {columnForm && project && (
         <ColumnDialog project={project} status={columnForm.status} onClose={() => setColumnForm(null)} onSaved={() => { setColumnForm(null); void reloadColumns(); }} />

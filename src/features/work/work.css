@@ -246,3 +246,30 @@ button.wk-caret:hover:not(:disabled) { background: #F2F4F7; color: var(--ink); }
 .wk-board-note { font-size: 13px; }
 @media (max-width: 720px) { .wk-board { scroll-snap-type: x proximity; } .wk-col { scroll-snap-align: start; min-width: 78vw; } }
 @media (prefers-reduced-motion: reduce) { .wk-card-face.is-lifted { transform: none; } }
+
+/* ── Board members ── */
+.ne-seg button svg[aria-label="Members only"] { margin-right: 4px; vertical-align: -1px; }
+.wk-check { display: flex; align-items: center; gap: 10px; min-height: 34px; cursor: pointer; color: var(--ink); font-size: 14px; }
+.wk-check input { width: 17px; height: 17px; accent-color: var(--primary); flex: none; }
+.wk-check span { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.wk-check small { color: var(--ink-3); font-size: 13px; }
+.wk-members { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.wk-members legend { padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.wk-members:disabled { opacity: .55; }
+.wk-members .wk-search { flex: none; }
+.wk-members-list { display: flex; flex-direction: column; max-height: 240px; overflow-y: auto; }
+.wk-members-log { font-size: 13px; color: var(--ink-2); }
+.wk-members-log summary { cursor: pointer; font-weight: 600; min-height: 32px; display: flex; align-items: center; }
+.wk-members-log ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+.wk-members-log time { color: var(--ink-3); margin-left: 6px; }
+
+/* ── Protected screen (ScreenGuard) ── */
+.wk-protected { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; padding: 3px 10px; border-radius: 999px; background: #ECFDF3; color: #067647; font-size: 13px; font-weight: 600; letter-spacing: 0; vertical-align: middle; }
+.wk-watermark { position: fixed; inset: 0; z-index: 2000; pointer-events: none; background-repeat: repeat; }
+.wk-veil { position: fixed; inset: 0; z-index: 2100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(249, 250, 251, .6); color: var(--ink); font-size: 16px; text-align: center; padding: 24px; }
+.wk-veil span { color: var(--ink-2); font-size: 14px; }
+html.wk-veiled #root { filter: blur(18px); }
+@media print {
+  html.wk-guarded body > * { display: none !important; }
+  html.wk-guarded body::before { content: "Printing the NexEagle Daily Work Board is turned off."; display: block; padding: 40px; font: 600 16px system-ui, sans-serif; color: #101828; }
+}
