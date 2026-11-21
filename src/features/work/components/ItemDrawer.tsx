@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Ban, ChevronRight, Plus, Trash2, X } from 'lucide-react';
+import { Ban, ChevronRight, Link2, Plus, Trash2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { ItemPriority, UpdateItemPayload, WorkItem, WorkItemDetail, WorkStatus, WorkUser } from '../types';
 import {
@@ -8,6 +9,12 @@ import {
 import { errorMessage, workService } from '../services/workService';
 import { Avatar, Dialog, StatusPill, TypeIcon } from './parts';
 import WorkEditor from './WorkEditor';
+import { useAuthStore } from '../../../store/useAuthStore';
+import { canEditDocs, canViewDocs } from '../access';
+import { docsService } from '../docs/docsService';
+import { DocIcon } from '../docs/DocIcon';
+import DocPicker from '../docs/DocPicker';
+import type { Doc } from '../docs/types';
 
 interface Props {
   itemId: string;
@@ -45,6 +52,12 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [typedKey, setTypedKey] = useState('');
   const panel = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  const permissions = useAuthStore(s => s.permissions) || [];
+  const seesDocs = canViewDocs(permissions);
+  const linksDocs = canEdit && canEditDocs(permissions);
+  const [linked, setLinked] = useState<Doc[]>([]);
+  const [picking, setPicking] = useState(false);
 
   const show = useCallback((d: WorkItemDetail) => {
     setItem(d);
@@ -66,6 +79,15 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       .catch(e => { if (alive) setError(errorMessage(e, 'Could not open this item.')); });
     return () => { alive = false; };
   }, [itemId, show]);
+
+  // Documents tagged on this item. Ones in a folder locked to the reader are not sent at all.
+  useEffect(() => {
+    if (!seesDocs) return;
+    let alive = true;
+    setLinked([]);
+    docsService.itemDocuments(itemId).then(list => { if (alive) setLinked(list); }).catch(() => undefined);
+    return () => { alive = false; };
+  }, [itemId, seesDocs]);
 
   useEffect(() => {
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !document.querySelector('.wk-overlay')) onClose(); };
@@ -147,6 +169,23 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       setItem({ ...item, comments: item.comments.filter(c => c.commentId !== commentId) });
     } catch (e) {
       toast.error(errorMessage(e, 'Could not remove the comment.'));
+    }
+  };
+  const linkDoc = async (doc: Doc) => {
+    try {
+      await docsService.link(item.workItemId, doc.documentId);
+      setLinked(prev => [...prev, doc].sort((a, b) => a.name.localeCompare(b.name)));
+      setPicking(false);
+    } catch (e) {
+      toast.error(errorMessage(e, 'Could not link the document.'));
+    }
+  };
+  const unlinkDoc = async (doc: Doc) => {
+    try {
+      await docsService.unlink(item.workItemId, doc.documentId);
+      setLinked(prev => prev.filter(d => d.documentId !== doc.documentId));
+    } catch (e) {
+      toast.error(errorMessage(e, 'Could not remove the link.'));
     }
   };
   const remove = async () => {
@@ -302,6 +341,27 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
         </section>
       )}
 
+      {seesDocs && (
+        <section className="wk-section" aria-labelledby="wk-doc-h">
+          <div className="wk-section-head">
+            <h3 id="wk-doc-h">Linked documents{linked.length > 0 && <span className="wk-count">{linked.length}</span>}</h3>
+            {linksDocs && <button type="button" className="wk-link" onClick={() => setPicking(true)}><Link2 size={14} aria-hidden="true" /> Link a document</button>}
+          </div>
+          {linked.length === 0 ? <p className="wk-muted">No documents linked.</p> : (
+            <ul className="wk-doclinks">
+              {linked.map(d => (
+                <li key={d.documentId}>
+                  <button type="button" className="wk-doclink" onClick={() => navigate(`/work?tab=docs&doc=${encodeURIComponent(d.documentId)}`)} title={d.path.length > 0 ? d.path.join(' › ') : 'Top level'}>
+                    <DocIcon doc={d} /><span>{d.name}</span>
+                  </button>
+                  {linksDocs && <button type="button" className="wk-link" onClick={() => void unlinkDoc(d)} aria-label={`Remove the link to ${d.name}`}>Remove</button>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       <section className="wk-section" aria-labelledby="wk-com-h">
         <div className="wk-section-head"><h3 id="wk-com-h">Comments{item.comments.length > 0 && <span className="wk-count">{item.comments.length}</span>}</h3></div>
         <ul className="wk-comments">
@@ -338,6 +398,8 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
         )}
         <p className="wk-muted wk-meta">Reported by {item.reporterName || 'someone'} · created {formatWhen(item.createdAt)} · updated {formatWhen(item.updatedAt)}</p>
       </section>
+
+      {picking && <DocPicker alreadyLinked={linked.map(d => d.documentId)} onClose={() => setPicking(false)} onPick={d => void linkDoc(d)} />}
 
       {confirmDelete && (
         <Dialog title={`Delete ${item.key}?`} onClose={() => setConfirmDelete(false)}>

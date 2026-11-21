@@ -13,3 +13,16 @@ export const canViewWork = (permissions: string[]): boolean => WORK_MOCK || perm
 export const canEditWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_EDIT);
 export const canManageWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_MANAGE);
 export const canDeleteWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_DELETE);
+
+// Docs tab. The API enforces the same keys (DocsController); restricted folders are checked there too.
+export const DOCS_VIEW = 'docs.view';
+export const DOCS_EDIT = 'docs.edit';
+/** Move to the bin and restore. Apart from editing on purpose, like WORK_DELETE. */
+export const DOCS_DELETE = 'docs.delete';
+/** Open every restricted folder, choose who may open one, read the access log. */
+export const DOCS_SENSITIVE = 'docs.sensitive';
+
+export const canViewDocs = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(DOCS_VIEW);
+export const canEditDocs = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(DOCS_EDIT);
+export const canDeleteDocs = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(DOCS_DELETE);
+export const canSeeSensitiveDocs = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(DOCS_SENSITIVE);

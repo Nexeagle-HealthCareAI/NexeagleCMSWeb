@@ -9,6 +9,7 @@ vi.mock('../access', () => ({
   canViewWork: () => true, canEditWork: () => true, canManageWork: () => true,
   // Deleting is a separate permission; the tests flip it.
   canDeleteWork: () => allowDelete.value,
+  canViewDocs: () => true, canEditDocs: () => true, canDeleteDocs: () => true, canSeeSensitiveDocs: () => true,
 }));
 const allowDelete = vi.hoisted(() => ({ value: true }));
 
@@ -144,10 +145,20 @@ describe('Daily Work Board', () => {
     await waitFor(() => expect(within(screen.getByRole('table', { name: 'Work items' })).queryByText('Update the pharmacy price list import')).not.toBeInTheDocument());
   });
 
-  it('shows what is coming on the Docs tab', async () => {
+  it('links a document to a work item from the item panel', async () => {
     const user = userEvent.setup();
     open();
-    await user.click(screen.getByRole('tab', { name: /Docs/ }));
-    expect(screen.getByRole('heading', { name: 'Docs is being built next' })).toBeInTheDocument();
+    const table = await screen.findByRole('table', { name: 'Work items' });
+    await user.click(within(table).getByText('One-screen bill'));
+    const panel = await screen.findByRole('complementary', { name: /One-screen bill/ });
+
+    await user.click(within(panel).getByRole('button', { name: /Link a document/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Link a document' });
+    await user.type(within(dialog).getByRole('searchbox'), 'billing');
+    await user.click(await within(dialog).findByRole('button', { name: /Billing redesign/ }));
+
+    // The picker closes, and the document is listed on the item.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(within(panel).getByRole('button', { name: /^Page Billing redesign: what we agreed/ })).toBeInTheDocument();
   });
 });

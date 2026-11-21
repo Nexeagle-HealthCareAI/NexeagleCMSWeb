@@ -14,7 +14,7 @@
 export const TTL_MS = 30_000;
 
 // '/work/': the Daily Work Board is shared and changes all day; a 30-second-old list would hide a teammate's update.
-const NEVER_CACHE = ['/auth/', '/chat/', '/work/'];
+const NEVER_CACHE = ['/auth/', '/chat/', '/work/', '/docs'];
 
 interface Entry<T> {
     at: number;
