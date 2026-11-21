@@ -1,4 +1,4 @@
-import type { Doc, DocBin, DocDetail, DocFolder, DocLogEntry, DocVersion, SaveFolderPayload } from './types';
+import type { Doc, DocBin, DocComment, DocDetail, DocFolder, DocLogEntry, DocNotification, DocVersion, SaveCommentPayload, SaveFolderPayload } from './types';
 
 // In-memory stand-in used when VITE_WORK_MOCK=true. Example data only; resets on reload.
 // The reader is treated as an administrator, so restricted folders are all visible here.
@@ -109,6 +109,37 @@ const find = (documentId: string): StoredDoc => {
 const ALLOWED = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.md', '.csv', '.json', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.zip'];
 const ending = (name: string) => (name.includes('.') ? name.slice(name.lastIndexOf('.')).toLowerCase() : '');
 
+// ── Comments ── (the example people are the ones in services/mockWork.ts)
+const MY_ID = 'u-1';
+const PEOPLE: Record<string, string> = { 'u-1': ME, 'u-2': 'Asha Rao', 'u-3': 'Bilal Khan' };
+const comments: DocComment[] = [];
+const commentNotes: DocNotification[] = [];
+function addComment(documentId: string, authorUserId: string, p: SaveCommentPayload, createdAt = new Date().toISOString()): DocComment {
+  const comment: DocComment = {
+    commentId: id('c'), documentId, parentId: p.parentId ?? null, authorUserId, authorName: PEOPLE[authorUserId] || 'Someone', body: p.body.trim(),
+    quote: p.parentId ? null : p.quote?.trim().slice(0, 500) || null, mentionUserIds: (p.mentionUserIds || []).filter(u => u !== authorUserId),
+    isResolved: false, resolvedByName: null, resolvedAt: null, isEdited: false, isDeleted: false, createdAt,
+  };
+  comments.push(comment);
+  if (authorUserId !== MY_ID) {
+    const root = comment.parentId ? comments.find(c => c.commentId === comment.parentId) : undefined;
+    const kind: DocNotification['kind'] | null = comment.mentionUserIds.includes(MY_ID) ? 'Mention' : root?.authorUserId === MY_ID ? 'Reply' : null;
+    if (kind) {
+      commentNotes.unshift({
+        notificationId: id('dn'), kind, documentId, documentName: docs.find(d => d.documentId === documentId)?.name || 'Document',
+        commentId: comment.commentId, actorName: comment.authorName, text: comment.body.slice(0, 90), isRead: false, createdAt,
+      });
+    }
+  }
+  return comment;
+}
+const copyComment = (c: DocComment): DocComment => (c.isDeleted ? { ...c, body: '', quote: null, mentionUserIds: [], isEdited: false } : { ...c, mentionUserIds: [...c.mentionUserIds] });
+const findComment = (commentId: string) => {
+  const comment = comments.find(c => c.commentId === commentId && !c.isDeleted);
+  if (!comment) throw fail(404, 'Comment not found.');
+  return comment;
+};
+
 export const mockDocs = {
   folders: async () => wait(folders.filter(f => liveFolder(f.folderId)).map(viewFolder)),
   createFolder: async (p: SaveFolderPayload) => {
@@ -191,8 +222,61 @@ export const mockDocs = {
   bin: async (): Promise<DocBin> => wait({ folders: folders.filter(f => f.deleted).map(viewFolder), documents: docs.filter(d => d.isDeleted).map(view) }),
   log: async (documentId: string) => wait([...(log[documentId] || [])]),
 
+  comments: async (documentId: string) => wait(comments.filter(c => c.documentId === documentId).map(copyComment)),
+  addComment: async (documentId: string, p: SaveCommentPayload) => {
+    if (!p.body.trim()) throw fail(400, 'Write a comment first.');
+    if (p.body.trim().length > 4000) throw fail(400, 'A comment can be up to 4000 characters.');
+    let parentId = p.parentId ?? null;
+    if (parentId) {
+      const parent = findComment(parentId);
+      parentId = parent.parentId ?? parent.commentId;
+      const root = comments.find(c => c.commentId === parentId);
+      if (root) { root.isResolved = false; root.resolvedByName = null; root.resolvedAt = null; }
+    }
+    const added = addComment(documentId, MY_ID, { ...p, parentId });
+    // The example teammate answers a tag, so replies and notifications can be tried alone.
+    const tagged = added.mentionUserIds[0];
+    if (tagged) setTimeout(() => { addComment(documentId, tagged, { body: `@${ME} thanks, I will look at it.`, parentId: added.parentId ?? added.commentId, mentionUserIds: [MY_ID] }); }, 1200);
+    return wait(copyComment(added));
+  },
+  editComment: async (commentId: string, p: SaveCommentPayload) => {
+    const comment = findComment(commentId);
+    if (comment.authorUserId !== MY_ID) throw fail(403, 'You can only change your own comments.');
+    if (!p.body.trim()) throw fail(400, 'Write a comment first.');
+    comment.body = p.body.trim();
+    comment.mentionUserIds = (p.mentionUserIds || []).filter(u => u !== MY_ID);
+    comment.isEdited = true;
+    return wait(copyComment(comment));
+  },
+  removeComment: async (commentId: string) => { findComment(commentId).isDeleted = true; await wait(null); },
+  resolveComment: async (commentId: string, isResolved: boolean) => {
+    const comment = findComment(commentId);
+    if (comment.parentId) throw fail(400, 'Resolve the first comment of the thread.');
+    comment.isResolved = isResolved;
+    comment.resolvedByName = isResolved ? ME : null;
+    comment.resolvedAt = isResolved ? new Date().toISOString() : null;
+    return wait(copyComment(comment));
+  },
+  commentNotifications: async () => wait(commentNotes.slice(0, 50).map(n => ({ ...n }))),
+  readCommentNotifications: async (notificationIds: string[] = []) => {
+    commentNotes.filter(n => notificationIds.length === 0 || notificationIds.includes(n.notificationId)).forEach(n => { n.isRead = true; });
+    await wait(null);
+  },
+
   itemDocuments: async (workItemId: string) =>
     wait(links.filter(l => l.workItemId === workItemId).map(l => docs.find(d => d.documentId === l.documentId)).filter((d): d is StoredDoc => !!d && !d.isDeleted && liveFolder(d.folderId)).map(view)),
   link: async (workItemId: string, documentId: string) => { find(documentId); if (!links.some(l => l.workItemId === workItemId && l.documentId === documentId)) links.push({ workItemId, documentId }); await wait(undefined); },
   unlink: async (workItemId: string, documentId: string) => { const at = links.findIndex(l => l.workItemId === workItemId && l.documentId === documentId); if (at >= 0) links.splice(at, 1); await wait(undefined); },
 };
+
+// Example comments, so the panel is not empty on first open.
+{
+  const page = docs.find(d => d.name === 'How we work');
+  if (page) {
+    const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+    const first = addComment(page.documentId, 'u-2', { body: 'Should stand-up move to 10:30 on release days?', quote: 'Stand-up is at 10:00.' }, ago(300));
+    addComment(page.documentId, 'u-3', { body: 'Fine by me.', parentId: first.commentId }, ago(280));
+    const done = addComment(page.documentId, 'u-3', { body: 'Add the sprint length for new joiners.' }, ago(900));
+    done.isResolved = true; done.resolvedByName = 'Asha Rao'; done.resolvedAt = ago(600);
+  }
+}

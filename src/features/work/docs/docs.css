@@ -165,3 +165,38 @@ button.dc-tree-caret:hover { background: #E4E7EC; }
   .dc-table th[scope="row"] { min-width: 220px; }
   .dc-open { max-width: 28ch; }
 }
+
+/* ── Comments on a document ── */
+.dc-comments { gap: 10px; }
+.dc-cbox { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.dc-cbox textarea { width: 100%; resize: vertical; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; font: 500 14px/1.5 var(--font-family); color: var(--ink); }
+.dc-cbox textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.dc-cbox-actions { display: flex; align-items: center; gap: 8px; }
+.dc-cbox-actions small { margin-right: auto; color: var(--ink-3); font-size: 12px; }
+.dc-cbox-actions .wk-btn { height: 34px; padding: 0 12px; font-size: 13px; }
+.dc-csuggest { position: absolute; left: 0; right: 0; bottom: calc(100% + 4px); z-index: 20; margin: 0; padding: 6px; list-style: none; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); }
+.dc-csuggest li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 14px; color: var(--ink); cursor: pointer; }
+.dc-csuggest li.is-on { background: #EEF2FF; }
+.dc-quote { display: flex; align-items: flex-start; gap: 6px; width: 100%; margin: 0; padding: 6px 10px; border: none; border-left: 3px solid #F79009; border-radius: 0 8px 8px 0; background: #FFFAEB; color: var(--ink-2); font: 500 13px/1.45 var(--font-family); text-align: left; cursor: pointer; }
+.dc-quote span { flex: 1; min-width: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.dc-quote svg { flex: none; margin-top: 3px; color: #B54708; }
+.dc-quote.is-draft { cursor: default; }
+.dc-quote.is-draft button { display: inline-flex; border: none; background: none; padding: 2px; color: var(--ink-3); cursor: pointer; }
+.dc-comment-tabs { align-self: flex-start; }
+.dc-thread { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+.dc-thread.is-resolved { background: #F9FAFB; }
+.dc-comment { display: flex; align-items: flex-start; gap: 8px; border-radius: 10px; }
+.dc-comment.is-reply { margin-left: 18px; padding-left: 10px; border-left: 2px solid var(--line); border-radius: 0; }
+.dc-comment.is-for-me { background: #FFFAEB; }
+.dc-comment.is-target { box-shadow: 0 0 0 2px var(--primary); padding: 4px; }
+.dc-comment-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dc-comment-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; font-size: 13px; color: var(--ink); }
+.dc-comment-head time, .dc-comment-head small { font-size: 12px; color: var(--ink-3); }
+.dc-comment-text { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.dc-comment-text mark { background: #E0E7FF; color: #3730A3; border-radius: 6px; padding: 0 4px; font-weight: 600; }
+.dc-comment-tools { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.dc-comment-tools button { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0; border: none; background: none; color: var(--ink-3); font: 600 12px var(--font-family); cursor: pointer; }
+.dc-comment-tools button:hover { color: var(--primary); }
+.dc-thread-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dc-thread-foot small { color: var(--ink-3); font-size: 12px; }
+.dc-thread-foot .wk-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
