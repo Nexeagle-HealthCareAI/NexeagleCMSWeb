@@ -301,3 +301,87 @@ html.wk-veiled #root { filter: blur(18px); }
 .wk-activity-list p strong { color: var(--ink); }
 .wk-activity-list p small { display: block; color: var(--ink-3); font-size: 12px; }
 .wk-activity-mark { flex: none; color: #B54708; margin-top: 3px; }
+
+/* ── Team chat ── */
+.wk-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #D92D20; color: #fff; font-size: 12px; font-weight: 700; line-height: 1; }
+.wk-presence-right { display: flex; align-items: center; gap: 8px; }
+.wk-notes { min-width: 340px; max-width: 380px; max-height: 420px; overflow-y: auto; }
+.wk-notes-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; font-size: 14px; }
+.wk-notes > p { padding: 8px; margin: 0; }
+.wk-note { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 8px 10px; border: none; border-radius: 10px; background: none; text-align: left; font: 500 14px var(--font-family); color: var(--ink-2); cursor: pointer; }
+.wk-note:hover { background: #F2F4F7; }
+.wk-note.is-unread { background: #EEF4FF; color: var(--ink); }
+.wk-note.is-escalation { box-shadow: inset 3px 0 0 #D92D20; }
+.wk-note small { color: var(--ink-3); font-size: 13px; overflow-wrap: anywhere; }
+.wk-note time { color: var(--ink-3); font-size: 12px; }
+
+.wk-chat { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; padding-top: 16px; height: calc(100vh - 290px); min-height: 460px; }
+.wk-chat-side { display: flex; flex-direction: column; gap: 12px; padding: 12px; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow-y: auto; }
+.wk-chat-new { display: flex; gap: 8px; }
+.wk-chat-new .wk-btn { flex: 1; height: 36px; padding: 0 10px; font-size: 13px; }
+.wk-chat-side h3 { margin: 0 0 4px; padding: 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.wk-chat-channel { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 8px; border: none; border-radius: 10px; background: none; text-align: left; color: var(--ink-2); font: 500 14px var(--font-family); cursor: pointer; }
+.wk-chat-channel:hover { background: #F2F4F7; }
+.wk-chat-channel.is-on { background: #EEF2FF; color: #3730A3; }
+.wk-chat-channel > svg, .wk-chat-channel > .wk-dot { flex: none; }
+.wk-chat-channel-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.wk-chat-channel-text strong { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wk-chat-channel.is-on strong { color: #3730A3; }
+.wk-chat-channel-text small { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.wk-chat-main { display: flex; flex-direction: column; min-height: 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.wk-chat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.wk-chat-head h2 { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); }
+.wk-chat-head p { margin: 2px 0 0; font-size: 13px; }
+.wk-chat-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 16px 12px; }
+.wk-chat-note { padding: 24px 0; text-align: center; }
+.wk-chat-older { display: block; margin: 4px auto; }
+.wk-chat-day { display: flex; align-items: center; gap: 12px; margin: 14px 0 6px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.wk-chat-day::before, .wk-chat-day::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.wk-chat-msg { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-radius: 12px; }
+.wk-chat-msg:hover { background: #F9FAFB; }
+.wk-chat-msg.is-for-me { background: #FFFAEB; }
+.wk-chat-msg.is-important { box-shadow: inset 3px 0 0 #F79009; }
+.wk-chat-msg.is-escalation { background: #FEF3F2; box-shadow: inset 3px 0 0 #D92D20; }
+.wk-chat-msg-body { flex: 1; min-width: 0; }
+.wk-chat-msg-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--ink); }
+.wk-chat-msg-head time { font-size: 12px; color: var(--ink-3); }
+.wk-chat-flag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; background: #FEF0C7; color: #93370D; font-size: 12px; font-weight: 600; }
+.wk-chat-flag.is-escalation { background: #FEE4E2; color: #B42318; }
+.wk-chat-text { margin: 2px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.wk-chat-text mark { background: #E0E7FF; color: #3730A3; border-radius: 6px; padding: 0 4px; font-weight: 600; }
+.wk-chat-item { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 6px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink-2); font: 500 13px var(--font-family); cursor: pointer; text-align: left; }
+.wk-chat-item strong { color: var(--primary); }
+.wk-chat-msg-tools { display: flex; gap: 2px; opacity: 0; }
+.wk-chat-msg:hover .wk-chat-msg-tools, .wk-chat-msg:focus-within .wk-chat-msg-tools { opacity: 1; }
+.wk-chat-msg-tools button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: 8px; background: none; color: var(--ink-3); cursor: pointer; }
+.wk-chat-msg-tools button:hover:not(:disabled) { background: #EAECF0; color: var(--ink); }
+.wk-chat-msg-tools button[aria-pressed="true"] { color: #F79009; }
+.wk-chat-msg-tools button:disabled { cursor: default; }
+
+.wk-chat-compose { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.wk-chat-compose.is-escalation { background: #FEF3F2; }
+.wk-chat-attached { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: var(--ink-2); }
+.wk-chat-attached button { display: inline-flex; border: none; background: none; color: var(--ink-3); cursor: pointer; padding: 4px; }
+.wk-chat-inputwrap { position: relative; }
+.wk-chat-compose textarea { width: 100%; resize: none; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; font: 500 15px/1.5 var(--font-family); color: var(--ink); }
+.wk-chat-compose textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.wk-chat-suggest { position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 20; min-width: 280px; margin: 0; padding: 6px; list-style: none; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); }
+.wk-chat-suggest li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 14px; color: var(--ink); cursor: pointer; }
+.wk-chat-suggest li.is-on { background: #EEF2FF; }
+.wk-chat-suggest small { margin-left: auto; color: var(--ink-3); font-size: 12px; }
+.wk-chat-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.wk-chat-actions .wk-btn { margin-left: auto; }
+.wk-chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; background: #fff; color: var(--ink-2); font: 600 13px var(--font-family); cursor: pointer; }
+.wk-chip.is-on { background: #FEF0C7; border-color: #F79009; color: #93370D; }
+.wk-chip.is-danger.is-on { background: #D92D20; border-color: #D92D20; color: #fff; }
+.wk-chat-person { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 8px; border: none; border-radius: 10px; background: none; text-align: left; font: 500 14px var(--font-family); color: var(--ink); cursor: pointer; }
+.wk-chat-person:hover { background: #F2F4F7; }
+.wk-chat-person > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wk-chat-person small { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 12px; }
+.wk-tab .wk-badge { margin-left: 6px; }
+@media (max-width: 860px) {
+  .wk-chat { grid-template-columns: 1fr; height: auto; }
+  .wk-chat-side { max-height: 220px; }
+  .wk-chat-main { height: 70vh; }
+}

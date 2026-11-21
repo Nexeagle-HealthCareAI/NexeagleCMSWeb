@@ -68,6 +68,53 @@ export interface WorkActivity {
 }
 export interface ActivityQuery { userId?: string; projectId?: string; source?: ActivitySource; from?: string; before?: string; take?: number }
 
+// ── Team chat ──
+export type ChannelKind = 'Board' | 'Group' | 'Direct';
+export interface ChatChannel {
+  channelId: string;
+  kind: ChannelKind;
+  /** Board: the project's name. Group: its name. Direct: the other person's name. */
+  name: string;
+  projectId: string | null;
+  projectKey: string | null;
+  otherUserId: string | null;
+  /** Group and Direct only. A board's conversation is open to everyone who can open the board. */
+  memberUserIds: string[];
+  unread: number;
+  lastMessageText: string | null;
+  lastMessageBy: string | null;
+  lastMessageAt: string | null;
+}
+export interface ChatMessage {
+  messageId: string;
+  channelId: string;
+  authorUserId: string | null;
+  authorName: string;
+  /** Empty when the message was removed. */
+  body: string;
+  isImportant: boolean;
+  isEscalation: boolean;
+  isDeleted: boolean;
+  mentionUserIds: string[];
+  workItemId: string | null;
+  workItemKey: string | null;
+  workItemTitle: string | null;
+  createdAt: string;
+}
+export interface ChatState { channels: ChatChannel[]; newMessages: ChatMessage[]; unreadNotifications: number }
+export interface SendMessagePayload { body: string; isImportant?: boolean; isEscalation?: boolean; mentionUserIds?: string[]; workItemId?: string | null }
+export interface WorkNotification {
+  notificationId: string;
+  kind: 'Mention' | 'Escalation' | 'Direct';
+  channelId: string;
+  channelName: string;
+  messageId: string;
+  actorName: string;
+  text: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface WorkUser {
   userId: string;
   fullName: string;

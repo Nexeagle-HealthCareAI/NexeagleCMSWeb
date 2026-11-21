@@ -35,7 +35,7 @@ export function describeActivity(a: WorkActivity): string {
 
 /** Things worth a second look in a compliance review. */
 export const isFlagged = (a: WorkActivity): boolean =>
-  (a.source === 'sessions' && a.action !== 'Opened') || a.action === 'deleted' || a.action === 'MemberRemoved' || (a.source === 'docs' && (a.action === 'download' || a.action === 'bin'));
+  (a.source === 'sessions' && a.action !== 'Opened') || a.action === 'deleted' || a.action === 'escalated' || a.action === 'MemberRemoved' || (a.source === 'docs' && (a.action === 'download' || a.action === 'bin'));
 
 /** "Online now", "5 min ago", "3 h ago", "20 Nov". */
 export function lastSeenText(lastSeenAt: string | null | undefined, isOnline: boolean, now: Date = new Date()): string {

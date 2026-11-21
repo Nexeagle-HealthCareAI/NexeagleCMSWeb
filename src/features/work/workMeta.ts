@@ -151,6 +151,7 @@ const FIELD_LABEL: Record<string, string> = {
 export function describeChange(field: string, oldValue: string | null, newValue: string | null): string {
   if (field === 'created') return `created this ${(newValue || 'item').toLowerCase()}`;
   if (field === 'deleted') return 'deleted this item';
+  if (field === 'escalated') return `escalated this to ${newValue || 'the team'}`;
   if (field === 'description') return 'changed the description';
   const name = FIELD_LABEL[field] || field;
   if (field === 'blocked') return newValue ? `marked this blocked: ${newValue}` : 'removed the blocked flag';
