@@ -11,7 +11,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="CMS Portal" />
     <link rel="apple-touch-icon" href="/Logo.png" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http: https: ws: wss:; img-src 'self' data: https://*.in-south1-objectstore.e2enetworks.net;" />
+    <!-- blob: in img-src and frame-src lets the Daily Work Board preview an uploaded image or PDF. The file is
+         fetched with the login and shown from memory, so its address never leaves this page. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http: https: ws: wss:; img-src 'self' data: blob: https://*.in-south1-objectstore.e2enetworks.net; frame-src 'self' blob:;" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <title>NexEagle CMS Portal</title>
   </head>
