@@ -1,9 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Home, Building2, ScanLine, Stethoscope, Handshake, CreditCard, Tag, Gift, Filter, Share2, KeyRound,
-    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, Settings,
+    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, Settings, ListChecks,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
+import { canViewWork } from '../../features/work/access';
 
 /**
  * The CMS menu, grouped by job. One list drives the side menu, the phone menu
@@ -42,6 +43,11 @@ export const NAV_GROUPS: NavGroup[] = [
     {
         key: 'today', label: '', items: [
             { key: 'today', label: 'Today', to: '/', icon: Home, allowed: anyone, badge: 'today', keywords: 'home dashboard overview' },
+        ],
+    },
+    {
+        key: 'team', label: 'Team', items: [
+            { key: 'work', label: 'Daily Work Board', short: 'Work', to: '/work', icon: ListChecks, allowed: canViewWork, keywords: 'tasks epics stories bugs sprint backlog jira agile docs documents' },
         ],
     },
     {

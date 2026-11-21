@@ -28,6 +28,8 @@ import ContributorsPage from './features/healthWiki/pages/ContributorsPage';
 import TopicRequestsPage from './features/healthWiki/pages/TopicRequestsPage';
 import TopicRequestDetailPage from './features/healthWiki/pages/TopicRequestDetailPage';
 import { canUseHealthWiki } from './features/healthWiki/access';
+import WorkBoardPage from './features/work/pages/WorkBoardPage';
+import { canViewWork } from './features/work/access';
 import RequirePermission from './components/RequirePermission';
 import EmergencyPage from './features/emergency/EmergencyPage';
 import NoAccess from './components/NoAccess';
@@ -51,6 +53,12 @@ const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { childr
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (mustChangePassword && !allowWhilePasswordChange) return <Navigate to="/change-password" replace />;
   return children;
+};
+
+// The Daily Work Board is gated by `work.view` (or the local mock flag, VITE_WORK_MOCK).
+const RequireWork = ({ children }: { children: React.ReactElement }) => {
+  const permissions = useAuthStore((st) => st.permissions) || [];
+  return canViewWork(permissions) ? children : <Navigate to="/no-access" replace />;
 };
 
 // Health Wiki is gated by `health-wiki.manage` (or the local mock flag while the backend is not wired).
@@ -130,6 +138,7 @@ function App() {
             <Route path="symptom-router" element={<SymptomRouterPage />} />
             <Route path="free-tier" element={<RequirePermission perm="onboarded-hospitals.view"><FreeTierPage /></RequirePermission>} />
             <Route path="emergency" element={<RequirePermission perm="emergency.manage"><EmergencyPage /></RequirePermission>} />
+            <Route path="work" element={<RequireWork><WorkBoardPage /></RequireWork>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
             <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />
