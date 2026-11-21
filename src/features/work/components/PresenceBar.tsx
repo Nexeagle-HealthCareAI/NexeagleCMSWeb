@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { canViewDocs } from '../access';
 import { lastSeenText } from '../activityMeta';
+import { docsService } from '../docs/docsService';
+import type { DocNotification } from '../docs/types';
 import { BADGE_POLL_MS, CHAT_CHANGED } from '../chatMeta';
 import type { GuardEvent, LastSeen, MyPresence, WorkNotification, WorkUser } from '../types';
 import { workService } from '../services/workService';
@@ -21,6 +24,28 @@ export const GUARD_EVENT = 'wk-guard';
  * "last seen" and the visits in the activity log are made from.
  */
 const NOTE_TEXT: Record<WorkNotification['kind'], string> = { Mention: 'tagged you', Escalation: 'escalated to you', Direct: 'sent you a message' };
+const DOC_NOTE_TEXT: Record<DocNotification['kind'], string> = { Mention: 'tagged you in a comment on', Reply: 'replied to your comment on', Comment: 'commented on' };
+
+/** One line of the bell: a chat notification or a document-comment one. */
+interface BellNote {
+  id: string;
+  from: 'chat' | 'docs';
+  line: string;
+  text: string;
+  isRead: boolean;
+  isEscalation: boolean;
+  createdAt: string;
+  /** Where clicking it goes. */
+  to: string;
+}
+const fromChat = (n: WorkNotification): BellNote => ({
+  id: n.notificationId, from: 'chat', line: `${n.actorName} ${NOTE_TEXT[n.kind]} in ${n.channelName}`, text: n.text, isRead: n.isRead,
+  isEscalation: n.kind === 'Escalation', createdAt: n.createdAt, to: `/work?tab=chat&channel=${encodeURIComponent(n.channelId)}`,
+});
+const fromDocs = (n: DocNotification): BellNote => ({
+  id: n.notificationId, from: 'docs', line: `${n.actorName} ${DOC_NOTE_TEXT[n.kind]} “${n.documentName}”`, text: n.text, isRead: n.isRead,
+  isEscalation: false, createdAt: n.createdAt, to: `/work?tab=docs&doc=${encodeURIComponent(n.documentId)}&comment=${encodeURIComponent(n.commentId)}`,
+});
 
 export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: number) => void }) {
   const me = useAuthStore(s => s.user);
@@ -31,7 +56,8 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
   const box = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [unreadNotes, setUnreadNotes] = useState(0);
-  const [notes, setNotes] = useState<WorkNotification[] | null>(null);
+  const [notes, setNotes] = useState<BellNote[] | null>(null);
+  const seesDocs = canViewDocs(useAuthStore(s => s.permissions) || []);
   const [bellOpen, setBellOpen] = useState(false);
   const bell = useRef<HTMLDivElement>(null);
   /** How many notifications were unread at the last check; -1 before the first one. */
@@ -39,26 +65,35 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
   const report = useRef(onUnread);
   useEffect(() => { report.current = onUnread; }, [onUnread]);
 
+  // Chat and document-comment notifications together, newest first.
+  const loadNotes = useCallback(async (): Promise<BellNote[]> => {
+    const [chat, docs] = await Promise.all([
+      workService.notifications().catch(() => []),
+      seesDocs ? docsService.commentNotifications().catch(() => []) : Promise.resolve([]),
+    ]);
+    return [...chat.map(fromChat), ...docs.map(fromDocs)].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }, [seesDocs]);
+
   // Unread chat and notifications, checked now and then while the board is open.
   const check = useCallback(() => {
-    workService.chatState()
-      .then(async state => {
+    Promise.all([workService.chatState(), seesDocs ? docsService.commentNotifications().catch(() => []) : Promise.resolve([])])
+      .then(async ([state, docNotes]) => {
         report.current?.(state.channels.reduce((sum, c) => sum + c.unread, 0));
-        setUnreadNotes(state.unreadNotifications);
-        const rose = lastCount.current >= 0 && state.unreadNotifications > lastCount.current;
-        lastCount.current = state.unreadNotifications;
+        const unread = state.unreadNotifications + docNotes.filter(n => !n.isRead).length;
+        setUnreadNotes(unread);
+        const rose = lastCount.current >= 0 && unread > lastCount.current;
+        lastCount.current = unread;
         if (!rose) return;
         // Something new: say so here, and on the desktop when the person allowed that.
-        const newest = (await workService.notifications()).find(n => !n.isRead);
+        const newest = (await loadNotes()).find(n => !n.isRead);
         if (!newest) return;
-        const line = `${newest.actorName} ${NOTE_TEXT[newest.kind]} in ${newest.channelName}`;
-        toast.message(line, { description: newest.text });
+        toast.message(newest.line, { description: newest.text });
         if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-          try { new Notification(line, { body: newest.text, tag: newest.notificationId }); } catch { /* not allowed here */ }
+          try { new Notification(newest.line, { body: newest.text, tag: newest.id }); } catch { /* not allowed here */ }
         }
       })
       .catch(() => undefined);
-  }, []);
+  }, [seesDocs, loadNotes]);
 
   useEffect(() => {
     check();
@@ -79,15 +114,18 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
   const toggleBell = () => {
     const next = !bellOpen;
     setBellOpen(next);
-    if (next) workService.notifications().then(setNotes).catch(() => setNotes([]));
+    if (next) loadNotes().then(setNotes).catch(() => setNotes([]));
   };
-  const openNote = (n: WorkNotification) => {
+  const openNote = (n: BellNote) => {
     setBellOpen(false);
-    void workService.readNotifications([n.notificationId]).then(check).catch(() => undefined);
-    navigate(`/work?tab=chat&channel=${encodeURIComponent(n.channelId)}`);
+    const read = n.from === 'chat' ? workService.readNotifications([n.id]) : docsService.readCommentNotifications([n.id]);
+    void read.then(check).catch(() => undefined);
+    navigate(n.to);
   };
   const readAll = () => {
-    void workService.readNotifications().then(() => { setNotes(prev => (prev || []).map(n => ({ ...n, isRead: true }))); check(); }).catch(() => undefined);
+    void Promise.all([workService.readNotifications(), seesDocs ? docsService.readCommentNotifications() : Promise.resolve()])
+      .then(() => { setNotes(prev => (prev || []).map(n => ({ ...n, isRead: true }))); check(); })
+      .catch(() => undefined);
   };
   const canAskDesktop = typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default';
 
@@ -140,9 +178,9 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
               <strong>Notifications</strong>
               {unreadNotes > 0 && <button type="button" className="wk-link" onClick={readAll}>Mark all read</button>}
             </div>
-            {notes === null ? <p className="wk-muted">Loading…</p> : notes.length === 0 ? <p className="wk-muted">Nothing yet. You are told here when someone tags you, escalates to you or messages you.</p> : notes.map(n => (
-              <button key={n.notificationId} type="button" className={`wk-note ${n.isRead ? '' : 'is-unread'} ${n.kind === 'Escalation' ? 'is-escalation' : ''}`} onClick={() => openNote(n)}>
-                <span><strong>{n.actorName}</strong> {NOTE_TEXT[n.kind]} in {n.channelName}</span>
+            {notes === null ? <p className="wk-muted">Loading…</p> : notes.length === 0 ? <p className="wk-muted">Nothing yet. You are told here when someone tags you, escalates to you, messages you or comments on your document.</p> : notes.map(n => (
+              <button key={`${n.from}-${n.id}`} type="button" className={`wk-note ${n.isRead ? '' : 'is-unread'} ${n.isEscalation ? 'is-escalation' : ''}`} onClick={() => openNote(n)}>
+                <span>{n.line}</span>
                 <small>{n.text}</small>
                 <time dateTime={n.createdAt}>{formatWhen(n.createdAt)}</time>
               </button>

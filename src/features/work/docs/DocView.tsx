@@ -8,6 +8,7 @@ import { errorMessage } from '../services/workService';
 import { formatWhen } from '../workMeta';
 import { docsService } from './docsService';
 import { ACCEPT, formatSize, kindOf, KIND_LABEL, saveBlob, trailOf, uploadProblem } from './docsMeta';
+import DocComments from './DocComments';
 import { DocIcon } from './DocIcon';
 import FilePreview from './FilePreview';
 import PageEditor from './PageEditor';
@@ -27,6 +28,7 @@ interface Props {
 
 const SAVE_PAUSE_MS = 1200;
 const LOG_WORDS: Record<string, string> = {
+  comment: 'commented',
   open: 'opened it', download: 'downloaded it', create: 'created it', upload: 'uploaded', edit: 'edited it', rename: 'renamed it',
   move: 'moved it', bin: 'moved it to the bin', restore: 'restored it', access: 'changed access',
 };
@@ -210,6 +212,7 @@ export default function DocView({ documentId, folders, canEdit, canDelete, canSe
         </div>
 
         <aside className="dc-side" aria-label="Details">
+          <DocComments documentId={doc.documentId} canRemoveAny={canDelete} />
           <section>
             <h3>Details</h3>
             <dl className="dc-facts">
