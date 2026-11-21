@@ -61,6 +61,22 @@ describe('Daily Work Board', () => {
     expect(within(screen.getByRole('dialog')).queryByRole('radio', { name: 'Subtask' })).not.toBeInTheDocument();
   });
 
+  it('switches to the board: one column per status, without epics and features', async () => {
+    const user = userEvent.setup();
+    open();
+    await screen.findByRole('list', { name: 'Work items' });
+
+    await user.click(screen.getByRole('button', { name: /Board/ }));
+
+    const done = screen.getByRole('region', { name: /^Done, 1 items/ });
+    expect(within(done).getByText('Search box for tests')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /^In review/ })).toBeInTheDocument();
+    expect(screen.queryByText('Faster billing at the counter')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /List/ }));
+    expect(await screen.findByText('Faster billing at the counter')).toBeInTheDocument();
+  });
+
   it('shows what is coming on the Docs tab', async () => {
     const user = userEvent.setup();
     open();

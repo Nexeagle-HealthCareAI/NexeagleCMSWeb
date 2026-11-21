@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Ban, CalendarClock, ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
+import { Ban, CalendarClock, ChevronDown, ChevronRight, Columns3, List as ListIcon, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { canEditWork, canManageWork } from '../access';
@@ -8,6 +8,7 @@ import type { ItemStatus, ItemType, WorkItem, WorkProject, WorkUser } from '../t
 import { buildTree, formatDay, isOverdue, ITEM_TYPES, STATUSES, STATUS_LABEL, toUpdatePayload } from '../workMeta';
 import { errorMessage, workService } from '../services/workService';
 import { Avatar, PriorityMark, StatusPill, TypeIcon } from './parts';
+import BoardView from './BoardView';
 import CreateItemDialog from './CreateItemDialog';
 import ItemDrawer from './ItemDrawer';
 import NewProjectDialog from './NewProjectDialog';
@@ -15,6 +16,10 @@ import NewProjectDialog from './NewProjectDialog';
 const PROJECT_KEY = 'wk.project';
 const remembered = (): string => { try { return localStorage.getItem(PROJECT_KEY) || ''; } catch { return ''; } };
 const remember = (id: string) => { try { localStorage.setItem(PROJECT_KEY, id); } catch { /* private window: nothing to keep */ } };
+
+type View = 'list' | 'board';
+const VIEW_KEY = 'wk.view';
+const rememberedView = (): View => { try { return localStorage.getItem(VIEW_KEY) === 'board' ? 'board' : 'list'; } catch { return 'list'; } };
 
 /** Tab 1 of the Daily Work Board: every item of one project, nested by parent, with filters. */
 export default function WorkManagement() {
@@ -40,6 +45,8 @@ export default function WorkManagement() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState<{ parent: WorkItem | null } | null>(null);
   const [addingProject, setAddingProject] = useState(false);
+  const [view, setView] = useState<View>(rememberedView);
+  const chooseView = (next: View) => { setView(next); try { localStorage.setItem(VIEW_KEY, next); } catch { /* nothing to keep */ } };
 
   // Projects and people, once.
   useEffect(() => {
@@ -106,6 +113,13 @@ export default function WorkManagement() {
   // While filtering, nothing is collapsed: a match hidden inside a closed parent would look like no match.
   const rows = useMemo(() => buildTree(items, shown, filtering ? new Set() : collapsed), [items, shown, collapsed, filtering]);
 
+  // The board shows the work itself. Epics and features are containers, so they stay in the list
+  // unless the type filter asks for them.
+  const boardItems = useMemo(
+    () => items.filter(i => shown.has(i.workItemId) && (type ? true : i.itemType !== 'Epic' && i.itemType !== 'Feature')),
+    [items, shown, type],
+  );
+
   const counts = useMemo(() => {
     const c: Record<ItemStatus, number> = { ToDo: 0, InProgress: 0, InReview: 0, Done: 0 };
     for (const i of items) c[i.status]++;
@@ -155,9 +169,15 @@ export default function WorkManagement() {
             ))}
             {canManage && <button type="button" onClick={() => setAddingProject(true)} aria-label="New project" title="New project"><Plus size={16} aria-hidden="true" /></button>}
           </div>
-          {canEdit && project && (
-            <button type="button" className="wk-btn is-primary" onClick={() => setCreating({ parent: null })}><Plus size={16} aria-hidden="true" /> New item</button>
-          )}
+          <div className="wk-bar-right">
+            <div className="ne-seg" role="group" aria-label="View">
+              <button type="button" className={view === 'list' ? 'is-on' : ''} aria-pressed={view === 'list'} onClick={() => chooseView('list')}><ListIcon size={16} aria-hidden="true" /> List</button>
+              <button type="button" className={view === 'board' ? 'is-on' : ''} aria-pressed={view === 'board'} onClick={() => chooseView('board')}><Columns3 size={16} aria-hidden="true" /> Board</button>
+            </div>
+            {canEdit && project && (
+              <button type="button" className="wk-btn is-primary" onClick={() => setCreating({ parent: null })}><Plus size={16} aria-hidden="true" /> New item</button>
+            )}
+          </div>
         </div>
 
         {project && (
@@ -193,6 +213,14 @@ export default function WorkManagement() {
 
         {error && <div className="wk-error" role="alert">{error} <button type="button" className="wk-link" onClick={() => { setLoading(true); reload(); }}>Try again</button></div>}
 
+        {view === 'board' && !loading && items.length > 0 ? (
+          <>
+            <BoardView items={boardItems} openId={openId} canEdit={canEdit} onOpen={openItem} onMove={(item, next) => void changeStatus(item, next)} />
+            <p className="wk-muted wk-board-note">
+              {boardItems.length} cards{type ? '' : ' · epics and features are in the list view'}{canEdit ? ' · drag a card to change its status' : ''}
+            </p>
+          </>
+        ) : (
         <div className="wk-card">
           {loading ? <p className="wk-muted wk-pad">Loading…</p> : rows.length === 0 ? (
             <div className="wk-empty is-inline">
@@ -248,6 +276,7 @@ export default function WorkManagement() {
           )}
           {!loading && items.length > 0 && <div className="wk-foot">{filtering ? `${shown.size} of ${items.length} items match` : `${items.length} items`}</div>}
         </div>
+        )}
       </div>
 
       {openId && (

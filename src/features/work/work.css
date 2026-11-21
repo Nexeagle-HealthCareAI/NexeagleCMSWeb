@@ -196,3 +196,30 @@ button.wk-caret:hover:not(:disabled) { background: #F2F4F7; color: var(--ink); }
 }
 /* Beside the open item panel the list is narrow: keep key, title, status and person. */
 .wk-layout.has-drawer .wk-row-tags { display: none; }
+
+/* Board view: one column per status, cards dragged between them */
+.wk-bar-right { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.wk-board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; align-items: start; overflow-x: auto; padding-bottom: 4px; }
+.wk-col { background: #F2F4F7; border: 2px solid transparent; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
+.wk-col.is-over { border-color: var(--primary); background: #EEF2FF; }
+.wk-col-head { display: flex; align-items: center; gap: 8px; padding: 2px 4px; font-size: 14px; color: var(--ink); }
+.wk-col-head .wk-count { background: #fff; }
+.wk-col-dot { width: 10px; height: 10px; border-radius: 999px; border: 1px solid rgba(16, 24, 40, .15); }
+.wk-col-body { display: flex; flex-direction: column; gap: 8px; }
+.wk-board-none { padding: 18px 8px; text-align: center; color: var(--ink-3); font-size: 13px; border: 1px dashed var(--line-strong); border-radius: 10px; }
+.wk-card-item { border-radius: 12px; cursor: pointer; touch-action: manipulation; outline: none; }
+.wk-card-item:focus-visible .wk-card-face { outline: 2px solid var(--primary); outline-offset: 2px; }
+.wk-card-item.is-open .wk-card-face { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, .15); }
+.wk-card-item.is-ghost { opacity: .35; }
+.wk-card-face { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-xs); }
+.wk-card-item:hover .wk-card-face { border-color: var(--line-strong); }
+.wk-card-face.is-lifted { box-shadow: var(--shadow-lg); transform: rotate(2deg); cursor: grabbing; }
+.wk-card-title { font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; }
+.wk-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.wk-card-foot { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.wk-card-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--ink-3); }
+.wk-card-right { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.wk-board-note { font-size: 13px; }
+.wk-layout.has-drawer .wk-board { grid-template-columns: repeat(4, minmax(200px, 1fr)); }
+@media (max-width: 720px) { .wk-board { grid-template-columns: repeat(4, 82vw); scroll-snap-type: x proximity; } .wk-col { scroll-snap-align: start; } }
+@media (prefers-reduced-motion: reduce) { .wk-card-face.is-lifted { transform: none; } }
