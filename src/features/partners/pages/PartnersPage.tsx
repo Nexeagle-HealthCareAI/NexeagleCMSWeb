@@ -2,10 +2,11 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { partnerService } from '../services/partnerService';
 import type { Partner } from '../services/partnerService';
 import AddPartnerModal from '../components/AddPartnerModal';
-import { Plus, Handshake, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Users, MapPin, Copy, Check, Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { copyToClipboard } from '../../../utils/clipboard';
 import { toast } from 'sonner';
 import './PartnersPage.css';
+import CustomerTabs from '../../../components/CustomerTabs';
 
 const PartnersPage: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -126,10 +127,10 @@ const PartnersPage: React.FC = () => {
 
   return (
     <div className="page-container fade-in">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="ne-page-head">
         <div>
-          <h1 className="page-title"><Handshake size={28} className="text-primary" style={{ display: 'inline', marginRight: '10px' }} /> Partner Network</h1>
-          <p className="page-subtitle">Manage onboarded partners and their dashboards.</p>
+          <h1>Customers</h1>
+          <p>Partners who bring in customers, and their dashboards.</p>
         </div>
         <button className="pt-add-btn" onClick={() => setShowAddModal(true)}>
           <Plus size={18} /> 
@@ -137,6 +138,8 @@ const PartnersPage: React.FC = () => {
           <div className="pt-add-btn-glow"></div>
         </button>
       </div>
+
+      <div style={{ marginTop: 16 }}><CustomerTabs /></div>
 
       <div className="card mt-6">
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>

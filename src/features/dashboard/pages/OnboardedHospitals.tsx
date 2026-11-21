@@ -1,443 +1,216 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown, ChevronRight } from 'lucide-react';
 import { getHospitals, type Hospital } from '../services/hospitalService';
-import { HospitalOperationsTab } from '../../operations/components/HospitalOperationsTab';
-import './Dashboard.css';
-import './PremiumHospitals.css';
-import '../../doctors/pages/DoctorsPage.css';
+import CustomerTabs from '../../../components/CustomerTabs';
+import './customers.css';
 
-const getGradientClass = (name: string) => {
-    if (!name) return 'gradient-1';
-    const char = name[0].toUpperCase();
-    if (/[A-E]/.test(char)) return 'gradient-1';
-    if (/[F-J]/.test(char)) return 'gradient-2';
-    if (/[K-O]/.test(char)) return 'gradient-3';
-    if (/[P-T]/.test(char)) return 'gradient-4';
-    return 'gradient-5';
-};
+/**
+ * Customers › Hospitals · 1HMS. Same filters as before (search, onboarding
+ * status, plan status, archived) plus quick plan chips; sortable columns; the
+ * row opens the hospital. Phones get one card per hospital.
+ */
+const PLAN_CHIPS: { value: string; label: string }[] = [
+    { value: '', label: 'All' },
+    { value: 'Active', label: 'Paying' },
+    { value: 'Trial', label: 'On trial' },
+    { value: 'PendingApproval', label: 'Payment waiting' },
+    { value: 'Expired', label: 'Expired' },
+    { value: 'Blocked', label: 'Blocked' },
+    { value: 'Rejected', label: 'Payment rejected' },
+    { value: 'None', label: 'No plan' },
+];
+const PAGE_SIZE = 25;
 
-const SubscriptionCell: React.FC<{ hospital: Hospital }> = ({ hospital }) => {
-    if (!hospital.subscriptionStatus) {
-        return <span style={{ color: '#94a3b8', fontSize: '13px' }}>No subscription</span>;
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+const planTone = (s?: string | null) => {
+    switch ((s || '').toLowerCase()) {
+        case 'active': return 'ok';
+        case 'trial': return 'info';
+        case 'pendingapproval': case 'pending': return 'warn';
+        case 'expired': case 'blocked': case 'rejected': return 'bad';
+        default: return 'muted';
     }
-    const planLabel = hospital.subscriptionIsEnterprise ? 'Enterprise' : (hospital.subscriptionPlanName || 'No Plan Selected');
-    const isTrial = hospital.subscriptionStatus === 'Trial';
-    const isOverLimit = isTrial && hospital.freeTierUsedCount != null && hospital.freeTierLimit != null
-        && hospital.freeTierUsedCount >= hospital.freeTierLimit;
+};
+const planLabel = (s?: string | null) => (s === 'Active' ? 'Paying' : s === 'PendingApproval' ? 'Payment waiting' : s || 'No plan');
+
+const PlanCell: React.FC<{ h: Hospital }> = ({ h }) => {
+    const name = h.subscriptionIsEnterprise ? 'Enterprise' : (h.subscriptionPlanName || (h.subscriptionStatus ? 'No plan picked' : '—'));
+    const trial = h.subscriptionStatus === 'Trial';
+    const used = h.freeTierUsedCount, limit = h.freeTierLimit;
+    const over = trial && used != null && limit != null && used >= limit;
+    const days = h.subscriptionStatus === 'Active' ? h.subscriptionDaysRemaining : null;
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div className="premium-sub-plan">{planLabel}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span className={`premium-sub-badge premium-status-${hospital.subscriptionStatus.toLowerCase()}`}>
-                    {hospital.subscriptionStatus}
-                </span>
-                {isOverLimit && (
-                    <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 700 }}>
-                        Over limit exceeded
-                    </span>
-                )}
-                {isTrial && !isOverLimit && hospital.freeTierUsedCount != null && hospital.freeTierLimit != null && (
-                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
-                        {hospital.freeTierUsedCount}/{hospital.freeTierLimit} used
-                    </span>
-                )}
-                {hospital.subscriptionStatus === 'Active' && hospital.subscriptionDaysRemaining != null && (
-                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
-                        {hospital.subscriptionDaysRemaining}d left
-                    </span>
-                )}
-            </div>
-        </div>
+        <span className="cu-plan">
+            <span className="cu-plan-name">{name}</span>
+            <span className="cu-plan-meta">
+                <span className={`cu-pill ${planTone(h.subscriptionStatus)}`}>{planLabel(h.subscriptionStatus)}</span>
+                {over && <span className="cu-flag bad">Free limit reached</span>}
+                {trial && !over && used != null && limit != null && <span className="cu-flag">{used}/{limit} used</span>}
+                {days != null && <span className={`cu-flag ${days <= 7 ? 'warn' : ''}`}>{days <= 0 ? 'ends today' : days === 1 ? '1 day left' : `${days} days left`}</span>}
+            </span>
+        </span>
     );
 };
 
+type SortState = { key: string; direction: 'asc' | 'desc' };
+const SortHead: React.FC<{ k: string; sort: SortState; onSort: (k: string) => void; children: React.ReactNode; className?: string }> = ({ k, sort, onSort, children, className }) => (
+    <th scope="col" className={className} aria-sort={sort.key === k ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
+        <button type="button" className="cu-sort" onClick={() => onSort(k)}>
+            {children}
+            {sort.key !== k ? <ChevronsUpDown size={14} className="cu-sort-idle" /> : sort.direction === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+    </th>
+);
+
 const OnboardedHospitals: React.FC = () => {
     const navigate = useNavigate();
-    const [pageTab, setPageTab] = useState<'hospitals' | 'operations'>('hospitals');
     const [hospitals, setHospitals] = useState<Hospital[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'registeredon', direction: 'desc' });
+    const [sort, setSort] = useState<SortState>({ key: 'registeredon', direction: 'desc' });
     const [statusFilter, setStatusFilter] = useState('');
-    const [subscriptionStatusFilter, setSubscriptionStatusFilter] = useState('');
+    const [planFilter, setPlanFilter] = useState('');
     const [includeArchived, setIncludeArchived] = useState(false);
-
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
+    const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
+    const [version, setVersion] = useState(0);
 
     // Debounce the search box so we're not firing a request per keystroke.
     useEffect(() => {
-        const handle = setTimeout(() => {
-            setSearch(searchInput);
-            setCurrentPage(1);
-        }, 350);
+        const handle = setTimeout(() => { setSearch(searchInput); setPage(1); }, 350);
         return () => clearTimeout(handle);
     }, [searchInput]);
 
-    const fetchHospitals = useCallback(async () => {
-        try {
-            setLoading(true);
-            const response = await getHospitals(
-                currentPage, itemsPerPage, search, sortConfig.key, sortConfig.direction,
-                statusFilter, subscriptionStatusFilter, includeArchived
-            );
-            setHospitals(response.data);
-            setTotalPages(response.pagination.totalPages);
-            setTotalItems(response.pagination.totalItems);
-            setError(null);
-        } catch (err) {
-            setError('Failed to fetch hospitals');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, itemsPerPage, search, sortConfig, statusFilter, subscriptionStatusFilter, includeArchived]);
-
     useEffect(() => {
-        fetchHospitals();
-    }, [fetchHospitals]);
+        let alive = true;
+        getHospitals(page, PAGE_SIZE, search, sort.key, sort.direction, statusFilter, planFilter, includeArchived)
+            .then(r => {
+                if (!alive) return;
+                setHospitals(r.data);
+                setTotalPages(r.pagination.totalPages);
+                setTotalItems(r.pagination.totalItems);
+                setError(null);
+            })
+            .catch(() => { if (alive) setError('Could not load hospitals.'); })
+            .finally(() => { if (alive) setLoading(false); });
+        return () => { alive = false; };
+    }, [page, search, sort, statusFilter, planFilter, includeArchived, version]);
 
-    const handleStatusFilterChange = (value: string) => {
-        setStatusFilter(value);
-        setCurrentPage(1);
-    };
+    const change = (fn: () => void) => { setLoading(true); fn(); setPage(1); };
+    const sortBy = (key: string) => change(() => setSort(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' })));
 
-    const handleSubscriptionStatusFilterChange = (value: string) => {
-        setSubscriptionStatusFilter(value);
-        setCurrentPage(1);
-    };
-
-    const handleRowClick = (id: string) => {
-        navigate(`/hospital/${id}`);
-    };
-
-    const handleSort = (key: string) => {
-        setSortConfig(prev => ({
-            key,
-            direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-        }));
-        setCurrentPage(1);
-    };
-
-    const SortIcon = ({ columnKey }: { columnKey: string }) => {
-        if (sortConfig.key !== columnKey) return <span className="sort-icon inactive">↕</span>;
-        return <span className="sort-icon active">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
-    };
+    const from = totalItems === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+    const to = Math.min(page * PAGE_SIZE, totalItems);
 
     return (
-        <div className="premium-container">
-            <header className="premium-header">
+        <div className="cu">
+            <header className="ne-page-head">
                 <div>
-                    <h1 className="premium-title">Onboarded Hospitals</h1>
-                    <p className="premium-subtitle">Manage and view all registered hospitals.</p>
+                    <h1>Customers</h1>
+                    <p>Every 1HMS hospital, its plan and how much it is used.</p>
                 </div>
             </header>
+            <CustomerTabs />
 
-            <div className="doctor-page-tabs">
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'hospitals' ? 'active' : ''}`}
-                    onClick={() => setPageTab('hospitals')}
-                >
-                    Hospitals
-                </button>
-                <button
-                    className={`doctor-page-tab-btn ${pageTab === 'operations' ? 'active' : ''}`}
-                    onClick={() => setPageTab('operations')}
-                >
-                    Hospital Operations
-                </button>
+            <div className="cu-bar">
+                <label className="cu-search">
+                    <Search size={16} aria-hidden="true" />
+                    <input value={searchInput} onChange={e => { setLoading(true); setSearchInput(e.target.value); }} placeholder="Name, town, mobile or email" aria-label="Search hospitals" />
+                </label>
+                <select className="cu-select" value={statusFilter} onChange={e => change(() => setStatusFilter(e.target.value))} aria-label="Onboarding status">
+                    <option value="">Any onboarding status</option>
+                    <option value="Active">Onboarded</option>
+                    <option value="Pending">Onboarding pending</option>
+                </select>
+                <label className="cu-check">
+                    <input type="checkbox" checked={includeArchived} onChange={e => change(() => setIncludeArchived(e.target.checked))} />
+                    Show archived
+                </label>
+            </div>
+            <div className="cu-chips" role="radiogroup" aria-label="Plan">
+                {PLAN_CHIPS.map(c => (
+                    <button key={c.value || 'all'} type="button" role="radio" aria-checked={planFilter === c.value}
+                        className={`cu-chip ${planFilter === c.value ? 'is-on' : ''}`} onClick={() => change(() => setPlanFilter(c.value))}>
+                        {c.label}
+                    </button>
+                ))}
             </div>
 
-            {pageTab === 'operations' && <HospitalOperationsTab />}
+            {error && <div className="cu-error" role="alert">{error} <button type="button" onClick={() => { setLoading(true); setVersion(v => v + 1); }}>Try again</button></div>}
 
-            {pageTab === 'hospitals' && (
-            <div className="premium-table-card">
-                <div className="premium-controls">
-                    <h2 className="premium-table-title">
-                        All Hospitals
-                        <span className="premium-badge-count">
-                            {totalItems}
-                        </span>
-                    </h2>
-                    <div className="premium-filters-row">
-                        <div className="premium-search-wrapper">
-                            <svg className="premium-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search hospitals..."
-                                value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
-                                className="premium-search-input"
-                            />
-                        </div>
-                        <select
-                            className="premium-filter-select"
-                            value={statusFilter}
-                            onChange={(e) => handleStatusFilterChange(e.target.value)}
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="Active">Active</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                        <select
-                            className="premium-filter-select"
-                            value={subscriptionStatusFilter}
-                            onChange={(e) => handleSubscriptionStatusFilterChange(e.target.value)}
-                        >
-                            <option value="">All Subscriptions</option>
-                            <option value="Trial">Trial</option>
-                            <option value="Active">Active</option>
-                            <option value="Expired">Expired</option>
-                            <option value="Blocked">Blocked</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="PendingApproval">Pending Approval</option>
-                            <option value="None">No Subscription</option>
-                        </select>
-                        <label className="premium-archived-toggle">
-                            <input
-                                type="checkbox"
-                                checked={includeArchived}
-                                onChange={(e) => { setIncludeArchived(e.target.checked); setCurrentPage(1); }}
-                            />
-                            Show archived
-                        </label>
-                    </div>
+            <div className="cu-card">
+                <div className="cu-table-wrap">
+                    <table className="cu-table">
+                        <thead>
+                            <tr>
+                                <SortHead sort={sort} onSort={sortBy} k="name">Hospital</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="subscriptionstatus">Plan</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="totalpatients" className="num">Patients</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="totaldoctors" className="num">Doctors</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="totalnondoctorusers" className="num">Other staff</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="contactnumber">Contact</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="registeredon">Joined</SortHead>
+                                <SortHead sort={sort} onSort={sortBy} k="status">Onboarding</SortHead>
+                                <th scope="col" aria-label="Open"></th>
+                            </tr>
+                        </thead>
+                        <tbody className={loading ? 'is-loading' : ''}>
+                            {hospitals.map(h => (
+                                <tr key={h.id} className={h.isArchived ? 'is-archived' : ''} onClick={() => navigate(`/hospital/${h.id}`)}>
+                                    <td>
+                                        <Link to={`/hospital/${h.id}`} className="cu-name" onClick={e => e.stopPropagation()}>{h.name}</Link>
+                                        <span className="cu-sub">{[h.city, h.state].filter(Boolean).join(', ') || '—'}{h.isArchived ? ' · archived' : ''}</span>
+                                    </td>
+                                    <td><PlanCell h={h} /></td>
+                                    <td className="num">{(h.totalPatients ?? 0).toLocaleString('en-IN')}</td>
+                                    <td className="num">{h.totalDoctors ?? 0}</td>
+                                    <td className="num">{h.totalNonDoctorUsers ?? 0}</td>
+                                    <td><span className="cu-contact">{h.contactNumber || '—'}</span><span className="cu-sub">{h.email || ''}</span></td>
+                                    <td className="cu-muted">{h.registeredOn ? fmtDate(h.registeredOn) : '—'}</td>
+                                    <td><span className={`cu-pill ${h.status === 'Active' ? 'ok' : 'warn'}`}>{h.status === 'Active' ? 'Onboarded' : h.status || '—'}</span></td>
+                                    <td className="cu-go"><ChevronRight size={16} aria-hidden="true" /></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
 
-                {loading ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading hospitals...</div>
-                ) : error ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>{error}</div>
-                ) : (
-                    <>
-                        {/* Desktop View: Table */}
-                        <div className="premium-responsive-wrapper premium-desktop-table">
-                            <table className="premium-table">
-                                <thead>
-                                    <tr>
-                                        <th onClick={() => handleSort('name')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Hospital <SortIcon columnKey="name" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('contactnumber')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Contact <SortIcon columnKey="contactnumber" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('totalpatients')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Total Patients <SortIcon columnKey="totalpatients" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('totaldoctors')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Total Doctors <SortIcon columnKey="totaldoctors" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('totalnondoctorusers')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Other Users <SortIcon columnKey="totalnondoctorusers" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('registeredon')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Registered On <SortIcon columnKey="registeredon" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('subscriptionstatus')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Subscription <SortIcon columnKey="subscriptionstatus" />
-                                            </div>
-                                        </th>
-                                        <th onClick={() => handleSort('status')} className="premium-sortable-th">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Status <SortIcon columnKey="status" />
-                                            </div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {hospitals.map((hospital) => (
-                                        <tr
-                                            key={hospital.id}
-                                            onClick={() => handleRowClick(hospital.id)}
-                                            className={`premium-row ${hospital.isArchived ? 'premium-row-archived' : ''}`}
-                                        >
-                                            <td>
-                                                <div className="premium-hospital-cell">
-                                                    <div className={`premium-avatar ${getGradientClass(hospital.name)}`}>
-                                                        {hospital.name[0]?.toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <div className="premium-hospital-name">{hospital.name}</div>
-                                                        <span className="premium-hospital-location">
-                                                            {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div style={{ fontWeight: 500, color: '#334155', marginBottom: '4px' }}>{hospital.contactNumber}</div>
-                                                <div style={{ fontSize: '13px', color: '#64748b' }}>{hospital.email}</div>
-                                            </td>
-                                            <td>
-                                                <div style={{ fontWeight: 600, color: '#3b82f6' }}>
-                                                    {hospital.totalPatients?.toLocaleString() || 0}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div style={{ fontWeight: 600, color: '#059669' }}>
-                                                    {hospital.totalDoctors ?? 0}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div style={{ fontWeight: 600, color: '#4f46e5' }}>
-                                                    {hospital.totalNonDoctorUsers ?? 0}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div style={{ color: '#475569' }}>
-                                                    {new Date(hospital.registeredOn).toLocaleDateString('en-GB', {
-                                                        day: 'numeric', month: 'short', year: 'numeric'
-                                                    })}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <SubscriptionCell hospital={hospital} />
-                                            </td>
-                                            <td>
-                                                <span className={`premium-status premium-status-${hospital.status.toLowerCase()}`}>
-                                                    {hospital.status}
-                                                </span>
-                                                {hospital.isArchived && (
-                                                    <span className="premium-status premium-status-archived" style={{ marginLeft: '6px' }}>
-                                                        Archived
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {hospitals.length === 0 && (
-                                        <tr>
-                                            <td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>No hospitals found.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                <div className="cu-cards">
+                    {hospitals.map(h => (
+                        <Link key={h.id} to={`/hospital/${h.id}`} className={`cu-mcard ${h.isArchived ? 'is-archived' : ''}`}>
+                            <span className="cu-mcard-top">
+                                <span className="cu-name">{h.name}</span>
+                                <ChevronRight size={16} aria-hidden="true" />
+                            </span>
+                            <span className="cu-sub">{[h.city, h.state].filter(Boolean).join(', ')}{h.isArchived ? ' · archived' : ''}</span>
+                            <PlanCell h={h} />
+                            <span className="cu-mcard-stats">
+                                <span><strong>{(h.totalPatients ?? 0).toLocaleString('en-IN')}</strong> patients</span>
+                                <span><strong>{h.totalDoctors ?? 0}</strong> doctors</span>
+                                <span><strong>{h.totalNonDoctorUsers ?? 0}</strong> staff</span>
+                            </span>
+                        </Link>
+                    ))}
+                </div>
 
-                        {/* Mobile View: Cards */}
-                        <div className="premium-mobile-cards">
-                            {hospitals.map((hospital) => (
-                                <div
-                                    key={hospital.id}
-                                    className={`premium-mobile-card ${hospital.isArchived ? 'premium-row-archived' : ''}`}
-                                    onClick={() => handleRowClick(hospital.id)}
-                                >
-                                    <div className="premium-mobile-header">
-                                        <div className={`premium-avatar ${getGradientClass(hospital.name)}`}>
-                                            {hospital.name[0]?.toUpperCase()}
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <h3 className="premium-hospital-name">{hospital.name}</h3>
-                                            <p className="premium-hospital-location">
-                                                {[hospital.address, hospital.city, hospital.state].filter(Boolean).join(', ')}
-                                            </p>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
-                                            <span className={`premium-status premium-status-${hospital.status.toLowerCase()}`}>
-                                                {hospital.status}
-                                            </span>
-                                            {hospital.isArchived && (
-                                                <span className="premium-status premium-status-archived">Archived</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="premium-mobile-details">
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Contact</span>
-                                            <span className="premium-mobile-detail-value">{hospital.contactNumber}</span>
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Total Patients</span>
-                                            <span className="premium-mobile-detail-value" style={{ color: '#3b82f6' }}>
-                                                {hospital.totalPatients?.toLocaleString() || 0}
-                                            </span>
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Total Doctors</span>
-                                            <span className="premium-mobile-detail-value" style={{ color: '#059669' }}>
-                                                {hospital.totalDoctors ?? 0}
-                                            </span>
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Other Users</span>
-                                            <span className="premium-mobile-detail-value" style={{ color: '#4f46e5' }}>
-                                                {hospital.totalNonDoctorUsers ?? 0}
-                                            </span>
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Subscription</span>
-                                            <span className="premium-mobile-detail-value">
-                                                {hospital.subscriptionStatus || 'None'}
-                                            </span>
-                                        </div>
-                                        <div className="premium-mobile-detail-item">
-                                            <span className="premium-mobile-detail-label">Registered</span>
-                                            <span className="premium-mobile-detail-value">
-                                                {new Date(hospital.registeredOn).toLocaleDateString('en-GB', {
-                                                    day: 'numeric', month: 'short', year: 'numeric'
-                                                })}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                            {hospitals.length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>
-                                    No hospitals found.
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Pagination Controls */}
-                        <div className="premium-pagination">
-                            <div className="premium-page-info">
-                                Showing <span style={{ fontWeight: 600, color: '#0f172a' }}>{totalItems === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1}</span> to <span style={{ fontWeight: 600, color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span style={{ fontWeight: 600, color: '#0f172a' }}>{totalItems}</span> entries
-                            </div>
-                            <div className="premium-page-controls">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="premium-page-btn"
-                                >
-                                    Previous
-                                </button>
-                                <span style={{ margin: '0 12px', fontSize: '14px', fontWeight: 500, color: '#64748b' }}>
-                                    Page {currentPage} of {totalPages || 1}
-                                </span>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages || totalPages === 0}
-                                    className="premium-page-btn"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    </>
+                {!loading && hospitals.length === 0 && !error && (
+                    <p className="cu-empty">No hospitals match. Try another plan chip or clear the search.</p>
                 )}
+
+                <div className="cu-foot">
+                    <span>{totalItems ? `${from}–${to} of ${totalItems.toLocaleString('en-IN')}` : ''}</span>
+                    <span className="cu-pager">
+                        <button type="button" className="cu-btn" disabled={page <= 1 || loading} onClick={() => { setLoading(true); setPage(p => p - 1); }}>Previous</button>
+                        <span className="cu-muted">Page {page} of {Math.max(1, totalPages)}</span>
+                        <button type="button" className="cu-btn" disabled={page >= totalPages || loading} onClick={() => { setLoading(true); setPage(p => p + 1); }}>Next</button>
+                    </span>
+                </div>
             </div>
-            )}
         </div>
     );
 };

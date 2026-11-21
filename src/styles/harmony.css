@@ -1,0 +1,139 @@
+/*
+ * Harmony layer (Nov 2026 redesign).
+ * The older pages each carry their own stylesheet. Rather than rewrite them,
+ * this file brings their shared pieces — panels, tabs, small segmented
+ * switches, buttons, inputs, tables, status pills — onto the console's one
+ * look. Everything is scoped to .main-content and loaded after the feature
+ * stylesheets, so a page keeps its layout and only its finish changes.
+ */
+
+/* ── Panels and cards ─────────────────────────────────────────────── */
+.main-content .hw-panel,
+.main-content .settings-section,
+.main-content .premium-table-card,
+.main-content .table-card,
+.main-content .chart-card,
+.main-content .crm-kanban-container,
+.main-content .social-campaign-container,
+.main-content .card {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Tabs inside a page (underline style) ─────────────────────────── */
+.main-content .hw-navbar,
+.main-content .hw-tabs { border-bottom: 1px solid var(--line); gap: 4px; }
+.main-content .hw-navbar a,
+.main-content .hw-tab {
+  min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px;
+  font-size: 15px; font-weight: 600; color: var(--ink-2);
+  border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.main-content .hw-navbar a:hover, .main-content .hw-tab:hover { color: var(--ink); }
+.main-content .hw-navbar a.on, .main-content .hw-navbar a[aria-current="page"],
+.main-content .hw-tab.on { color: var(--ink); border-bottom-color: #4F46E5; }
+
+/* ── Segmented switches (period pickers, sub-views) ───────────────── */
+.main-content .insights-subtabs,
+.main-content .insights-filter-toggle,
+.main-content .application-tabs,
+.main-content .doctor-page-tabs {
+  display: inline-flex; flex-wrap: nowrap; max-width: 100%; overflow-x: auto;
+  padding: 3px; gap: 0; border-radius: 12px; background: #F2F4F7; border: none; box-shadow: none;
+}
+.main-content .insights-subtab-btn,
+.main-content .insights-filter-btn,
+.main-content .application-tabs .tab-btn {
+  height: 36px; padding: 0 14px; border: none; border-radius: 9px; background: transparent;
+  color: var(--ink-2); font: 600 14px var(--font-family); white-space: nowrap; box-shadow: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.main-content .insights-subtab-btn:hover,
+.main-content .insights-filter-btn:hover,
+.main-content .application-tabs .tab-btn:hover { color: var(--ink); background: transparent; }
+.main-content .insights-subtab-btn.active,
+.main-content .insights-filter-btn.active,
+.main-content .application-tabs .tab-btn.active {
+  background: #FFFFFF; color: var(--ink); box-shadow: 0 1px 3px rgba(16,24,40,.1), 0 1px 2px rgba(16,24,40,.06);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+.main-content .hw-btn,
+.main-content .vita-btn,
+.main-content .marketing-btn-primary,
+.main-content .pt-add-btn {
+  min-height: 40px; padding: 0 16px; border-radius: 10px; font: 600 14px var(--font-family);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-xs);
+}
+.main-content .hw-btn-primary,
+.main-content .marketing-btn-primary,
+.main-content .pt-add-btn {
+  background: #4F46E5; color: #FFFFFF; border: none;
+  box-shadow: 0 1px 2px rgba(16,24,40,.1), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.main-content .hw-btn-primary:hover:not(:disabled),
+.main-content .marketing-btn-primary:hover:not(:disabled),
+.main-content .pt-add-btn:hover { background: #4338CA; transform: none; }
+.main-content .pt-add-btn-glow { display: none; }
+.main-content .vita-btn { background: #FFFFFF; border: 1px solid var(--line-strong); color: #344054; }
+
+/* ── Inputs ───────────────────────────────────────────────────────── */
+.main-content .hw-input,
+.main-content .vita-input,
+.main-content .marketing-input,
+.main-content .search-input {
+  min-height: 40px; border: 1px solid var(--line-strong); border-radius: 10px; background: #FFFFFF;
+  font: 500 14px var(--font-family); color: var(--ink); padding: 0 12px; box-shadow: var(--shadow-xs);
+}
+.main-content textarea.hw-input, .main-content textarea.marketing-input { padding: 10px 12px; }
+
+/* ── Tables ───────────────────────────────────────────────────────── */
+.main-content .hw-table,
+.main-content .premium-table,
+.main-content .dashboard-table { font-size: 14px; }
+.main-content .hw-table th,
+.main-content .premium-table th,
+.main-content .dashboard-table th,
+.main-content .table-header-cell {
+  font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); background: #F9FAFB;
+}
+.main-content .hw-table td,
+.main-content .premium-table td { color: var(--ink); }
+
+/* ── CRM board ────────────────────────────────────────────────────── */
+.main-content .crm-kanban-container { padding: 18px 20px; }
+.main-content .crm-kanban-column { background: #F9FAFB; border: 1px solid var(--line); border-radius: 14px; box-shadow: none; }
+.main-content .crm-kanban-column-header { background: transparent; border-bottom: 1px solid var(--line); }
+.main-content .crm-kanban-column-title { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--ink-2); }
+.main-content .crm-kanban-column-count { background: #FFFFFF; color: var(--ink); border: 1px solid var(--line); }
+.main-content .crm-kanban-card { background: #FFFFFF; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-xs); }
+
+/* ── Social post generator: calm panel instead of a yellow banner ─── */
+.main-content .social-campaign-container { padding: 18px 20px; }
+.main-content .social-generator-card { background: #F9FAFB; border: 1px solid var(--line); border-radius: 14px; box-shadow: none; }
+.main-content .social-generator-title { color: var(--ink); font-size: 16px; }
+.main-content .social-generator-desc { color: var(--ink-2); font-size: 14px; }
+.main-content .social-result-card { border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-xs); }
+
+/* ── Small print readable everywhere ──────────────────────────────── */
+.main-content .hw-count,
+.main-content .hw-pill,
+.main-content .dm-status-chip,
+.main-content .status-badge,
+.main-content .sub-badge,
+.main-content .premium-sub-badge { font-size: 12px; font-weight: 700; }
+.main-content .hw-empty { font-size: 15px; color: var(--ink-2); }
+
+/* ── Phones: tab rows scroll sideways instead of wrapping ─────────── */
+.main-content .hw-navbar,
+.main-content .hw-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; }
+.main-content .hw-navbar a,
+.main-content .hw-tab { white-space: nowrap; flex: 0 0 auto; }
+@media (max-width: 768px) {
+  /* Search icon stays inside the row with its box. */
+  .main-content .hw-filters { flex-wrap: wrap; }
+  .main-content .hw-filters input { flex: 1 1 200px; min-width: 0; max-width: none; }
+  .main-content .hw-filters select { flex: 1 1 100%; }
+}

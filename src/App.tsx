@@ -3,15 +3,17 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
 import Layout from './components/Layout';
 import Dashboard from './features/dashboard/pages/Dashboard';
+import TodayPage from './features/today/TodayPage';
+import { ApprovalsPage, PlansPage, ReferralCodesPage, InsightsPage, SymptomRouterPage, FreeTierPage } from './features/shell/MenuPages';
 import Login from './features/login/pages/Login';
 import ChangePassword from './features/login/pages/ChangePassword';
 import HospitalDetails from './features/dashboard/pages/HospitalDetails';
 import OnboardedHospitals from './features/dashboard/pages/OnboardedHospitals';
 import RadCentersPage from './features/radCenters/pages/RadCentersPage';
+import RadCentreDetails from './features/radCenters/pages/RadCentreDetails';
 import DoctorsPage from './features/doctors/pages/DoctorsPage';
 import SettingsPage from './features/settings/pages/Settings';
 import LiveSupport from './features/support/pages/LiveSupport';
-import SubscriptionManagementPage from './features/subscriptions/SubscriptionManagementPage';
 import PartnersPage from './features/partners/pages/PartnersPage';
 import DataMigrationPage from './features/dataMigration/pages/DataMigrationPage';
 import NewMigrationWizard from './features/dataMigration/pages/NewMigrationWizard';
@@ -31,6 +33,8 @@ import EmergencyPage from './features/emergency/EmergencyPage';
 import NoAccess from './components/NoAccess';
 import ErrorBoundary from './components/ErrorBoundary';
 import InactivityTracker from './components/InactivityTracker';
+// Loaded last on purpose: brings the older pages' own styles onto the shared look.
+import './styles/harmony.css';
 
 // Auth gate: requires login, and forces a password change when flagged.
 const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { children: React.ReactElement; allowWhilePasswordChange?: boolean }) => {
@@ -103,17 +107,28 @@ function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
+            {/* Today shows each section only to people allowed to open its page. */}
+            <Route index element={<TodayPage />} />
+            <Route path="growth" element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
             <Route path="onboarded-hospitals" element={<RequirePermission perm="onboarded-hospitals.view"><OnboardedHospitals /></RequirePermission>} />
             <Route path="rad-centers" element={<RequirePermission perm="dashboard.view"><RadCentersPage /></RequirePermission>} />
+            <Route path="rad-centers/:id" element={<RequirePermission perm="dashboard.view"><RadCentreDetails /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
             <Route path="partners" element={<RequirePermission perm="partners.manage"><PartnersPage /></RequirePermission>} />
             <Route path="data-migration" element={<RequirePermission perm="data-migration.manage"><DataMigrationPage /></RequirePermission>} />
             <Route path="data-migration/new" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
             <Route path="data-migration/:id" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
             <Route path="hospital/:id" element={<RequirePermission perm="hospital-details.view"><HospitalDetails /></RequirePermission>} />
-            <Route path="manage-plans" element={<Navigate to="/subscriptions" replace />} />
-            <Route path="subscriptions" element={<RequirePermission perm="subscriptions.view"><SubscriptionManagementPage /></RequirePermission>} />
+            {/* Money: Manage Subscription's four tabs are now three pages (1HMS and 1Rad approvals share one). */}
+            <Route path="approvals" element={<RequirePermission perm="subscriptions.view"><ApprovalsPage /></RequirePermission>} />
+            <Route path="plans" element={<RequirePermission perm="subscriptions.view"><PlansPage /></RequirePermission>} />
+            <Route path="referral-codes" element={<RequirePermission perm="subscriptions.view"><ReferralCodesPage /></RequirePermission>} />
+            <Route path="subscriptions" element={<Navigate to="/approvals" replace />} />
+            <Route path="manage-plans" element={<Navigate to="/plans" replace />} />
+            {/* Pages that used to be tabs inside Doctor Dekho and Onboarded Hospitals. */}
+            <Route path="insights" element={<InsightsPage />} />
+            <Route path="symptom-router" element={<SymptomRouterPage />} />
+            <Route path="free-tier" element={<RequirePermission perm="onboarded-hospitals.view"><FreeTierPage /></RequirePermission>} />
             <Route path="emergency" element={<RequirePermission perm="emergency.manage"><EmergencyPage /></RequirePermission>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
@@ -121,7 +136,11 @@ function App() {
             <Route path="health-wiki/topics/:id" element={<RequireHealthWiki><TopicRequestDetailPage /></RequireHealthWiki>} />
             <Route path="health-wiki/new" element={<RequireHealthWiki><ArticleEditorPage key="new" /></RequireHealthWiki>} />
             <Route path="health-wiki/:slug" element={<RequireHealthWiki><ArticleEditorPage key="edit" /></RequireHealthWiki>} />
-            <Route path="marketing" element={<RequirePermission perm="marketing.view"><MarketingPage /></RequirePermission>} />
+            {/* Growth: Marketing's tabs are three menu items. */}
+            <Route path="leads" element={<RequirePermission perm="marketing.view"><MarketingPage key="leads" section="leads" /></RequirePermission>} />
+            <Route path="social" element={<RequirePermission perm="marketing.view"><MarketingPage key="social" section="social" /></RequirePermission>} />
+            <Route path="demo-logins" element={<RequirePermission perm="marketing.view"><MarketingPage key="demo" section="demo" /></RequirePermission>} />
+            <Route path="marketing" element={<Navigate to="/leads" replace />} />
             <Route path="vita-agents" element={<RequirePermission perm="dashboard.view"><VitaAgentsPage /></RequirePermission>} />
             <Route path="vita" element={<RequirePermission perm="vita.view"><VitaLayout /></RequirePermission>}>
               <Route index element={<VitaOverviewPage />} />
@@ -137,7 +156,8 @@ function App() {
               <Route path="settings" element={<VitaSettingsPage />} />
             </Route>
             <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
-            <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport /></RequirePermission>} />
+            <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport key="live" view="live" /></RequirePermission>} />
+            <Route path="support/history" element={<RequirePermission perm="live-support.view"><LiveSupport key="history" view="history" /></RequirePermission>} />
             <Route path="users" element={<RequirePermission perm="user-management.view"><UsersAccess /></RequirePermission>} />
             <Route path="no-access" element={<NoAccess />} />
           </Route>

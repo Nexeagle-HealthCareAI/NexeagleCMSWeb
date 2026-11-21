@@ -1,220 +1,76 @@
-/* Sidebar Styles */
-.sidebar {
-    height: 100vh;
-    background-color: #1e3a8a;
-    /* Keeping brand color specific for sidebar background */
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    transition: width var(--transition-normal);
-    width: 260px;
-    /* Standard sidebar width */
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    box-shadow: var(--shadow-sm);
-    color: white;
+/* Side menu — grouped by job, collapses to icons. Tokens live in index.css. */
+.ne-side {
+  width: 256px;
+  flex: 0 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  position: sticky;
+  top: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 12px 12px;
+  background: var(--side-bg);
+  color: var(--side-ink);
+  transition: width .18s ease, padding .18s ease;
+  z-index: 30;
 }
+.ne-side.is-collapsed { width: 72px; padding: 14px 10px 12px; }
 
-.sidebar.expanded {
-    width: 260px;
+.ne-side-head { display: flex; align-items: center; gap: 10px; padding: 2px 4px 12px; }
+.ne-side.is-collapsed .ne-side-head { flex-direction: column; gap: 10px; padding: 2px 0 10px; }
+.ne-side-logo { width: 32px; height: 32px; object-fit: contain; flex: 0 0 auto; }
+.ne-side-brand { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.ne-side-brand strong { color: #FFFFFF; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.ne-side-brand span { font-size: 12px; color: var(--side-muted); }
+.ne-side-toggle {
+  width: 34px; height: 34px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; border: 1px solid #263248; background: #172033; color: #E2E8F0; cursor: pointer;
 }
+.ne-side-toggle:hover { background: #1F2A40; }
 
-.sidebar.collapsed {
-    width: 80px;
+.ne-side-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 6px; scrollbar-width: thin; scrollbar-color: #263248 transparent; }
+.ne-side-group { display: flex; flex-direction: column; gap: 2px; }
+.ne-side-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--side-muted); padding: 8px 10px 3px; }
+.ne-side-rule { height: 1px; margin: 6px 8px; background: #1E293B; }
+
+.ne-side-item {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 40px; padding: 0 10px; box-sizing: border-box;
+  border-radius: 9px; color: var(--side-ink); text-decoration: none;
+  font-size: 14px; font-weight: 500; line-height: 1.2;
+  transition: background .12s ease, color .12s ease;
 }
-
-/* Mobile Sidebar (Drawer) */
-.sidebar.mobile {
-    position: fixed;
-    height: 100%;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Smoother drawer animation */
-    width: 280px;
-    /* Slightly wider on mobile for better touch targets */
-    z-index: 1000;
+.ne-side-item:hover { background: #172033; color: #FFFFFF; }
+.ne-side-item.is-active { background: #1E293B; color: #FFFFFF; font-weight: 650; }
+.ne-side-item.is-active .ne-side-icon { color: #A5B4FC; }
+.ne-side.is-collapsed .ne-side-item { width: 44px; padding: 0; margin: 0 auto; justify-content: center; }
+.ne-side-icon { position: relative; display: inline-flex; flex: 0 0 auto; color: #94A3B8; }
+.ne-side-item:hover .ne-side-icon { color: #E2E8F0; }
+.ne-side-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne-side-count {
+  min-width: 22px; height: 20px; padding: 0 6px; box-sizing: border-box;
+  border-radius: 999px; background: #F79009; color: #1F2937;
+  font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
+.ne-side-dot { position: absolute; top: -3px; right: -4px; width: 9px; height: 9px; border-radius: 999px; background: #F79009; border: 2px solid var(--side-bg); }
 
-.sidebar.mobile.expanded {
-    transform: translateX(0);
+.ne-side-foot { display: flex; align-items: center; gap: 10px; padding: 12px 4px 0; border-top: 1px solid #1E293B; }
+.ne-side.is-collapsed .ne-side-foot { flex-direction: column; padding: 12px 0 0; }
+.ne-side-avatar {
+  width: 32px; height: 32px; flex: 0 0 auto; border-radius: 999px; background: #334155; color: #E2E8F0;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
 }
-
-.sidebar.mobile.collapsed {
-    width: 280px;
-    /* Width doesn't change, just position */
-    transform: translateX(-100%);
+.ne-side-who { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.ne-side-name { color: #F1F5F9; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne-side-role { font-size: 12px; color: var(--side-muted); }
+.ne-side-out {
+  width: 36px; height: 36px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; border: none; background: transparent; color: #94A3B8; cursor: pointer;
 }
+.ne-side-out:hover { background: #172033; color: #FCA5A5; }
 
-/* Overlay Backdrop */
-.sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    backdrop-filter: blur(2px);
-    opacity: 0;
-    animation: fadeIn 0.2s forwards;
-}
-
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-    }
-}
-
-/* Header */
-.sidebar-header {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 var(--spacing-lg);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo-text {
-    font-weight: 700;
-    font-size: 20px;
-    color: white;
-    letter-spacing: -0.025em;
-    white-space: nowrap;
-}
-
-.sidebar.collapsed .logo-text {
-    display: none;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-}
-
-.sidebar.expanded .logo-container {
-    justify-content: flex-start;
-}
-
-
-/* Toggle Button */
-.toggle-btn {
-    padding: 8px;
-    border-radius: 8px;
-    color: rgba(255, 255, 255, 0.7);
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-}
-
-.toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-/* Navigation */
-.sidebar-nav {
-    flex: 1;
-    padding: var(--spacing-md);
-    overflow-y: auto;
-    /* Custom Scrollbar for sidebar */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-.sidebar-nav::-webkit-scrollbar {
-    width: 4px;
-}
-
-.sidebar-nav::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-}
-
-
-.sidebar-nav ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    /* Tighter gap */
-    padding: 0;
-    margin: 0;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 8px;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
-    font-size: 14px;
-    transition: all var(--transition-fast);
-    white-space: nowrap;
-    overflow: hidden;
-    width: 100%;
-    text-decoration: none;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    text-align: left;
-}
-
-.sidebar.collapsed:not(.mobile) .nav-item {
-    justify-content: center;
-    padding: 12px;
-}
-
-.sidebar.collapsed:not(.mobile) .nav-item span {
-    display: none;
-}
-
-.nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.nav-item.active {
-    background-color: var(--primary);
-    /* Use primary color variable if it contrasts well, otherwise fallback needed */
-    background-color: #3b82f6;
-    /* Fallback/Specific brand blue for active state in dark sidebar */
-    color: white;
-    font-weight: 600;
-}
-
-/* Footer (Settings/Logout) */
-.sidebar-footer {
-    padding: var(--spacing-md);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.nav-item.logout {
-    color: #fca5a5;
-    /* Light red */
-}
-
-.nav-item.logout:hover {
-    background-color: rgba(239, 68, 68, 0.15);
-    /* Red background on hover */
-    color: #fca5a5;
-}
+.ne-side a:focus-visible, .ne-side button:focus-visible { outline: 2px solid #818CF8; outline-offset: 2px; }

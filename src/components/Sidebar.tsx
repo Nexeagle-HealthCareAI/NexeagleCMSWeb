@@ -1,278 +1,106 @@
+import React from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronLeft, ChevronRight, Settings, LogOut, Building2, Handshake, MessageSquare, CreditCard, Users, Stethoscope, QrCode, UploadCloud, Scan, Bot, BookOpen, Siren } from 'lucide-react';
-import { VitaMascotIcon } from '../features/vitaAgents/components/VitaMascot';
 import { useSupportStore } from '../store/useSupportStore';
-import { canUseHealthWiki } from '../features/healthWiki/access';
+import { visibleGroups, isItemActive } from './nav/navConfig';
+import { useBadgeCounts, initialsOf } from './nav/navHelpers';
 import './Sidebar.css';
 
 interface SidebarProps {
-  isOpen: boolean;
-  toggle: () => void;
-  isMobile: boolean;
+    collapsed: boolean;
+    onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, isMobile }) => {
-  const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
-  const permissions = useAuthStore((state) => state.permissions);
-  const { unreadCount, resetUnread } = useSupportStore();
+/**
+ * Side menu grouped by job. Collapses to a column of icons (the choice is
+ * remembered per person by Layout); waiting counts become a dot when collapsed.
+ */
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
+    const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const logout = useAuthStore((s) => s.logout);
+    const user = useAuthStore((s) => s.user);
+    const permissions = useAuthStore((s) => s.permissions) || [];
+    const resetUnread = useSupportStore((s) => s.resetUnread);
+    const badges = useBadgeCounts();
+    const groups = visibleGroups(permissions);
 
-  const can = (key: string) => permissions.includes(key);
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    return (
+        <aside className={`ne-side ${collapsed ? 'is-collapsed' : ''}`} aria-label="Main menu">
+            <div className="ne-side-head">
+                <img src="/Logo.png" alt="" className="ne-side-logo" />
+                {!collapsed && (
+                    <span className="ne-side-brand">
+                        <strong>NexEagle</strong>
+                        <span>Control centre</span>
+                    </span>
+                )}
+                <button
+                    type="button"
+                    className="ne-side-toggle"
+                    onClick={onToggle}
+                    aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}
+                    aria-expanded={!collapsed}
+                    title={collapsed ? 'Expand menu  [' : 'Collapse menu  ['}
+                >
+                    {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+            </div>
 
-  const collapsed = !isOpen;
-
-  return (
-    <>
-      {/* Mobile Overlay Backdrop */}
-      {isMobile && isOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={toggle}
-        />
-      )}
-
-      <aside className={`sidebar ${collapsed ? 'collapsed' : 'expanded'} ${isMobile ? 'mobile' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-container">
-            <img src="/Logo.png" alt="NexEagle Logo" style={{ height: '32px', width: 'auto', marginRight: (!collapsed || isMobile) ? '12px' : '0' }} />
-            {(!collapsed || isMobile) && <span className="logo-text">CMS</span>}
-          </div>
-          {!isMobile && (
-            <button onClick={toggle} className="toggle-btn" aria-label="Toggle Sidebar">
-              {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-            </button>
-          )}
-          {isMobile && (
-            <button onClick={toggle} className="toggle-btn" aria-label="Close Sidebar">
-              <ChevronLeft size={20} />
-            </button>
-          )}
-        </div>
-
-        <nav className="sidebar-nav">
-          <ul>
-            {can('dashboard.view') && (
-              <li>
-                <NavLink
-                  to="/"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Dashboard" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                  end
-                >
-                  <LayoutDashboard size={22} />
-                  {(!collapsed || isMobile) && <span>Dashboard</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('onboarded-hospitals.view') && (
-              <li>
-                <NavLink
-                  to="/onboarded-hospitals"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Onboarded Hospitals" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Building2 size={22} />
-                  {(!collapsed || isMobile) && <span>Onboarded Hospitals</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('dashboard.view') && (
-              <li>
-                <NavLink
-                  to="/rad-centers"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "1Rad Centers" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Scan size={22} />
-                  {(!collapsed || isMobile) && <span>1Rad Centers</span>}
-                </NavLink>
-              </li>
-            )}
-            <li>
-              <NavLink
-                to="/doctors"
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                title={collapsed && !isMobile ? "Doctor Dekho" : ""}
-                onClick={isMobile ? toggle : undefined}
-              >
-                <Stethoscope size={22} />
-                {(!collapsed || isMobile) && <span>Doctor Dekho</span>}
-              </NavLink>
-            </li>
-            {can('dashboard.view') && (
-              <li>
-                <NavLink
-                  to="/vita-agents"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Vita Agents" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Bot size={22} />
-                  {(!collapsed || isMobile) && <span>Vita Agents</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('vita.view') && (
-              <li>
-                <NavLink
-                  to="/vita"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Vita Test Agent" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <VitaMascotIcon size={22} />
-                  {(!collapsed || isMobile) && <span>Vita Test Agent</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('data-migration.manage') && (
-              <li>
-                <NavLink
-                  to="/data-migration"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Data Migration" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <UploadCloud size={22} />
-                  {(!collapsed || isMobile) && <span>Data Migration</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('partners.manage') && (
-              <li>
-                <NavLink
-                  to="/partners"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Partner Network" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Handshake size={22} />
-                  {(!collapsed || isMobile) && <span>Partner Network</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('emergency.manage') && (
-              <li>
-                <NavLink
-                  to="/emergency"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Emergency takeover" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Siren size={22} />
-                  {(!collapsed || isMobile) && <span>Emergency takeover</span>}
-                </NavLink>
-              </li>
-            )}
-            {canUseHealthWiki(permissions) && (
-              <li>
-                <NavLink
-                  to="/health-wiki"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Health Wiki" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <BookOpen size={22} />
-                  {(!collapsed || isMobile) && <span>Health Wiki</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('subscriptions.view') && (
-              <li>
-                <NavLink
-                  to="/subscriptions"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Manage Subscription" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <CreditCard size={22} />
-                  {(!collapsed || isMobile) && <span>Manage Subscription</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('live-support.view') && (
-              <li>
-                <NavLink
-                  to="/support"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Live Support" : ""}
-                  onClick={() => {
-                    resetUnread();
-                    if (isMobile) toggle();
-                  }}
-                >
-                  <div style={{ position: 'relative' }}>
-                    <MessageSquare size={22} />
-                    {unreadCount > 0 && (
-                      <span className="unread-badge">{unreadCount}</span>
-                    )}
-                  </div>
-                  {(!collapsed || isMobile) && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                      <span>Live Support</span>
-                      <span style={{ fontSize: '10px', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px' }}>Live</span>
+            <nav className="ne-side-nav">
+                {groups.map(g => (
+                    <div className="ne-side-group" key={g.key}>
+                        {g.label && (collapsed
+                            ? <span className="ne-side-rule" aria-hidden="true" />
+                            : <span className="ne-side-label">{g.label}</span>)}
+                        {g.items.map(item => {
+                            const Icon = item.icon;
+                            const count = item.badge ? badges[item.badge] : 0;
+                            const active = isItemActive(item, pathname);
+                            return (
+                                <NavLink
+                                    key={item.key}
+                                    to={item.to}
+                                    end
+                                    className={`ne-side-item ${active ? 'is-active' : ''}`}
+                                    aria-current={active ? 'page' : undefined}
+                                    aria-label={count ? `${item.label}, ${count} waiting` : item.label}
+                                    title={collapsed ? (count ? `${item.label} · ${count}` : item.label) : undefined}
+                                    onClick={item.key === 'chat' ? resetUnread : undefined}
+                                >
+                                    <span className="ne-side-icon">
+                                        <Icon size={19} strokeWidth={2} aria-hidden="true" />
+                                        {collapsed && count > 0 && <span className="ne-side-dot" aria-hidden="true" />}
+                                    </span>
+                                    {!collapsed && <span className="ne-side-text">{item.label}</span>}
+                                    {!collapsed && count > 0 && <span className="ne-side-count">{count > 99 ? '99+' : count}</span>}
+                                </NavLink>
+                            );
+                        })}
                     </div>
-                  )}
-                </NavLink>
-              </li>
-            )}
-            {can('marketing.view') && (
-              <li>
-                <NavLink
-                  to="/marketing"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Marketing" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <QrCode size={22} />
-                  {(!collapsed || isMobile) && <span>Marketing</span>}
-                </NavLink>
-              </li>
-            )}
-            {can('user-management.view') && (
-              <li>
-                <NavLink
-                  to="/users"
-                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                  title={collapsed && !isMobile ? "Users & Access" : ""}
-                  onClick={isMobile ? toggle : undefined}
-                >
-                  <Users size={22} />
-                  {(!collapsed || isMobile) && <span>Users &amp; Access</span>}
-                </NavLink>
-              </li>
-            )}
-          </ul>
-        </nav>
+                ))}
+            </nav>
 
-        <div className="sidebar-footer">
-          {can('settings.view') && (
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-              title={collapsed && !isMobile ? "Settings" : ""}
-            >
-              <Settings size={22} />
-              {(!collapsed || isMobile) && <span>Settings</span>}
-            </NavLink>
-          )}
-          <button className="nav-item logout" onClick={handleLogout}>
-            <LogOut size={22} />
-            {(!collapsed || isMobile) && <span>Logout</span>}
-          </button>
-        </div>
-      </aside>
-    </>
-  );
+            <div className="ne-side-foot">
+                <span className="ne-side-avatar" title={collapsed ? `${user?.name || ''} · ${user?.role || ''}` : undefined}>{initialsOf(user?.name)}</span>
+                {!collapsed && (
+                    <span className="ne-side-who">
+                        <span className="ne-side-name">{user?.name || 'Signed in'}</span>
+                        <span className="ne-side-role">{user?.role || ''}</span>
+                    </span>
+                )}
+                <button type="button" className="ne-side-out" onClick={handleLogout} aria-label="Sign out" title="Sign out">
+                    <LogOut size={17} />
+                </button>
+            </div>
+        </aside>
+    );
 };
 
 export default Sidebar;

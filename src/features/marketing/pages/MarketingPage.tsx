@@ -25,8 +25,19 @@ const formatLocation = (item: { city: string | null; region: string | null; coun
     return parts.length > 0 ? parts.join(', ') : 'Unknown';
 };
 
-const MarketingPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'pipeline' | 'demoLogins' | 'aiCrm' | 'social' | 'analytics'>('aiCrm');
+type MarketingTab = 'pipeline' | 'demoLogins' | 'aiCrm' | 'social' | 'analytics';
+
+// Each Growth menu item opens one part of this page: Leads & CRM keeps its three views
+// (Growth CRM, pipeline, results); Social posts and Demo logins show a single view.
+const SECTIONS: Record<'leads' | 'social' | 'demo', { tabs: MarketingTab[]; title: string; subtitle: string }> = {
+    leads: { tabs: ['aiCrm', 'pipeline', 'analytics'], title: 'Leads & CRM', subtitle: 'Every lead, from first contact to paying customer.' },
+    social: { tabs: ['social'], title: 'Social posts', subtitle: 'Plan and track posts for every product.' },
+    demo: { tabs: ['demoLogins'], title: 'Demo logins', subtitle: 'Who scanned the demo QR code and signed in.' },
+};
+
+const MarketingPage: React.FC<{ section?: 'leads' | 'social' | 'demo' }> = ({ section = 'leads' }) => {
+    const conf = SECTIONS[section];
+    const [activeTab, setActiveTab] = useState<MarketingTab>(conf.tabs[0]);
 
     const [items, setItems] = useState<DemoLoginLeadItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -76,49 +87,61 @@ const MarketingPage: React.FC = () => {
                             <Target size={20} color="white" />
                         </div>
                         <div className="marketing-header-text">
-                            <h1>Marketing</h1>
-                            <p>Manage B2B sales pipeline and track live demo logins.</p>
+                            <h1>{conf.title}</h1>
+                            <p>{conf.subtitle}</p>
                         </div>
                     </div>
 
-                    {/* Tabs */}
+                    {/* Tabs — only when this section has more than one view */}
+                    {conf.tabs.length > 1 && (
                     <div className="marketing-capsule-tabs">
+                        {conf.tabs.includes('pipeline') && (
                         <button
                             onClick={() => setActiveTab('pipeline')}
                             className={`marketing-capsule-tab ${activeTab === 'pipeline' ? 'active' : ''}`}
                         >
                             <Target size={20} />
-                            <span>LEADS PIPELINE</span>
+                            <span>Pipeline</span>
                         </button>
+                        )}
+                        {conf.tabs.includes('demoLogins') && (
                         <button
                             onClick={() => setActiveTab('demoLogins')}
                             className={`marketing-capsule-tab ${activeTab === 'demoLogins' ? 'active' : ''}`}
                         >
                             <QrCode size={20} />
-                            <span>DEMO LOGINS</span>
+                            <span>Demo logins</span>
                         </button>
+                        )}
+                        {conf.tabs.includes('aiCrm') && (
                         <button
                             onClick={() => setActiveTab('aiCrm')}
                             className={`marketing-capsule-tab ${activeTab === 'aiCrm' ? 'active' : ''}`}
                         >
                             <Sparkles size={20} />
-                            <span>GROWTH CRM</span>
+                            <span>Growth CRM</span>
                         </button>
+                        )}
+                        {conf.tabs.includes('social') && (
                         <button
                             onClick={() => setActiveTab('social')}
                             className={`marketing-capsule-tab ${activeTab === 'social' ? 'active' : ''}`}
                         >
                             <Share2 size={20} />
-                            <span>SOCIAL PILOT</span>
+                            <span>Social pilot</span>
                         </button>
+                        )}
+                        {conf.tabs.includes('analytics') && (
                         <button
                             onClick={() => setActiveTab('analytics')}
                             className={`marketing-capsule-tab ${activeTab === 'analytics' ? 'active' : ''}`}
                         >
                             <Target size={20} />
-                            <span>ROI ANALYTICS</span>
+                            <span>Results</span>
                         </button>
+                        )}
                     </div>
+                    )}
                 </div>
             </header>
 
