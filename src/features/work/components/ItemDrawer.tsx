@@ -17,7 +17,8 @@ interface Props {
   statuses: WorkStatus[];
   currentUserId: string | null;
   canEdit: boolean;
-  canManage: boolean;
+  /** Holds work.delete: may delete this item and remove other people's comments. */
+  canDelete: boolean;
   onClose: () => void;
   /** The list should load again: something about this item changed. */
   onChanged: () => void;
@@ -27,7 +28,7 @@ interface Props {
 }
 
 /** The item page, shown as a panel on the right so the list stays in view. */
-export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canManage, onClose, onChanged, onOpen, onAddChild, onDeleted }: Props) {
+export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canDelete, onClose, onChanged, onOpen, onAddChild, onDeleted }: Props) {
   const [item, setItem] = useState<WorkItemDetail | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -42,6 +43,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
   const [comment, setComment] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [typedKey, setTypedKey] = useState('');
   const panel = useRef<HTMLElement>(null);
 
   const show = useCallback((d: WorkItemDetail) => {
@@ -173,7 +175,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
           {saving && <span className="wk-muted" role="status">Saving…</span>}
         </div>
         <div className="wk-drawer-tools">
-          {canManage && <button type="button" className="wk-iconbtn" onClick={() => setConfirmDelete(true)} aria-label="Delete item" title="Delete"><Trash2 size={17} /></button>}
+          {canDelete && <button type="button" className="wk-iconbtn" onClick={() => { setTypedKey(''); setConfirmDelete(true); }} aria-label="Delete item" title="Delete"><Trash2 size={17} /></button>}
           <button type="button" className="wk-iconbtn" onClick={onClose} aria-label="Close" title="Close"><X size={18} /></button>
         </div>
       </div>
@@ -308,7 +310,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
               <Avatar name={c.authorName} />
               <div>
                 <p className="wk-comment-meta"><strong>{c.authorName}</strong> <span>{formatWhen(c.createdAt)}</span>
-                  {(canManage || (canEdit && c.authorUserId === currentUserId)) && <button type="button" className="wk-link" onClick={() => void removeComment(c.commentId)}>Remove</button>}
+                  {(canDelete || (canEdit && c.authorUserId === currentUserId)) && <button type="button" className="wk-link" onClick={() => void removeComment(c.commentId)}>Remove</button>}
                 </p>
                 <p className="wk-comment-body">{c.body}</p>
               </div>
@@ -339,10 +341,15 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
 
       {confirmDelete && (
         <Dialog title={`Delete ${item.key}?`} onClose={() => setConfirmDelete(false)}>
-          <p className="wk-dialog-text">“{item.title}” will be removed from the board for everyone.</p>
+          <p className="wk-dialog-text">“{item.title}” will be removed from the board for everyone, with its comments and history.</p>
+          <label className="wk-field">
+            <span>Type {item.key} to confirm</span>
+            <input data-autofocus value={typedKey} onChange={e => setTypedKey(e.target.value)} autoComplete="off" spellCheck={false}
+              onKeyDown={e => { if (e.key === 'Enter' && typedKey.trim().toUpperCase() === item.key.toUpperCase()) void remove(); }} />
+          </label>
           <div className="wk-form-actions">
             <button type="button" className="wk-btn" onClick={() => setConfirmDelete(false)}>Keep it</button>
-            <button type="button" className="wk-btn is-danger" onClick={() => void remove()}>Delete</button>
+            <button type="button" className="wk-btn is-danger" disabled={typedKey.trim().toUpperCase() !== item.key.toUpperCase()} onClick={() => void remove()}>Delete</button>
           </div>
         </Dialog>
       )}

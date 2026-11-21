@@ -14,8 +14,10 @@ interface Props {
   statuses: WorkStatus[];
   openId: string | null;
   canEdit: boolean;
-  /** May add, rename, reorder and remove columns. */
+  /** May add, rename and reorder columns. */
   canManage: boolean;
+  /** May remove a column (work.delete). */
+  canDelete: boolean;
   onOpen: (itemId: string) => void;
   onMove: (item: WorkItem, statusKey: string) => void;
   onAddColumn: () => void;
@@ -31,7 +33,7 @@ interface Props {
  * up, Left and Right to change column, Space to drop). The columns are the project's own: people
  * with work.manage add, rename, reorder and remove them from each column's menu.
  */
-export default function BoardView({ items, statuses, openId, canEdit, canManage, onOpen, onMove, onAddColumn, onEditColumn, onRemoveColumn, onShiftColumn }: Props) {
+export default function BoardView({ items, statuses, openId, canEdit, canManage, canDelete, onOpen, onMove, onAddColumn, onEditColumn, onRemoveColumn, onShiftColumn }: Props) {
   const [dragging, setDragging] = useState<WorkItem | null>(null);
   const keys = useMemo(() => statuses.map(s => s.key), [statuses]);
   const nameOfStatus = (key: unknown) => statuses.find(s => s.key === key)?.name ?? 'the column';
@@ -96,8 +98,9 @@ export default function BoardView({ items, statuses, openId, canEdit, canManage,
           return (
             <Column
               key={status.statusId} status={status} count={cards.length} active={!!dragging && dragging.status !== status.key}
-              menu={canManage ? (
+              menu={canManage || canDelete ? (
                 <ColumnMenu
+                  canManage={canManage} canDelete={canDelete}
                   status={status} first={index === 0} last={index === statuses.length - 1}
                   onEdit={() => onEditColumn(status)} onRemove={() => onRemoveColumn(status)} onShift={by => onShiftColumn(status, by)}
                 />
@@ -133,7 +136,7 @@ function Column({ status, count, active, menu, children }: { status: WorkStatus;
 }
 
 /** The "…" on a column: rename, move left or right, remove. */
-function ColumnMenu({ status, first, last, onEdit, onRemove, onShift }: { status: WorkStatus; first: boolean; last: boolean; onEdit: () => void; onRemove: () => void; onShift: (by: -1 | 1) => void }) {
+function ColumnMenu({ status, first, last, canManage, canDelete, onEdit, onRemove, onShift }: { status: WorkStatus; canManage: boolean; canDelete: boolean; first: boolean; last: boolean; onEdit: () => void; onRemove: () => void; onShift: (by: -1 | 1) => void }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
 
@@ -155,10 +158,14 @@ function ColumnMenu({ status, first, last, onEdit, onRemove, onShift }: { status
       </button>
       {open && (
         <div className="wk-menu-list" role="menu">
-          <button type="button" role="menuitem" onClick={run(onEdit)}><Pencil size={15} aria-hidden="true" /> Rename or change meaning</button>
-          <button type="button" role="menuitem" disabled={first} onClick={run(() => onShift(-1))}><ArrowLeft size={15} aria-hidden="true" /> Move left</button>
-          <button type="button" role="menuitem" disabled={last} onClick={run(() => onShift(1))}><ArrowRight size={15} aria-hidden="true" /> Move right</button>
-          <button type="button" role="menuitem" className="is-danger" onClick={run(onRemove)}><Trash2 size={15} aria-hidden="true" /> Remove column</button>
+          {canManage && (
+            <>
+              <button type="button" role="menuitem" onClick={run(onEdit)}><Pencil size={15} aria-hidden="true" /> Rename or change meaning</button>
+              <button type="button" role="menuitem" disabled={first} onClick={run(() => onShift(-1))}><ArrowLeft size={15} aria-hidden="true" /> Move left</button>
+              <button type="button" role="menuitem" disabled={last} onClick={run(() => onShift(1))}><ArrowRight size={15} aria-hidden="true" /> Move right</button>
+            </>
+          )}
+          {canDelete && <button type="button" role="menuitem" className="is-danger" onClick={run(onRemove)}><Trash2 size={15} aria-hidden="true" /> Remove column</button>}
         </div>
       )}
     </div>

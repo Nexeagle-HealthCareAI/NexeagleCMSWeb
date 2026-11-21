@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Ban, Columns3, List as ListIcon, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { canEditWork, canManageWork } from '../access';
+import { canDeleteWork, canEditWork, canManageWork } from '../access';
 import { loadColumns, saveColumns, type ColumnKey } from '../listColumns';
 import type { ItemType, UpdateItemPayload, WorkItem, WorkProject, WorkStatus, WorkUser } from '../types';
 import { buildTree, isDone, ITEM_TYPES, toUpdatePayload } from '../workMeta';
@@ -29,6 +29,7 @@ export default function WorkManagement() {
   const me = useAuthStore(s => s.user);
   const canEdit = canEditWork(permissions);
   const canManage = canManageWork(permissions);
+  const canDelete = canDeleteWork(permissions);
   const [params, setParams] = useSearchParams();
   const openId = params.get('item');
 
@@ -266,7 +267,7 @@ export default function WorkManagement() {
         {showBoard && project ? (
           <>
             <BoardView
-              items={boardItems} statuses={statuses} openId={openId} canEdit={canEdit} canManage={canManage}
+              items={boardItems} statuses={statuses} openId={openId} canEdit={canEdit} canManage={canManage} canDelete={canDelete}
               onOpen={openItem} onMove={(item, key) => void patchItem(item, { status: key })}
               onAddColumn={() => setColumnForm({ status: null })}
               onEditColumn={s => setColumnForm({ status: s })}
@@ -308,7 +309,7 @@ export default function WorkManagement() {
 
       {openId && (
         <ItemDrawer
-          itemId={openId} items={items} users={users} statuses={statuses} currentUserId={me?.id ?? null} canEdit={canEdit} canManage={canManage}
+          itemId={openId} items={items} users={users} statuses={statuses} currentUserId={me?.id ?? null} canEdit={canEdit} canDelete={canDelete}
           onClose={closeItem} onChanged={reload} onOpen={openItem}
           onAddChild={parent => setCreating({ parent })}
           onDeleted={() => { closeItem(); reload(); }}

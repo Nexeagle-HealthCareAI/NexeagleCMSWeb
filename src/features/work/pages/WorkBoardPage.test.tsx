@@ -7,7 +7,10 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../access', () => ({
   WORK_MOCK: true, WORK_VIEW: 'work.view', WORK_EDIT: 'work.edit', WORK_MANAGE: 'work.manage',
   canViewWork: () => true, canEditWork: () => true, canManageWork: () => true,
+  // Deleting is a separate permission; the tests flip it.
+  canDeleteWork: () => allowDelete.value,
 }));
+const allowDelete = vi.hoisted(() => ({ value: true }));
 
 import WorkBoardPage from './WorkBoardPage';
 
@@ -109,6 +112,36 @@ describe('Daily Work Board', () => {
 
     expect(await screen.findByRole('region', { name: /^Ready for QA, 0 items/ })).toBeInTheDocument();
     localStorage.removeItem('wk.view');
+  });
+
+  it('hides delete from people without the delete permission', async () => {
+    const user = userEvent.setup();
+    allowDelete.value = false;
+    open();
+    const table = await screen.findByRole('table', { name: 'Work items' });
+    await user.click(within(table).getByText('Update the pharmacy price list import'));
+    const panel = await screen.findByRole('complementary', { name: /Update the pharmacy/ });
+    expect(within(panel).queryByRole('button', { name: 'Delete item' })).not.toBeInTheDocument();
+    allowDelete.value = true;
+  });
+
+  it('asks the person to type the item key before it deletes', async () => {
+    const user = userEvent.setup();
+    open();
+    const table = await screen.findByRole('table', { name: 'Work items' });
+    await user.click(within(table).getByText('Update the pharmacy price list import'));
+    const panel = await screen.findByRole('complementary', { name: /Update the pharmacy/ });
+
+    await user.click(within(panel).getByRole('button', { name: 'Delete item' }));
+    const dialog = screen.getByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Delete' });
+    expect(confirm).toBeDisabled();
+
+    await user.type(within(dialog).getByRole('textbox'), 'hms-7');
+    expect(confirm).toBeEnabled();
+    await user.click(confirm);
+
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Work items' })).queryByText('Update the pharmacy price list import')).not.toBeInTheDocument());
   });
 
   it('shows what is coming on the Docs tab', async () => {
