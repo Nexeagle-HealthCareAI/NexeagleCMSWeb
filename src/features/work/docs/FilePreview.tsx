@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
+import { useAuthStore } from '../../../store/useAuthStore';
+import { canExportWork } from '../access';
 import { errorMessage } from '../services/workService';
 import { docsService } from './docsService';
 import { formatSize, kindOf, saveBlob } from './docsMeta';
@@ -24,6 +26,8 @@ const TEXT_PREVIEW_LIMIT = 300_000;
  */
 export default function FilePreview({ doc }: { doc: DocDetail }) {
   const [view, setView] = useState<View>({ state: 'loading' });
+  /** Without work.export there is no download, and the PDF viewer's own save and print bar is hidden. */
+  const mayExport = canExportWork(useAuthStore(s => s.permissions) || []);
   const kind = kindOf(doc);
 
   useEffect(() => {
@@ -59,10 +63,10 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
   if (view.state === 'loading') return <p className="wk-muted dc-preview-note">Opening {doc.name}…</p>;
   if (view.state === 'error') return <p className="wk-error" role="alert">{view.message}</p>;
 
-  const download = <button type="button" className="wk-btn" onClick={() => saveBlob(view.blob, doc.name)}><Download size={16} aria-hidden="true" /> Download ({formatSize(doc.sizeBytes)})</button>;
+  const download = !mayExport ? null : <button type="button" className="wk-btn" onClick={() => saveBlob(view.blob, doc.name)}><Download size={16} aria-hidden="true" /> Download ({formatSize(doc.sizeBytes)})</button>;
 
   if (view.state === 'image') return <div className="dc-preview"><img src={view.url} alt={doc.name} /></div>;
-  if (view.state === 'pdf') return <div className="dc-preview is-frame"><iframe src={view.url} title={doc.name} /></div>;
+  if (view.state === 'pdf') return <div className="dc-preview is-frame"><iframe src={mayExport ? view.url : `${view.url}#toolbar=0&navpanes=0`} title={doc.name} /></div>;
   if (view.state === 'text') return <div className="dc-preview is-text"><pre>{view.text}</pre></div>;
   if (view.state === 'word') {
     const page = `<!doctype html><meta charset="utf-8"><style>body{font:16px/1.6 system-ui,sans-serif;color:#101828;max-width:760px;margin:24px auto;padding:0 20px}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #D0D5DD;padding:6px 10px}</style>${view.html}`;
@@ -70,13 +74,13 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
       <div className="dc-preview is-frame">
         {/* sandbox with no allowances: the copy cannot run scripts, open windows or reach the CMS. */}
         <iframe srcDoc={page} sandbox="" title={`${doc.name} (readable copy)`} />
-        <p className="wk-muted dc-preview-note">This is a readable copy. Download the file to see its exact layout. {download}</p>
+        <p className="wk-muted dc-preview-note">This is a readable copy{mayExport ? '. Download the file to see its exact layout.' : ' of the Word file.'} {download}</p>
       </div>
     );
   }
   return (
     <div className="dc-preview is-none">
-      <p>This type of file cannot be shown here.</p>
+      <p>This type of file cannot be shown here.{!mayExport && ' Downloading is turned off for you on this screen.'}</p>
       {download}
     </div>
   );

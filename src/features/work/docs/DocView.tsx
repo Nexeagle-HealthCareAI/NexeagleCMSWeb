@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Download, History, Link2, Lock, Trash2, UploadCloud } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuthStore } from '../../../store/useAuthStore';
+import { canExportWork } from '../access';
 import { Dialog, TypeIcon } from '../components/parts';
 import { errorMessage } from '../services/workService';
 import { formatWhen } from '../workMeta';
@@ -32,6 +34,8 @@ const LOG_WORDS: Record<string, string> = {
 /** One document, open: a page in the editor, or a file in the preview, with its details beside it. */
 export default function DocView({ documentId, folders, canEdit, canDelete, canSensitive, onBack, onChanged, onOpenItem }: Props) {
   const [doc, setDoc] = useState<DocDetail | null>(null);
+  /** Downloads leave the screen, so they need work.export. */
+  const mayExport = canExportWork(useAuthStore(st => st.permissions) || []);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [tags, setTags] = useState('');
@@ -182,7 +186,7 @@ export default function DocView({ documentId, folders, canEdit, canDelete, canSe
               {saveState === 'failed' && <>Not saved. <button type="button" className="wk-link" onClick={() => void flush()}>Try again</button></>}
             </span>
           )}
-          {doc.kind === 'File' && <button type="button" className="wk-btn" onClick={() => void download()}><Download size={16} aria-hidden="true" /> Download</button>}
+          {doc.kind === 'File' && mayExport && <button type="button" className="wk-btn" onClick={() => void download()}><Download size={16} aria-hidden="true" /> Download</button>}
           {doc.kind === 'File' && canEdit && (
             <>
               <button type="button" className="wk-btn" disabled={uploading} onClick={() => fileInput.current?.click()}><UploadCloud size={16} aria-hidden="true" /> {uploading ? 'Uploading…' : 'Upload new version'}</button>
@@ -250,7 +254,7 @@ export default function DocView({ documentId, folders, canEdit, canDelete, canSe
                 {doc.versions.map(v => (
                   <li key={v.versionId}>
                     <span><strong>Version {v.versionNumber}</strong> · {formatWhen(v.createdAt)}{v.createdByName ? ` · ${v.createdByName}` : ''}</span>
-                    {doc.kind === 'File' && <button type="button" className="wk-link" onClick={() => void download(v.versionId, v.name)}>Download</button>}
+                    {doc.kind === 'File' && mayExport && <button type="button" className="wk-link" onClick={() => void download(v.versionId, v.name)}>Download</button>}
                   </li>
                 ))}
               </ul>

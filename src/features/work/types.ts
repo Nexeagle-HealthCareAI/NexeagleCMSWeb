@@ -21,8 +21,20 @@ export interface WorkProject {
   description: string | null;
   sprintDays: number;
   isArchived: boolean;
+  /** True when only its members can open it. */
+  isRestricted: boolean;
   /** The board's columns, in order. */
   statuses: WorkStatus[];
+}
+
+export type AccessAction = 'MemberAdded' | 'MemberRemoved' | 'Restricted' | 'Opened';
+
+/** Who can open one board, and the latest changes to that. */
+export interface WorkProjectAccess {
+  projectId: string;
+  isRestricted: boolean;
+  memberUserIds: string[];
+  log: { action: AccessAction; targetName: string | null; actorName: string; createdAt: string }[];
 }
 
 export interface WorkUser {

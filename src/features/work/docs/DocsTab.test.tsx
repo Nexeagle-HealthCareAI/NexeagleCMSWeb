@@ -5,9 +5,11 @@ import { MemoryRouter } from 'react-router-dom';
 
 // Run on the in-memory example data, as VITE_WORK_MOCK=true does.
 const can = vi.hoisted(() => ({ edit: true, remove: true }));
+const allowExport = vi.hoisted(() => ({ value: true }));
 vi.mock('../access', () => ({
   WORK_MOCK: true,
   canViewWork: () => true, canEditWork: () => true, canManageWork: () => true, canDeleteWork: () => true,
+  canManageMembers: () => true, canExportWork: () => allowExport.value,
   canViewDocs: () => true, canEditDocs: () => can.edit, canDeleteDocs: () => can.remove, canSeeSensitiveDocs: () => true,
 }));
 

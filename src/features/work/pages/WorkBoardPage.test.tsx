@@ -4,11 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 // Run on the in-memory example data, as VITE_WORK_MOCK=true does.
+const allowExport = vi.hoisted(() => ({ value: true }));
 vi.mock('../access', () => ({
   WORK_MOCK: true, WORK_VIEW: 'work.view', WORK_EDIT: 'work.edit', WORK_MANAGE: 'work.manage',
   canViewWork: () => true, canEditWork: () => true, canManageWork: () => true,
   // Deleting is a separate permission; the tests flip it.
   canDeleteWork: () => allowDelete.value,
+  canManageMembers: () => true, canExportWork: () => allowExport.value,
   canViewDocs: () => true, canEditDocs: () => true, canDeleteDocs: () => true, canSeeSensitiveDocs: () => true,
 }));
 const allowDelete = vi.hoisted(() => ({ value: true }));

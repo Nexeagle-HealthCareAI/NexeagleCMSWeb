@@ -1,5 +1,5 @@
 import type {
-  CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
+  AccessAction, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
 } from '../types';
 import { allowedParentTypes, parentRequired } from '../workMeta';
 
@@ -23,10 +23,12 @@ const startingStatuses = (): WorkStatus[] => [
   { statusId: id('s'), key: 'Done', name: 'Done', category: 'Done', sortOrder: 40 },
 ];
 const projects: WorkProject[] = [
-  { projectId: 'p-hms', key: 'HMS', name: '1HMS', description: 'Hospital management software and EMR', sprintDays: 11, isArchived: false, statuses: startingStatuses() },
-  { projectId: 'p-rad', key: 'RAD', name: '1Rad', description: 'Cloud PACS and radiology reporting', sprintDays: 11, isArchived: false, statuses: startingStatuses() },
-  { projectId: 'p-web', key: 'WEB', name: 'NexEagle website', description: 'nexeagle.com', sprintDays: 11, isArchived: false, statuses: startingStatuses() },
+  { projectId: 'p-hms', key: 'HMS', name: '1HMS', description: 'Hospital management software and EMR', sprintDays: 11, isArchived: false, isRestricted: false, statuses: startingStatuses() },
+  { projectId: 'p-rad', key: 'RAD', name: '1Rad', description: 'Cloud PACS and radiology reporting', sprintDays: 11, isArchived: false, isRestricted: false, statuses: startingStatuses() },
+  { projectId: 'p-web', key: 'WEB', name: 'NexEagle website', description: 'nexeagle.com', sprintDays: 11, isArchived: false, isRestricted: false, statuses: startingStatuses() },
 ];
+const members: Record<string, string[]> = {};
+const accessLog: Record<string, WorkProjectAccess['log']> = {};
 const nextNumber: Record<string, number> = { 'p-hms': 1, 'p-rad': 1, 'p-web': 1 };
 const items: Stored[] = [];
 const comments: Record<string, WorkComment[]> = {};
@@ -136,10 +138,29 @@ export const mockWork = {
     const key = p.key.trim().toUpperCase();
     if (!/^[A-Z]{2,10}$/.test(key)) throw fail(400, 'The project key must be 2 to 10 letters, for example HMS.');
     if (projects.some(x => x.key === key)) throw fail(409, `A project with the key ${key} already exists.`);
-    const project: WorkProject = { projectId: id('p'), key, name: p.name.trim(), description: p.description?.trim() || null, sprintDays: 11, isArchived: false, statuses: startingStatuses() };
+    const project: WorkProject = { projectId: id('p'), key, name: p.name.trim(), description: p.description?.trim() || null, sprintDays: 11, isArchived: false, isRestricted: false, statuses: startingStatuses() };
     projects.push(project);
     nextNumber[project.projectId] = 1;
     return wait(copy(project));
+  },
+  projectAccess: async (projectId: string): Promise<WorkProjectAccess> => {
+    const project = projects.find(x => x.projectId === projectId);
+    if (!project) throw fail(404, 'Project not found.');
+    return wait({ projectId, isRestricted: project.isRestricted, memberUserIds: [...(members[projectId] || [])], log: [...(accessLog[projectId] || [])] });
+  },
+  saveProjectAccess: async (projectId: string, p: { isRestricted: boolean; memberUserIds: string[] }): Promise<WorkProjectAccess> => {
+    const project = projects.find(x => x.projectId === projectId);
+    if (!project) throw fail(404, 'Project not found.');
+    const before = members[projectId] || [];
+    const entries = (accessLog[projectId] ||= []);
+    const note = (action: AccessAction, userId: string | null) =>
+      entries.unshift({ action, targetName: nameOf(userId), actorName: nameOf(ME) || 'Someone', createdAt: new Date().toISOString() });
+    before.filter(u => !p.memberUserIds.includes(u)).forEach(u => note('MemberRemoved', u));
+    p.memberUserIds.filter(u => !before.includes(u)).forEach(u => note('MemberAdded', u));
+    if (project.isRestricted !== p.isRestricted) note(p.isRestricted ? 'Restricted' : 'Opened', null);
+    members[projectId] = [...p.memberUserIds];
+    project.isRestricted = p.isRestricted;
+    return wait({ projectId, isRestricted: project.isRestricted, memberUserIds: [...members[projectId]], log: [...entries] });
   },
   addStatus: async (projectId: string, p: { name: string; category: StatusCategory }) => {
     const project = projects.find(x => x.projectId === projectId);

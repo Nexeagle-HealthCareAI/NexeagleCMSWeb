@@ -13,6 +13,13 @@ export const canViewWork = (permissions: string[]): boolean => WORK_MOCK || perm
 export const canEditWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_EDIT);
 export const canManageWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_MANAGE);
 export const canDeleteWork = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_DELETE);
+/** Choose who can open each board; opens every board. */
+export const WORK_MEMBERS = 'work.members';
+/** Copy out of, print and download from the board. Without it the screen is protected (ScreenGuard). */
+export const WORK_EXPORT = 'work.export';
+export const canManageMembers = (permissions: string[]): boolean => WORK_MOCK || permissions.includes(WORK_MEMBERS);
+/** No example-data shortcut here: the protected screen is the normal case and should be seen in review. */
+export const canExportWork = (permissions: string[]): boolean => permissions.includes(WORK_EXPORT);
 
 // Docs tab. The API enforces the same keys (DocsController); restricted folders are checked there too.
 export const DOCS_VIEW = 'docs.view';

@@ -1,7 +1,8 @@
 import { useSearchParams } from 'react-router-dom';
 import { FileText, ListChecks } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { canViewDocs } from '../access';
+import { canExportWork, canViewDocs } from '../access';
+import ScreenGuard, { ProtectedBadge } from '../components/ScreenGuard';
 import WorkManagement from '../components/WorkManagement';
 import DocsTab from '../docs/DocsTab';
 import '../work.css';
@@ -17,6 +18,7 @@ export default function WorkBoardPage() {
   const [params, setParams] = useSearchParams();
   const permissions = useAuthStore(s => s.permissions) || [];
   const tab = params.get('tab') === 'docs' ? 'docs' : 'work';
+  const guarded = !canExportWork(permissions);
 
   const choose = (key: string) => {
     const next = new URLSearchParams();
@@ -26,9 +28,10 @@ export default function WorkBoardPage() {
 
   return (
     <div className="ne-page wk-page">
+      {guarded && <ScreenGuard />}
       <header className="ne-page-head">
         <div>
-          <h1>Daily Work Board</h1>
+          <h1>Daily Work Board {guarded && <ProtectedBadge />}</h1>
           <p>Plan, track and finish the team's work in one place.</p>
         </div>
       </header>
