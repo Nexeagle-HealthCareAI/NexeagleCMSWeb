@@ -19,7 +19,7 @@ const SESSION: Record<string, string> = {
   ScreenshotKey: 'pressed the screenshot key on the protected screen',
 };
 const DOC: Record<string, string> = {
-  open: 'opened', download: 'downloaded', create: 'created', upload: 'uploaded', edit: 'edited', rename: 'renamed',
+  open: 'opened', comment: 'commented on', download: 'downloaded', create: 'created', upload: 'uploaded', edit: 'edited', rename: 'renamed',
   move: 'moved', bin: 'moved to the bin', restore: 'restored', access: 'changed access to',
 };
 

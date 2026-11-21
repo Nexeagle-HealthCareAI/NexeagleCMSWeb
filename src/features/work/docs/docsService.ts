@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { WORK_MOCK } from '../access';
-import type { Doc, DocBin, DocDetail, DocFolder, DocLogEntry, SaveFolderPayload } from './types';
+import type { Doc, DocBin, DocComment, DocDetail, DocFolder, DocLogEntry, DocNotification, SaveCommentPayload, SaveFolderPayload } from './types';
 import { mockDocs } from './mockDocs';
 
 // Docs tab calls (CMS API: DocsController). Every answer is { success, data, message }.
@@ -38,6 +38,17 @@ const real = {
   restore: async (id: string) => { await api.post(`/docs/${enc(id)}/restore`); },
   bin: async () => (await api.get('/docs/bin')).data.data as DocBin,
   log: async (id: string) => (await api.get(`/docs/${enc(id)}/log`)).data.data as DocLogEntry[],
+
+  // Comments (CMS API: DocCommentsController). Oldest first; a reply carries its thread's parentId.
+  comments: async (documentId: string) => (await api.get(`/docs/${enc(documentId)}/comments`)).data.data as DocComment[],
+  addComment: async (documentId: string, p: SaveCommentPayload) => (await api.post(`/docs/${enc(documentId)}/comments`, p)).data.data as DocComment,
+  editComment: async (commentId: string, p: SaveCommentPayload) => (await api.put(`/docs/comments/${enc(commentId)}`, p)).data.data as DocComment,
+  removeComment: async (commentId: string) => { await api.delete(`/docs/comments/${enc(commentId)}`); },
+  resolveComment: async (commentId: string, isResolved: boolean) =>
+    (await api.put(`/docs/comments/${enc(commentId)}/resolved`, { isResolved })).data.data as DocComment,
+  commentNotifications: async () => (await api.get('/docs/notifications')).data.data as DocNotification[],
+  /** No ids: every notification. */
+  readCommentNotifications: async (notificationIds: string[] = []) => { await api.post('/docs/notifications/read', { notificationIds }); },
 
   itemDocuments: async (workItemId: string) => (await api.get(`/docs/items/${enc(workItemId)}`)).data.data as Doc[],
   link: async (workItemId: string, documentId: string) => { await api.post(`/docs/items/${enc(workItemId)}`, { documentId }); },

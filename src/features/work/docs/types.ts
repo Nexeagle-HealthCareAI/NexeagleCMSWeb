@@ -84,3 +84,37 @@ export interface SaveFolderPayload {
   color: FolderColor | null;
   isRestricted: boolean;
 }
+
+// ── Comments on a document ──
+export interface DocComment {
+  commentId: string;
+  documentId: string;
+  /** null for the first comment of a thread. */
+  parentId: string | null;
+  authorUserId: string | null;
+  authorName: string;
+  /** Empty when the comment was removed. */
+  body: string;
+  /** The text the comment is about, when the person selected some. */
+  quote: string | null;
+  mentionUserIds: string[];
+  /** Meaningful on the first comment of a thread. */
+  isResolved: boolean;
+  resolvedByName: string | null;
+  resolvedAt: string | null;
+  isEdited: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+}
+export interface SaveCommentPayload { body: string; quote?: string | null; parentId?: string | null; mentionUserIds?: string[] }
+export interface DocNotification {
+  notificationId: string;
+  kind: 'Mention' | 'Reply' | 'Comment';
+  documentId: string;
+  documentName: string;
+  commentId: string;
+  actorName: string;
+  text: string;
+  isRead: boolean;
+  createdAt: string;
+}
