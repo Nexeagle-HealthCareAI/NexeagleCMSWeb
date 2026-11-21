@@ -41,6 +41,11 @@ const LiveSessionsPanel: React.FC = () => {
     const current = activeSession ? sessions.find(s => s.sessionId === activeSession.sessionId) ?? activeSession : null;
     const guestTyping = current ? !!typing[current.sessionId] : false;
 
+    // Leaving this page closes the open chat. The store outlives the page, and with a chat still
+    // "open" in it, new messages from that visitor counted as seen: no badge, no sound, no toast,
+    // while the agent was on another page.
+    useEffect(() => clearSelection, [clearSelection]);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener('resize', handleResize);
