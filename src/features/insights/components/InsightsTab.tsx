@@ -3,19 +3,16 @@ import { useSearchParams } from 'react-router-dom';
 import { SiteVisitsPanel } from './SiteVisitsPanel';
 import { PatientLoginsPanel } from './PatientLoginsPanel';
 import { OnlineAppointmentsPanel } from './OnlineAppointmentsPanel';
-import { AuthFunnelPanel } from './AuthFunnelPanel';
-import { BookingFunnelPanel } from './BookingFunnelPanel';
-import { SearchLogPanel } from './SearchLogPanel';
 import { WeeklyGrowthPanel } from './WeeklyGrowthPanel';
 import { WhatsAppBotPanel } from './WhatsAppBotPanel';
 import { DoctorDekhoDailyPanel } from './DoctorDekhoDailyPanel';
 import { SearchKindsPanel } from './SearchKindsPanel';
-import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search, TrendingUp, MessageCircle, Stethoscope, TextSearch } from 'lucide-react';
+import { BarChart3, Users, CalendarDays, TrendingUp, MessageCircle, Stethoscope, TextSearch } from 'lucide-react';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './Insights.css';
 
-type InsightsSubTab = 'growth' | 'whatsapp' | 'doctordekho' | 'searchKinds' | 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'bookingFunnel' | 'searches';
-const SUB_TABS: InsightsSubTab[] = ['growth', 'whatsapp', 'doctordekho', 'searchKinds', 'visits', 'logins', 'appointments', 'authFunnel', 'bookingFunnel', 'searches'];
+type InsightsSubTab = 'growth' | 'whatsapp' | 'doctordekho' | 'searchKinds' | 'visits' | 'logins' | 'appointments';
+const SUB_TABS: InsightsSubTab[] = ['growth', 'whatsapp', 'doctordekho', 'searchKinds', 'visits', 'logins', 'appointments'];
 
 export const InsightsTab: React.FC = () => {
     // The open tab is in the address (?tab=), so a link or a reload lands on it.
@@ -36,9 +33,6 @@ export const InsightsTab: React.FC = () => {
         { key: 'visits', label: 'Site Visits', icon: <BarChart3 size={16} /> },
         { key: 'logins', label: 'Patient Logins', icon: <Users size={16} /> },
         { key: 'appointments', label: 'Appointments', icon: <CalendarDays size={16} /> },
-        { key: 'authFunnel', label: 'Auth Funnel', icon: <KeyRound size={16} /> },
-        { key: 'bookingFunnel', label: 'Booking Funnel', icon: <Filter size={16} /> },
-        { key: 'searches', label: 'All Searches', icon: <Search size={16} /> },
     ];
 
     return (
@@ -65,9 +59,6 @@ export const InsightsTab: React.FC = () => {
                 {activeSubTab === 'visits' && <SiteVisitsPanel />}
                 {activeSubTab === 'logins' && <PatientLoginsPanel />}
                 {activeSubTab === 'appointments' && <OnlineAppointmentsPanel />}
-                {activeSubTab === 'authFunnel' && <AuthFunnelPanel />}
-                {activeSubTab === 'bookingFunnel' && <BookingFunnelPanel />}
-                {activeSubTab === 'searches' && <SearchLogPanel />}
             </div>
         </div>
     );

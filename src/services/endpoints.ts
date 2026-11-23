@@ -70,10 +70,6 @@ export const API_ENDPOINTS = {
         SITE_VISITS: '/insights/site-visits',         // ?from=&to=&site=
         PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
         APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
-        AUTH_FUNNEL: '/insights/auth-funnel',                     // ?from=&to=
-        AUTH_FUNNEL_ATTEMPTS: '/insights/auth-funnel/attempts',   // ?page=&limit=&from=&to=&search=
-        BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
-        SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
         WEEKLY_GROWTH: '/insights/growth/weekly',                 // ?weeks=
         WHATSAPP_DAILY: '/insights/whatsapp/daily',               // ?from=&to=
         WHATSAPP_PEOPLE: '/insights/whatsapp/people',             // ?from=&to=&outcome=&source=&search=&page=&limit= ; /{sessionId} = the chat

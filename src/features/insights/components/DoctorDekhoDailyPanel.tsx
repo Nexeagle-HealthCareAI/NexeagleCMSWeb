@@ -40,8 +40,7 @@ export const DoctorDekhoDailyPanel: React.FC = () => {
                     <strong>Doctor Dekho, from visit to booking, each day.</strong> Each number is visits (browsing
                     sessions) that reached that point. <em>Left in between</em> is visits that opened the booking form
                     and did not finish it. The website only knows the phone number of people who logged in or booked;
-                    their bookings, with names and numbers, are on the Appointments tab, and who stopped at the
-                    login step is on Auth Funnel. Bookings made on WhatsApp are not counted here: they are on the
+                    their bookings, with names and numbers, are on the Appointments tab. Bookings made on WhatsApp are not counted here: they are on the
                     WhatsApp bot tab.
                 </p>
             </InsightsExplainer>
