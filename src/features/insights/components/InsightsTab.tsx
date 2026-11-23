@@ -9,12 +9,13 @@ import { SearchLogPanel } from './SearchLogPanel';
 import { WeeklyGrowthPanel } from './WeeklyGrowthPanel';
 import { WhatsAppBotPanel } from './WhatsAppBotPanel';
 import { DoctorDekhoDailyPanel } from './DoctorDekhoDailyPanel';
-import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search, TrendingUp, MessageCircle, Stethoscope } from 'lucide-react';
+import { SearchKindsPanel } from './SearchKindsPanel';
+import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search, TrendingUp, MessageCircle, Stethoscope, TextSearch } from 'lucide-react';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './Insights.css';
 
-type InsightsSubTab = 'growth' | 'whatsapp' | 'doctordekho' | 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'bookingFunnel' | 'searches';
-const SUB_TABS: InsightsSubTab[] = ['growth', 'whatsapp', 'doctordekho', 'visits', 'logins', 'appointments', 'authFunnel', 'bookingFunnel', 'searches'];
+type InsightsSubTab = 'growth' | 'whatsapp' | 'doctordekho' | 'searchKinds' | 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'bookingFunnel' | 'searches';
+const SUB_TABS: InsightsSubTab[] = ['growth', 'whatsapp', 'doctordekho', 'searchKinds', 'visits', 'logins', 'appointments', 'authFunnel', 'bookingFunnel', 'searches'];
 
 export const InsightsTab: React.FC = () => {
     // The open tab is in the address (?tab=), so a link or a reload lands on it.
@@ -31,6 +32,7 @@ export const InsightsTab: React.FC = () => {
         { key: 'growth', label: 'Weekly growth', icon: <TrendingUp size={16} /> },
         { key: 'whatsapp', label: 'WhatsApp bot', icon: <MessageCircle size={16} /> },
         { key: 'doctordekho', label: 'Doctor Dekho daily', icon: <Stethoscope size={16} /> },
+        { key: 'searchKinds', label: 'What people search', icon: <TextSearch size={16} /> },
         { key: 'visits', label: 'Site Visits', icon: <BarChart3 size={16} /> },
         { key: 'logins', label: 'Patient Logins', icon: <Users size={16} /> },
         { key: 'appointments', label: 'Appointments', icon: <CalendarDays size={16} /> },
@@ -59,6 +61,7 @@ export const InsightsTab: React.FC = () => {
                 {activeSubTab === 'growth' && <WeeklyGrowthPanel />}
                 {activeSubTab === 'whatsapp' && <WhatsAppBotPanel />}
                 {activeSubTab === 'doctordekho' && <DoctorDekhoDailyPanel />}
+                {activeSubTab === 'searchKinds' && <SearchKindsPanel />}
                 {activeSubTab === 'visits' && <SiteVisitsPanel />}
                 {activeSubTab === 'logins' && <PatientLoginsPanel />}
                 {activeSubTab === 'appointments' && <OnlineAppointmentsPanel />}

@@ -11,6 +11,8 @@ const api = vi.hoisted(() => ({
     whatsAppPeople: vi.fn(),
     whatsAppTranscript: vi.fn(),
     doctorDekhoDaily: vi.fn(),
+    searchAnalysis: vi.fn(),
+    searchList: vi.fn(),
 }));
 vi.mock('../services/channelInsights', async (original) => ({ ...(await original<object>()), channelInsights: api }));
 vi.mock('recharts', async (original) => {
@@ -60,6 +62,30 @@ beforeEach(() => {
         from: '2026-11-17', to: '2026-11-23',
         totals: { date: 'total', visits: 300, searched: 120, viewedDoctor: 80, startedBooking: 20, enteredDetails: 12, booked: 8, left: 12 },
         days: [{ date: '2026-11-23', visits: 40, searched: 15, viewedDoctor: 9, startedBooking: 3, enteredDetails: 2, booked: 1, left: 2 }],
+    });
+});
+beforeEach(() => {
+    const kind = (k: string, label: string, dd: number, wa: number, booked: number, nothing: number) =>
+        ({ kind: k, label, doctorDekho: dd, whatsApp: wa, total: dd + wa, ledToBooking: booked, foundNothing: nothing });
+    const term = (t: string, k: string, dd: number, wa: number, booked = 0, nothing = 0) =>
+        ({ term: t, kind: k, doctorDekho: dd, whatsApp: wa, total: dd + wa, ledToBooking: booked, foundNothing: nothing });
+    api.searchAnalysis.mockResolvedValue({
+        from: '2026-10-25', to: '2026-11-23', searches: 100, people: 70, ledToBooking: 12, foundNothing: 9,
+        kinds: [kind('symptom', 'Symptom or health problem', 30, 20, 6, 2), kind('doctor', "Doctor's name", 15, 10, 4, 5),
+            kind('specialty', 'Speciality', 12, 3, 2, 0), kind('hospital', 'Hospital name', 4, 0, 0, 0), kind('other', 'Other words', 6, 0, 0, 2)],
+        days: [{ date: '2026-11-23', doctorDekho: 6, whatsApp: 2, symptom: 4, doctorName: 2, specialty: 1, hospital: 0, other: 1 },
+            { date: '2026-11-22', doctorDekho: 5, whatsApp: 3, symptom: 3, doctorName: 3, specialty: 2, hospital: 0, other: 0 }],
+        topTerms: [term('pet me dard', 'symptom', 8, 1, 2), term('chest pain', 'symptom', 2, 5, 3), term('Dr Avinash', 'doctor', 6, 2, 1)],
+        specialties: [term('Cardiology', 'specialty', 9, 6, 3)],
+        nothingFound: [term('Dr Ramesh', 'doctor', 1, 3, 0, 4)],
+        whatsAppAvailable: true, whatsAppProblem: null,
+    });
+    api.searchList.mockResolvedValue({
+        data: [
+            { at: '2026-11-23T06:00:00Z', channel: 'whatsapp', kind: 'doctor', kindLabel: "Doctor's name", text: 'Dr Ramesh', specialty: null, results: null, found: false, booked: false, city: 'Purnia', phone: '+91 98333 33333', sessionId: 'w2' },
+            { at: '2026-11-23T05:00:00Z', channel: 'doctordekho', kind: 'symptom', kindLabel: 'Symptom or health problem', text: 'sir dard', specialty: 'Neurology', results: 4, found: true, booked: true, city: 'Katihar', phone: null, sessionId: null },
+        ],
+        pagination: { currentPage: 1, totalPages: 1, totalItems: 2, itemsPerPage: 25 },
     });
 });
 afterEach(() => vi.clearAllMocks());
@@ -150,6 +176,54 @@ describe('Doctor Dekho daily', () => {
         const row = within(table).getAllByRole('row')[1];
         expect(row).toHaveTextContent(/Mon 23 Nov\s*40\s*15\s*9\s*3\s*2\s*1\s*2/);
         expect(screen.getByText(/Booked · 40% of those who started/)).toBeInTheDocument();
+    });
+});
+
+describe('What people search', () => {
+    it('splits searches into symptoms, doctor names and specialities on both channels', async () => {
+        open('searchKinds');
+        const kinds = await screen.findByRole('table', { name: 'Searches by kind' });
+        const symptom = within(kinds).getByText('Symptom or health problem').closest('tr')!;
+        expect(symptom).toHaveTextContent(/30\s*20\s*50\s*50%\s*6 \(12%\)\s*2 \(4%\)/);
+        expect(screen.getByRole('img', { name: /Searches each day by kind/ })).toBeInTheDocument();
+        expect(api.searchAnalysis).toHaveBeenCalledWith(expect.any(String), expect.any(String), 'all');
+
+        // Most searched: symptoms first, then doctor names.
+        const top = screen.getByRole('table', { name: 'Most searched: Symptoms' });
+        expect(within(top).getByText('pet me dard')).toBeInTheDocument();
+        expect(within(top).queryByText('Dr Avinash')).not.toBeInTheDocument();
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Doctor names' }));
+        expect(within(screen.getByRole('table', { name: 'Most searched: Doctor names' })).getByText('Dr Avinash')).toBeInTheDocument();
+
+        expect(within(screen.getByRole('table', { name: 'Searched, found nothing' })).getByText('Dr Ramesh')).toBeInTheDocument();
+        expect(within(screen.getByRole('table', { name: 'Specialities people looked for' })).getByText('Cardiology')).toBeInTheDocument();
+    });
+
+    it('lists every search, filters them, and opens the WhatsApp chat behind one', async () => {
+        const user = userEvent.setup();
+        open('searchKinds');
+        const list = await screen.findByRole('table', { name: 'Every search' });
+        expect(await within(list).findByText('Dr Ramesh')).toBeInTheDocument();
+        expect(within(list).getByText('→ Neurology')).toBeInTheDocument();
+        expect(within(list).getByText('Found nothing')).toBeInTheDocument();
+        expect(within(list).getByText('4 doctors')).toBeInTheDocument();
+
+        await user.selectOptions(screen.getByRole('combobox', { name: 'Show' }), 'nothing');
+        await waitFor(() => expect(api.searchList).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'nothing', page: 1 })));
+        await user.click(within(screen.getByRole('group', { name: 'Where' })).getByRole('button', { name: 'WhatsApp bot' }));
+        await waitFor(() => expect(api.searchAnalysis).toHaveBeenLastCalledWith(expect.any(String), expect.any(String), 'whatsapp'));
+        await waitFor(() => expect(api.searchList).toHaveBeenLastCalledWith(expect.objectContaining({ channel: 'whatsapp' })));
+
+        await user.click(within(screen.getByRole('table', { name: 'Every search' })).getByRole('button', { name: 'Chat' }));
+        expect(await screen.findByRole('dialog', { name: 'Conversation with +91 98333 33333' })).toBeInTheDocument();
+        expect(api.whatsAppTranscript).toHaveBeenCalledWith('w2');
+    });
+
+    it('still shows Doctor Dekho when the WhatsApp bot cannot be read', async () => {
+        api.searchAnalysis.mockResolvedValueOnce({ ...(await api.searchAnalysis()), whatsAppAvailable: false, whatsAppProblem: 'Login failed.' });
+        open('searchKinds');
+        expect(await screen.findByRole('status')).toHaveTextContent(/WhatsApp searches are missing.*Login failed/);
+        expect(screen.getByRole('table', { name: 'Searches by kind' })).toBeInTheDocument();
     });
 });
 

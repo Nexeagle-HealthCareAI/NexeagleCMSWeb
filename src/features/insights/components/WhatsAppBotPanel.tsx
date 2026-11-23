@@ -53,30 +53,30 @@ function Ranked({ title, rows, empty, icon }: { title: string; rows: NamedCount[
     );
 }
 
-/** The whole conversation, as the bot recorded it. */
-function ChatDialog({ person, onClose }: { person: WhatsAppPerson; onClose: () => void }) {
+/** The whole conversation, as the bot recorded it. Also opened from the searches list. */
+export function ChatDialog({ sessionId, title, subtitle, onClose }: { sessionId: string; title: string; subtitle?: string; onClose: () => void }) {
     const [chat, setChat] = useState<WhatsAppTranscript | null>(null);
     const [error, setError] = useState('');
     const closeRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         let alive = true;
-        channelInsights.whatsAppTranscript(person.sessionId)
+        channelInsights.whatsAppTranscript(sessionId)
             .then(t => { if (alive) setChat(t); })
             .catch(() => { if (alive) setError('Could not load this conversation.'); });
         closeRef.current?.focus();
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
         document.addEventListener('keydown', onKey);
         return () => { alive = false; document.removeEventListener('keydown', onKey); };
-    }, [person.sessionId, onClose]);
+    }, [sessionId, onClose]);
 
     return (
         <div className="insights-dialog-backdrop" onMouseDown={onClose}>
-            <div className="insights-dialog" role="dialog" aria-modal="true" aria-label={`Conversation with ${person.phone}`} onMouseDown={e => e.stopPropagation()}>
+            <div className="insights-dialog" role="dialog" aria-modal="true" aria-label={`Conversation with ${title}`} onMouseDown={e => e.stopPropagation()}>
                 <header>
                     <div>
-                        <h3>{person.phone}</h3>
-                        <p>{istTime(person.startedAt)} · {person.sourceLabel}</p>
+                        <h3>{title}</h3>
+                        {subtitle && <p>{subtitle}</p>}
                     </div>
                     <button ref={closeRef} type="button" className="insights-icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button>
                 </header>
@@ -364,7 +364,7 @@ export const WhatsAppBotPanel: React.FC = () => {
                 </>
             )}
 
-            {open && <ChatDialog person={open} onClose={closeChat} />}
+            {open && <ChatDialog sessionId={open.sessionId} title={open.phone} subtitle={`${istTime(open.startedAt)} · ${open.sourceLabel}`} onClose={closeChat} />}
         </div>
     );
 };

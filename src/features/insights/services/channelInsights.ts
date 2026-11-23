@@ -103,6 +103,86 @@ export interface DoctorDekhoDailyRow {
 
 export interface DoctorDekhoDailyStats { from: string; to: string; totals: DoctorDekhoDailyRow; days: DoctorDekhoDailyRow[] }
 
+// ── What people searched for, on Doctor Dekho and WhatsApp ──────────────────────────────────────
+
+export type SearchKind = 'symptom' | 'doctor' | 'specialty' | 'hospital' | 'other';
+export type SearchChannel = 'all' | 'doctordekho' | 'whatsapp';
+
+export interface SearchKindRow {
+    kind: SearchKind;
+    label: string;
+    doctorDekho: number;
+    whatsApp: number;
+    total: number;
+    /** Searches by someone who went on to book in the same visit / conversation. */
+    ledToBooking: number;
+    /** Doctor Dekho: no doctors shown; WhatsApp: the bot asked again. */
+    foundNothing: number;
+}
+
+export interface SearchTermRow {
+    term: string;
+    kind: SearchKind;
+    doctorDekho: number;
+    whatsApp: number;
+    total: number;
+    ledToBooking: number;
+    foundNothing: number;
+}
+
+export interface SearchDayRow {
+    date: string;
+    doctorDekho: number;
+    whatsApp: number;
+    symptom: number;
+    doctorName: number;
+    specialty: number;
+    hospital: number;
+    other: number;
+}
+
+export interface SearchInsights {
+    from: string;
+    to: string;
+    searches: number;
+    people: number;
+    ledToBooking: number;
+    foundNothing: number;
+    kinds: SearchKindRow[];
+    days: SearchDayRow[];
+    topTerms: SearchTermRow[];
+    specialties: SearchTermRow[];
+    nothingFound: SearchTermRow[];
+    whatsAppAvailable: boolean;
+    whatsAppProblem: string | null;
+}
+
+export interface SearchListRow {
+    at: string;
+    channel: 'doctordekho' | 'whatsapp';
+    kind: SearchKind;
+    kindLabel: string;
+    text: string | null;
+    specialty: string | null;
+    results: number | null;
+    found: boolean | null;
+    booked: boolean;
+    city: string | null;
+    /** WhatsApp only; masked without the contacts permission. */
+    phone: string | null;
+    sessionId: string | null;
+}
+
+export interface SearchListQuery {
+    from?: string;
+    to?: string;
+    channel?: SearchChannel;
+    kind?: SearchKind | 'all' | 'nothing' | 'booked';
+    search?: string;
+    page?: number;
+    limit?: number;
+}
+
 const range = (from?: string, to?: string) => ({ ...(from ? { from } : {}), ...(to ? { to } : {}) });
 
 export const channelInsights = {
@@ -118,6 +198,12 @@ export const channelInsights = {
         (await api.get<WhatsAppTranscript>(`${API_ENDPOINTS.INSIGHTS.WHATSAPP_PEOPLE}/${encodeURIComponent(sessionId)}`)).data,
     doctorDekhoDaily: async (from?: string, to?: string) =>
         (await api.get<DoctorDekhoDailyStats>(API_ENDPOINTS.INSIGHTS.DOCTORDEKHO_DAILY, { params: range(from, to) })).data,
+    searchAnalysis: async (from?: string, to?: string, channel: SearchChannel = 'all') =>
+        (await api.get<SearchInsights>(API_ENDPOINTS.INSIGHTS.SEARCH_ANALYSIS, { params: { ...range(from, to), channel } })).data,
+    searchList: async (q: SearchListQuery) =>
+        (await api.get<PagedResponse<SearchListRow>>(`${API_ENDPOINTS.INSIGHTS.SEARCH_ANALYSIS}/list`, {
+            params: { ...range(q.from, q.to), channel: q.channel ?? 'all', kind: q.kind ?? 'all', ...(q.search ? { search: q.search } : {}), page: q.page ?? 1, limit: q.limit ?? 25 },
+        })).data,
 };
 
 /** "Sun 22 Nov" */

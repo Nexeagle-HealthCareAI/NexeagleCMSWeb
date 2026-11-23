@@ -78,6 +78,7 @@ export const API_ENDPOINTS = {
         WHATSAPP_DAILY: '/insights/whatsapp/daily',               // ?from=&to=
         WHATSAPP_PEOPLE: '/insights/whatsapp/people',             // ?from=&to=&outcome=&source=&search=&page=&limit= ; /{sessionId} = the chat
         DOCTORDEKHO_DAILY: '/insights/doctordekho/daily',         // ?from=&to=
+        SEARCH_ANALYSIS: '/insights/search-analysis',             // ?from=&to=&channel= ; /list?kind=&search=&page=&limit=
     },
     MARKETING: {
         DEMO_LOGINS: '/marketing/demo-logins',              // ?page=&limit=
