@@ -74,6 +74,10 @@ export const API_ENDPOINTS = {
         AUTH_FUNNEL_ATTEMPTS: '/insights/auth-funnel/attempts',   // ?page=&limit=&from=&to=&search=
         BOOKING_FUNNEL: '/insights/booking-funnel',               // ?from=&to=
         SEARCHES: '/insights/searches',                           // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=
+        WEEKLY_GROWTH: '/insights/growth/weekly',                 // ?weeks=
+        WHATSAPP_DAILY: '/insights/whatsapp/daily',               // ?from=&to=
+        WHATSAPP_PEOPLE: '/insights/whatsapp/people',             // ?from=&to=&outcome=&source=&search=&page=&limit= ; /{sessionId} = the chat
+        DOCTORDEKHO_DAILY: '/insights/doctordekho/daily',         // ?from=&to=
     },
     MARKETING: {
         DEMO_LOGINS: '/marketing/demo-logins',              // ?page=&limit=
