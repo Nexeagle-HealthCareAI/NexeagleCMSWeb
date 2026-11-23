@@ -14,7 +14,6 @@ import RadCentreDetails from './features/radCenters/pages/RadCentreDetails';
 import DoctorsPage from './features/doctors/pages/DoctorsPage';
 import SettingsPage from './features/settings/pages/Settings';
 import LiveSupport from './features/support/pages/LiveSupport';
-import PartnersPage from './features/partners/pages/PartnersPage';
 import DataMigrationPage from './features/dataMigration/pages/DataMigrationPage';
 import NewMigrationWizard from './features/dataMigration/pages/NewMigrationWizard';
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
@@ -122,7 +121,11 @@ function App() {
             <Route path="rad-centers" element={<RequirePermission perm="dashboard.view"><RadCentersPage /></RequirePermission>} />
             <Route path="rad-centers/:id" element={<RequirePermission perm="dashboard.view"><RadCentreDetails /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
-            <Route path="partners" element={<RequirePermission perm="partners.manage"><PartnersPage /></RequirePermission>} />
+            {/* Partners, Leads & CRM and Social posts were taken out of the CMS (November 2026).
+                Old links and bookmarks land on Today instead of an empty page. */}
+            <Route path="partners" element={<Navigate to="/" replace />} />
+            <Route path="leads" element={<Navigate to="/" replace />} />
+            <Route path="social" element={<Navigate to="/" replace />} />
             <Route path="data-migration" element={<RequirePermission perm="data-migration.manage"><DataMigrationPage /></RequirePermission>} />
             <Route path="data-migration/new" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
             <Route path="data-migration/:id" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
@@ -145,11 +148,9 @@ function App() {
             <Route path="health-wiki/topics/:id" element={<RequireHealthWiki><TopicRequestDetailPage /></RequireHealthWiki>} />
             <Route path="health-wiki/new" element={<RequireHealthWiki><ArticleEditorPage key="new" /></RequireHealthWiki>} />
             <Route path="health-wiki/:slug" element={<RequireHealthWiki><ArticleEditorPage key="edit" /></RequireHealthWiki>} />
-            {/* Growth: Marketing's tabs are three menu items. */}
-            <Route path="leads" element={<RequirePermission perm="marketing.view"><MarketingPage key="leads" section="leads" /></RequirePermission>} />
-            <Route path="social" element={<RequirePermission perm="marketing.view"><MarketingPage key="social" section="social" /></RequirePermission>} />
+            {/* What is left of Marketing: the demo logins log. */}
             <Route path="demo-logins" element={<RequirePermission perm="marketing.view"><MarketingPage key="demo" section="demo" /></RequirePermission>} />
-            <Route path="marketing" element={<Navigate to="/leads" replace />} />
+            <Route path="marketing" element={<Navigate to="/demo-logins" replace />} />
             <Route path="vita-agents" element={<RequirePermission perm="dashboard.view"><VitaAgentsPage /></RequirePermission>} />
             <Route path="vita" element={<RequirePermission perm="vita.view"><VitaLayout /></RequirePermission>}>
               <Route index element={<VitaOverviewPage />} />

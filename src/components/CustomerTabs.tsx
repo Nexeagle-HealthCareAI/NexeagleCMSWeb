@@ -5,8 +5,8 @@ import { visibleGroups } from './nav/navConfig';
 
 /**
  * The tab strip on top of every Customers page (1HMS hospitals, 1Rad centres,
- * doctors, partners), so moving between products is one tap and the four lists
- * read as one place. Tabs follow the same permissions as the menu.
+ * doctors), so moving between products is one tap and the lists read as one
+ * place. Tabs follow the same permissions as the menu.
  */
 const CustomerTabs: React.FC = () => {
     const permissions = useAuthStore(s => s.permissions) || [];
