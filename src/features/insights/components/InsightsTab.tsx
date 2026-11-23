@@ -1,26 +1,38 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SiteVisitsPanel } from './SiteVisitsPanel';
 import { PatientLoginsPanel } from './PatientLoginsPanel';
 import { OnlineAppointmentsPanel } from './OnlineAppointmentsPanel';
-import { AuthFunnelPanel } from './AuthFunnelPanel';
-import { BookingFunnelPanel } from './BookingFunnelPanel';
-import { SearchLogPanel } from './SearchLogPanel';
-import { BarChart3, Users, CalendarDays, KeyRound, Filter, Search } from 'lucide-react';
+import { WeeklyGrowthPanel } from './WeeklyGrowthPanel';
+import { WhatsAppBotPanel } from './WhatsAppBotPanel';
+import { DoctorDekhoDailyPanel } from './DoctorDekhoDailyPanel';
+import { SearchKindsPanel } from './SearchKindsPanel';
+import { BarChart3, Users, CalendarDays, TrendingUp, MessageCircle, Stethoscope, TextSearch } from 'lucide-react';
 import '../../dashboard/pages/PremiumHospitals.css';
 import './Insights.css';
 
-type InsightsSubTab = 'visits' | 'logins' | 'appointments' | 'authFunnel' | 'bookingFunnel' | 'searches';
+type InsightsSubTab = 'growth' | 'whatsapp' | 'doctordekho' | 'searchKinds' | 'visits' | 'logins' | 'appointments';
+const SUB_TABS: InsightsSubTab[] = ['growth', 'whatsapp', 'doctordekho', 'searchKinds', 'visits', 'logins', 'appointments'];
 
 export const InsightsTab: React.FC = () => {
-    const [activeSubTab, setActiveSubTab] = useState<InsightsSubTab>('visits');
+    // The open tab is in the address (?tab=), so a link or a reload lands on it.
+    const [params, setParams] = useSearchParams();
+    const asked = params.get('tab') as InsightsSubTab | null;
+    const activeSubTab: InsightsSubTab = asked && SUB_TABS.includes(asked) ? asked : 'growth';
+    const setActiveSubTab = (tab: InsightsSubTab) => {
+        const next = new URLSearchParams(params);
+        next.set('tab', tab);
+        setParams(next, { replace: true });
+    };
 
     const tabs: { key: InsightsSubTab; label: string; icon: React.ReactNode }[] = [
+        { key: 'growth', label: 'Weekly growth', icon: <TrendingUp size={16} /> },
+        { key: 'whatsapp', label: 'WhatsApp bot', icon: <MessageCircle size={16} /> },
+        { key: 'doctordekho', label: 'Doctor Dekho daily', icon: <Stethoscope size={16} /> },
+        { key: 'searchKinds', label: 'What people search', icon: <TextSearch size={16} /> },
         { key: 'visits', label: 'Site Visits', icon: <BarChart3 size={16} /> },
         { key: 'logins', label: 'Patient Logins', icon: <Users size={16} /> },
         { key: 'appointments', label: 'Appointments', icon: <CalendarDays size={16} /> },
-        { key: 'authFunnel', label: 'Auth Funnel', icon: <KeyRound size={16} /> },
-        { key: 'bookingFunnel', label: 'Booking Funnel', icon: <Filter size={16} /> },
-        { key: 'searches', label: 'All Searches', icon: <Search size={16} /> },
     ];
 
     return (
@@ -29,6 +41,7 @@ export const InsightsTab: React.FC = () => {
                 {tabs.map(t => (
                     <button
                         key={t.key}
+                        aria-pressed={activeSubTab === t.key}
                         className={`insights-subtab-btn ${activeSubTab === t.key ? 'active' : ''}`}
                         onClick={() => setActiveSubTab(t.key)}
                     >
@@ -39,12 +52,13 @@ export const InsightsTab: React.FC = () => {
             </div>
 
             <div className="insights-panel-animated" key={activeSubTab}>
+                {activeSubTab === 'growth' && <WeeklyGrowthPanel />}
+                {activeSubTab === 'whatsapp' && <WhatsAppBotPanel />}
+                {activeSubTab === 'doctordekho' && <DoctorDekhoDailyPanel />}
+                {activeSubTab === 'searchKinds' && <SearchKindsPanel />}
                 {activeSubTab === 'visits' && <SiteVisitsPanel />}
                 {activeSubTab === 'logins' && <PatientLoginsPanel />}
                 {activeSubTab === 'appointments' && <OnlineAppointmentsPanel />}
-                {activeSubTab === 'authFunnel' && <AuthFunnelPanel />}
-                {activeSubTab === 'bookingFunnel' && <BookingFunnelPanel />}
-                {activeSubTab === 'searches' && <SearchLogPanel />}
             </div>
         </div>
     );
