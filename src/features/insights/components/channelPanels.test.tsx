@@ -13,6 +13,8 @@ const api = vi.hoisted(() => ({
     doctorDekhoDaily: vi.fn(),
     searchAnalysis: vi.fn(),
     searchList: vi.fn(),
+    appointmentTrend: vi.fn(),
+    appointmentList: vi.fn(),
 }));
 vi.mock('../services/channelInsights', async (original) => ({ ...(await original<object>()), channelInsights: api }));
 vi.mock('recharts', async (original) => {
@@ -88,6 +90,26 @@ beforeEach(() => {
         pagination: { currentPage: 1, totalPages: 1, totalItems: 2, itemsPerPage: 25 },
     });
 });
+beforeEach(() => {
+    const period = (start: string, dd: number, wa: number, desk: number, partial = false) =>
+        ({ start, doctorDekho: dd, whatsApp: wa, hospitalDesk: desk, online: dd + wa, total: dd + wa + desk, cancelled: 1, isPartial: partial });
+    api.appointmentTrend.mockResolvedValue({
+        from: '2026-11-17', to: '2026-11-23', groupBy: 'day', dateBy: 'booked',
+        totals: { ...period('total', 12, 8, 30), cancelled: 3 },
+        periods: [period('2026-11-22', 7, 5, 18), period('2026-11-23', 5, 3, 12, true)],
+        topDoctors: [{ id: 'd1', name: 'Dr Mehta', hospital: 'City Care', doctorDekho: 6, whatsApp: 4, hospitalDesk: 10, online: 10, total: 20 }],
+        topHospitals: [{ id: 'h1', name: 'City Care', hospital: null, doctorDekho: 9, whatsApp: 6, hospitalDesk: 20, online: 15, total: 35 }],
+        hospitals: [{ id: 'h1', name: 'City Care', hospitalId: null }, { id: 'h2', name: 'Max Clinic', hospitalId: null }],
+        doctors: [{ id: 'd1', name: 'Dr Mehta', hospitalId: 'h1' }, { id: 'd2', name: 'Dr Rao', hospitalId: 'h2' }],
+    });
+    api.appointmentList.mockResolvedValue({
+        data: [
+            { apptId: 'a1', bookedAt: '2026-11-23T05:00:00Z', apptDate: '2026-11-25', channel: 'whatsapp', channelLabel: 'WhatsApp bot', status: 'Upcoming', statusCode: 'FUTURE', patientName: 'Asha Rao', patientMobile: '98XXXXXX11', doctorName: 'Dr Mehta', hospitalName: 'City Care', loggedIn: false },
+            { apptId: 'a2', bookedAt: '2026-11-23T04:00:00Z', apptDate: '2026-11-23', channel: 'hospital', channelLabel: 'Hospital desk', status: 'Cancelled', statusCode: 'CANCELLED', patientName: 'Bilal', patientMobile: null, doctorName: 'Dr Rao', hospitalName: 'Max Clinic', loggedIn: false },
+        ],
+        pagination: { currentPage: 1, totalPages: 1, totalItems: 2, itemsPerPage: 25 },
+    });
+});
 afterEach(() => vi.clearAllMocks());
 
 describe('Weekly growth', () => {
@@ -113,6 +135,59 @@ describe('Weekly growth', () => {
         await screen.findByRole('img', { name: /per week/ });
         await userEvent.setup().click(screen.getByRole('button', { name: '26 weeks' }));
         await waitFor(() => expect(api.weeklyGrowth).toHaveBeenLastCalledWith(26));
+    });
+});
+
+describe('Weekly growth: a chosen range', () => {
+    it('asks for the weeks between two dates', async () => {
+        const user = userEvent.setup();
+        open('growth');
+        await screen.findByRole('img', { name: /per week/ });
+        await user.click(screen.getByRole('button', { name: 'Custom' }));
+        const from = screen.getByLabelText('From');
+        await user.clear(from);
+        await user.type(from, '2026-01-05');
+        await waitFor(() => expect(api.weeklyGrowth).toHaveBeenLastCalledWith(0, '2026-01-05', expect.any(String)));
+    });
+});
+
+describe('Appointments', () => {
+    it('shows every appointment by channel, with the chart and the top doctors', async () => {
+        open('appointments');
+        expect(await screen.findByRole('img', { name: /Appointments each day by where they came from/ })).toBeInTheDocument();
+        expect(screen.getByText('Through NexEagle online · 40% of all').previousSibling).toHaveTextContent('20');
+        expect(within(screen.getByRole('table', { name: 'Doctors with the most online bookings' })).getByText('Dr Mehta')).toBeInTheDocument();
+        const list = await screen.findByRole('table', { name: 'The appointments' });
+        expect(within(list).getByText('WhatsApp bot')).toBeInTheDocument();
+        expect(within(list).getByText('Hospital desk')).toBeInTheDocument();
+        expect(within(list).getByText('Cancelled')).toBeInTheDocument();
+        expect(api.appointmentTrend).toHaveBeenCalledWith(expect.objectContaining({ channel: 'all', dateBy: 'booked' }));
+    });
+
+    it('narrows to one doctor and shows a clean view without patient details', async () => {
+        const user = userEvent.setup();
+        open('appointments');
+        await screen.findByRole('img', { name: /Appointments each/ });
+        await user.selectOptions(screen.getByRole('combobox', { name: 'Hospital' }), 'h1');
+        expect(within(screen.getByRole('combobox', { name: 'Doctor' })).queryByText('Dr Rao')).not.toBeInTheDocument();
+        await user.selectOptions(screen.getByRole('combobox', { name: 'Doctor' }), 'd1');
+        await waitFor(() => expect(api.appointmentTrend).toHaveBeenLastCalledWith(expect.objectContaining({ hospitalId: 'h1', doctorId: 'd1' })));
+        await waitFor(() => expect(api.appointmentList).toHaveBeenLastCalledWith(expect.objectContaining({ doctorId: 'd1', page: 1 })));
+
+        await user.click(screen.getByRole('button', { name: /Show to a doctor/ }));
+        expect(await screen.findByRole('heading', { name: '20 appointments came through NexEagle' })).toBeInTheDocument();
+        expect(screen.getByText(/Dr Mehta ·/)).toBeInTheDocument();
+        expect(screen.queryByText('Asha Rao')).not.toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: /Close/ }));
+        expect(await screen.findByRole('table', { name: 'The appointments' })).toBeInTheDocument();
+    });
+
+    it('can show only the NexEagle online bookings', async () => {
+        const user = userEvent.setup();
+        open('appointments');
+        await screen.findByRole('img', { name: /Appointments each/ });
+        await user.click(within(screen.getByRole('group', { name: 'Came through' })).getByRole('button', { name: 'NexEagle online' }));
+        await waitFor(() => expect(api.appointmentTrend).toHaveBeenLastCalledWith(expect.objectContaining({ channel: 'online' })));
     });
 });
 

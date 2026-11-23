@@ -376,3 +376,14 @@ td.insights-bad { color: #b91c1c; font-weight: 600; }
 .insights-search-panel .insights-badge { white-space: nowrap; }
 .insights-details { margin-bottom: 20px; }
 .insights-details > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #334155; padding: 6px 0 10px; }
+
+/* Appointments: the bar above the figures, and the view to show a doctor */
+.insights-present-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; font-size: 13px; color: #475569; }
+.insights-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #334155; }
+.insights-present { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; }
+.insights-present-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.insights-present-head h2 { font-size: 26px; font-weight: 800; color: #0f172a; margin: 4px 0 6px; letter-spacing: -0.01em; }
+.insights-present-kicker { font-size: 13px; font-weight: 600; color: #64748b; margin: 0; }
+.insights-present-sub { font-size: 15px; color: #334155; margin: 0; }
+.insights-present-chart .insights-growth-chart { height: 380px; }
+@media (max-width: 640px) { .insights-present { padding: 16px; } .insights-present-head h2 { font-size: 20px; } .insights-present-chart .insights-growth-chart { height: 280px; } }

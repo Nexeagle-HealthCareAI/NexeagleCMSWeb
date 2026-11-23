@@ -69,11 +69,12 @@ export const API_ENDPOINTS = {
     INSIGHTS: {
         SITE_VISITS: '/insights/site-visits',         // ?from=&to=&site=
         PATIENT_LOGINS: '/insights/patient-logins',   // ?page=&limit=&search=&sortBy=&sortDir=
-        APPOINTMENTS: '/insights/appointments',       // ?page=&limit=&from=&to=&search=&sortBy=&sortDir=&source=
         WEEKLY_GROWTH: '/insights/growth/weekly',                 // ?weeks=
         WHATSAPP_DAILY: '/insights/whatsapp/daily',               // ?from=&to=
         WHATSAPP_PEOPLE: '/insights/whatsapp/people',             // ?from=&to=&outcome=&source=&search=&page=&limit= ; /{sessionId} = the chat
         DOCTORDEKHO_DAILY: '/insights/doctordekho/daily',         // ?from=&to=
+        APPOINTMENT_TREND: '/insights/appointments/trend',       // ?from=&to=&dateBy=&groupBy=&channel=&hospitalId=&doctorId=
+        APPOINTMENT_LIST: '/insights/appointments/all',          // the same + search=&includeCancelled=&page=&limit=
         SEARCH_ANALYSIS: '/insights/search-analysis',             // ?from=&to=&channel= ; /list?kind=&search=&page=&limit=
     },
     MARKETING: {
