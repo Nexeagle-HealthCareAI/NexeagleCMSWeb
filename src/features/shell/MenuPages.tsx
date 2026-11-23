@@ -39,7 +39,7 @@ export const ReferralCodesPage: React.FC = () => (
 
 export const InsightsPage: React.FC = () => (
     <div className="ne-page">
-        <PageHead title="Patient app insights" sub="Doctor Dekho visits, sign-ins, bookings and searches." />
+        <PageHead title="Patient app insights" sub="Doctor Dekho, the WhatsApp bot and nexeagle.com: visits, searches, bookings and sign-ins." />
         <InsightsTab />
     </div>
 );
