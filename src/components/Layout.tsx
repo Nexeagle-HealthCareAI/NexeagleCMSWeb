@@ -8,11 +8,8 @@ import { visibleGroups, isItemActive, groupOfPath, allItems } from './nav/navCon
 import { useSupportStore } from '../store/useSupportStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCountsStore } from '../store/useCountsStore';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 import { syncManager } from '../utils/syncManager';
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { CRM_HUB_URL } from '../services/api';
-import type { SalesLeadDetail } from '../features/marketing/services/salesLeadService';
 import './Layout.css';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -155,47 +152,8 @@ const Layout: React.FC = () => {
     // Refresh the current user's permissions on app load so route/menu gating stays current.
     useEffect(() => { void useAuthStore.getState().fetchMe(); }, []);
 
-    // SignalR for CRM alerts. The hub requires a JWT with marketing.view (it pushes lead phone
-    // numbers), so only connect for users who have it. Event names must match CrmHub.cs.
-    const canSeeMarketing = permissions.includes('marketing.view');
-    useEffect(() => {
-        if (!canSeeMarketing) return;
-        const playBeep = () => {
-            try {
-                const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-                const ctx = new Ctx();
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, ctx.currentTime);
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.2);
-            } catch (e) {
-                console.error('Audio beep failed', e);
-            }
-        };
-        const connection = new HubConnectionBuilder()
-            .withUrl(CRM_HUB_URL, { accessTokenFactory: () => useAuthStore.getState().token ?? '' })
-            .configureLogging(LogLevel.Warning)
-            .withAutomaticReconnect()
-            .build();
-        connection.on('crm-hot-lead-received', (lead: SalesLeadDetail) => {
-            playBeep();
-            toast.success(`Hot lead: ${lead.hospitalName} (${lead.aiIntentScore}/100)`, {
-                description: `Phone: ${lead.mobile ?? '-'} | City: ${lead.city ?? '-'}`,
-                duration: 10000,
-            });
-            window.dispatchEvent(new CustomEvent('crm-hot-lead-received', { detail: lead }));
-        });
-        connection.on('crm-inbound-whatsapp', (msg: { leadId: string; message: string }) => {
-            window.dispatchEvent(new CustomEvent('crm-inbound-whatsapp', { detail: msg }));
-        });
-        connection.start().catch(err => console.error('SignalR CRM connection failed:', err));
-        return () => { connection.stop(); };
-    }, [canSeeMarketing]);
+    // Hot-lead alerts used to be raised here. They went with the Leads & CRM page (November 2026):
+    // an alert about a lead nobody can open in the CMS only interrupts.
 
     const groups = visibleGroups(permissions);
     const items = allItems(permissions);
@@ -207,7 +165,7 @@ const Layout: React.FC = () => {
     const tabs = [
         { key: 'today', label: 'Today', to: '/', icon: Home, count: badges.today, on: location.pathname === '/' },
         firstCustomers && { key: 'customers', label: 'Customers', to: firstCustomers.to, icon: Building2, count: 0, on: currentGroup === 'customers' },
-        canSeeMoney && { key: 'money', label: 'Money', to: '/approvals', icon: CreditCard, count: badges.approvals, on: currentGroup === 'money' },
+        canSeeMoney && { key: 'money', label: 'Billing', to: '/approvals', icon: CreditCard, count: badges.approvals, on: currentGroup === 'money' },
         isSupportAgent && { key: 'chat', label: 'Chat', to: '/support', icon: MessageSquare, count: badges.chat, on: currentGroup === 'support' },
     ].filter(Boolean) as { key: string; label: string; to: string; icon: typeof Home; count: number; on: boolean }[];
     const menuTabOn = sheetOpen || (!tabs.some(t => t.on));

@@ -31,10 +31,25 @@
 }
 .ne-side-toggle:hover { background: #1F2A40; }
 
-.ne-side-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 6px; scrollbar-width: thin; scrollbar-color: #263248 transparent; }
+.ne-side-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 2px; scrollbar-width: thin; scrollbar-color: #263248 transparent; }
 .ne-side-group { display: flex; flex-direction: column; gap: 2px; }
 .ne-side-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--side-muted); padding: 8px 10px 3px; }
 .ne-side-rule { height: 1px; margin: 6px 8px; background: #1E293B; }
+.ne-side-items { display: flex; flex-direction: column; gap: 2px; }
+.ne-side-items[hidden] { display: none; }
+/* A group heading that folds its pages away. */
+.ne-side-label.is-button {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 28px; padding-top: 4px; padding-bottom: 4px; box-sizing: border-box;
+  border: none; border-radius: 8px; background: none; cursor: pointer; text-align: left; font-family: inherit;
+}
+.ne-side-label.is-button > span:first-child { flex: 1 1 auto; }
+.ne-side-label.is-button:hover:not(:disabled) { background: #172033; color: #E2E8F0; }
+.ne-side-label.is-button:focus-visible { outline: 2px solid #A5B4FC; outline-offset: -2px; }
+.ne-side-label.is-button:disabled { cursor: default; }
+.ne-side-chevron { flex: 0 0 auto; transition: transform .15s ease; transform: rotate(-90deg); }
+.ne-side-label.is-open .ne-side-chevron { transform: rotate(0deg); }
+@media (prefers-reduced-motion: reduce) { .ne-side-chevron { transition: none; } }
+
 
 .ne-side-item {
   display: flex; align-items: center; gap: 10px;
