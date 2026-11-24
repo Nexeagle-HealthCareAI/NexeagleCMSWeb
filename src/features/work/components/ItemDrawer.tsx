@@ -421,7 +421,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
             {linksDocs && <button type="button" className="wk-link" onClick={() => setPicking(true)}><Link2 size={14} aria-hidden="true" /> Link a document</button>}
           </div>
           {linked.length === 0 ? <p className="wk-muted">No documents linked.</p> : (
-            <ul className="wk-doclinks">
+            <ul className="wk-doclinks" aria-label="Linked documents">
               {linked.map(d => (
                 <li key={d.documentId}>
                   <button type="button" className="wk-doclink" onClick={() => navigate(`/work?tab=docs&doc=${encodeURIComponent(d.documentId)}`)} title={d.path.length > 0 ? d.path.join(' › ') : 'Top level'}>
