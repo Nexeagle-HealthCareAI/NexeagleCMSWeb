@@ -165,6 +165,25 @@ export interface WorkComment {
   authorName: string;
   body: string;
   createdAt: string;
+  /** People tagged (@Name) in it. */
+  mentionUserIds: string[];
+}
+
+/** Someone tagged you in a work item. */
+export interface WorkItemMentionNote {
+  notificationId: string;
+  kind: 'Mention';
+  /** Where in the item. */
+  place: 'comment' | 'description' | 'blocked';
+  workItemId: string;
+  projectId: string;
+  itemKey: string;
+  itemTitle: string;
+  commentId: string | null;
+  actorName: string;
+  text: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 export interface WorkHistoryEntry {
@@ -196,6 +215,8 @@ export interface CreateItemPayload {
   labels?: string[];
   startDate?: string | null;
   dueDate?: string | null;
+  /** People tagged (@Name) in the description. */
+  mentionUserIds?: string[];
 }
 
 /** The full editable state. A null clears the field; nothing is "left as it was". */
@@ -213,4 +234,8 @@ export interface UpdateItemPayload {
   dueDate: string | null;
   isBlocked: boolean;
   blockedReason: string | null;
+  /** People tagged in the description; left out, the tags stay as they are. */
+  descriptionMentionUserIds?: string[];
+  /** People tagged in what is blocking it; left out, the tags stay as they are. */
+  blockedMentionUserIds?: string[];
 }

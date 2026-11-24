@@ -385,3 +385,13 @@ html.wk-veiled #root { filter: blur(18px); }
   .wk-chat-side { max-height: 220px; }
   .wk-chat-main { height: 70vh; }
 }
+
+/* Tagging (@Name) in work items: comments, description, what is blocking it */
+.wk-mention { position: relative; flex: 1; min-width: 0; }
+.wk-mention textarea, .wk-mention input { width: 100%; }
+.wk-mention-suggest { bottom: calc(100% + 6px); }
+.wk-editor-suggest { position: fixed; bottom: auto; z-index: 2100; }
+.wk-editor-hint { margin-left: auto; align-self: center; padding-right: 6px; font-size: 12px; color: var(--ink-3); }
+.wk-tag, .wk-comment-body mark, .wk-blocked mark { background: #E0E7FF; color: #3730A3; border-radius: 6px; padding: 0 3px; font-weight: 600; }
+.wk-comments li.is-for-me { background: #FFFAEB; border-radius: 12px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+.wk-comment-hint { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-3); }

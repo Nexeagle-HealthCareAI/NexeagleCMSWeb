@@ -1,5 +1,5 @@
 import type {
-  AccessAction, ChatChannel, ChatMessage, ChatState, SendMessagePayload, WorkNotification, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
+  AccessAction, ChatChannel, ChatMessage, ChatState, SendMessagePayload, WorkNotification, WorkItemMentionNote, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, ItemType, StatusCategory, UpdateItemPayload, WorkComment, WorkHistoryEntry, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser,
 } from '../types';
 import { allowedParentTypes, parentRequired } from '../workMeta';
 
@@ -35,6 +35,8 @@ const channels: StoredChannel[] = [];
 const messages: ChatMessage[] = [];
 const readAt: Record<string, string> = {};
 const notes: WorkNotification[] = [];
+/** Where a teammate tagged me in a work item (the example has one, below). */
+const itemNotes: WorkItemMentionNote[] = [];
 const boardChannel = (projectId: string): StoredChannel => {
   let c = channels.find(x => x.kind === 'Board' && x.projectId === projectId);
   if (!c) { c = { channelId: id('ch'), kind: 'Board', name: '', projectId, memberUserIds: [] }; channels.push(c); }
@@ -139,7 +141,7 @@ function add(projectId: string, itemType: ItemType, title: string, extra: Partia
   const radEpic = add('p-rad', 'Epic', 'Report drafting with Vita', { assigneeUserId: 'u-2' });
   add('p-rad', 'Story', 'Radiologist signs a drafted chest X-ray report', { parentId: radEpic.workItemId, storyPoints: 8 });
   add('p-web', 'Task', 'Add customer stories to the customers page', { priority: 'Low' });
-  comments[story.workItemId] = [{ commentId: id('c'), authorUserId: 'u-2', authorName: 'Asha Rao', body: 'Design is in the Docs tab.', createdAt: new Date().toISOString() }];
+  comments[story.workItemId] = [{ commentId: id('c'), authorUserId: 'u-2', authorName: 'Asha Rao', body: 'Design is in the Docs tab.', createdAt: new Date().toISOString(), mentionUserIds: [] }];
 })();
 
 const live = () => items.filter(i => !i.deleted);
@@ -433,12 +435,25 @@ export const mockWork = {
     item.deleted = true;
     await wait(undefined);
   },
-  addComment: async (itemId: string, body: string) => {
+  addComment: async (itemId: string, body: string, mentionUserIds: string[] = []) => {
     find(itemId);
     if (!body.trim()) throw fail(400, 'Write a comment first.');
-    const comment: WorkComment = { commentId: id('c'), authorUserId: ME, authorName: nameOf(ME) || 'Someone', body: body.trim(), createdAt: new Date().toISOString() };
+    // As the API: only people whose @Name is in the text, never yourself.
+    const tagged = mentionUserIds.filter(u => u !== ME && body.includes(`@${nameOf(u)}`));
+    const comment: WorkComment = { commentId: id('c'), authorUserId: ME, authorName: nameOf(ME) || 'Someone', body: body.trim(), createdAt: new Date().toISOString(), mentionUserIds: tagged };
     (comments[itemId] ||= []).push(comment);
     return wait(comment);
+  },
+  taggable: async (itemId: string) => {
+    const item = find(itemId);
+    const project = projects.find(p => p.projectId === item.projectId);
+    const ids = project?.isRestricted ? members[item.projectId] || [] : users.map(u => u.userId);
+    return wait(ids.filter(u => u !== ME));
+  },
+  itemMentions: async (): Promise<WorkItemMentionNote[]> => wait(itemNotes.map(n => ({ ...n }))),
+  readItemMentions: async (notificationIds: string[] = []) => {
+    for (const n of itemNotes) if (notificationIds.length === 0 || notificationIds.includes(n.notificationId)) n.isRead = true;
+    await wait(undefined);
   },
   deleteComment: async (commentId: string) => {
     for (const key of Object.keys(comments)) comments[key] = comments[key].filter(c => c.commentId !== commentId);
@@ -454,4 +469,19 @@ export const mockWork = {
   post(hms, 'u-2', { body: 'Morning all. The billing demo is on Friday at 3 pm.', isImportant: true }, ago(180));
   post(hms, 'u-3', { body: 'Noted. I will have the tax line fixed by Thursday.' }, ago(170));
   post(hms, 'u-2', { body: `@${nameOf(ME)} can you look at this one before stand-up?`, mentionUserIds: [ME], workItemId: story?.workItemId }, ago(12));
+}
+
+// A teammate tagged me in a comment on the story, so the bell shows a work item tag.
+{
+  const story = items.find(i => i.itemType === 'Story');
+  if (story) {
+    const body = `@${nameOf(ME)} the GST line is still wrong on the printed bill, can you check?`;
+    const at = new Date(Date.now() - 30 * 60_000).toISOString();
+    const comment: WorkComment = { commentId: id('c'), authorUserId: 'u-3', authorName: nameOf('u-3') || 'Someone', body, createdAt: at, mentionUserIds: [ME] };
+    (comments[story.workItemId] ||= []).push(comment);
+    itemNotes.push({
+      notificationId: id('n'), kind: 'Mention', place: 'comment', workItemId: story.workItemId, projectId: story.projectId, itemKey: story.key,
+      itemTitle: story.title, commentId: comment.commentId, actorName: comment.authorName, text: body, isRead: false, createdAt: at,
+    });
+  }
 }

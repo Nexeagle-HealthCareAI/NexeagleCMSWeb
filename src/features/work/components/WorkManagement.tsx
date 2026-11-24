@@ -110,7 +110,8 @@ export default function WorkManagement() {
     setParams(prev => { const next = new URLSearchParams(prev); next.delete('item'); return next; });
   }, [setParams]);
 
-  const chooseProject = (id: string) => {
+  /** Shows another board; with keepItem the open item stays open (it is on that board). */
+  const chooseProject = (id: string, keepItem = false) => {
     if (id === projectId) return;
     remember(id);
     setItems([]);
@@ -118,7 +119,7 @@ export default function WorkManagement() {
     setProjectId(id);
     setCollapsed(new Set());
     setStatus('');
-    closeItem();
+    if (!keepItem) closeItem();
   };
 
   const shown = useMemo(() => {
@@ -317,6 +318,7 @@ export default function WorkManagement() {
         <ItemDrawer
           itemId={openId} items={items} users={users} statuses={statuses} currentUserId={me?.id ?? null} canEdit={canEdit} canDelete={canDelete}
           onClose={closeItem} onChanged={reload} onOpen={openItem}
+          projectId={projectId} onProjectFound={id => { if (projects.some(p => p.projectId === id)) chooseProject(id, true); }}
           onAddChild={parent => setCreating({ parent })}
           onDeleted={() => { closeItem(); reload(); }}
         />
