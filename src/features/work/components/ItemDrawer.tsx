@@ -18,6 +18,7 @@ import ShareItem from './ShareItem';
 import { docsService } from '../docs/docsService';
 import { DocIcon } from '../docs/DocIcon';
 import DocPicker from '../docs/DocPicker';
+import DocAdder, { type AddMode } from '../docs/DocAdder';
 import type { Doc } from '../docs/types';
 
 export type ItemView = 'window' | 'panel';
@@ -74,6 +75,8 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
   const linksDocs = canEdit && canEditDocs(permissions);
   const [linked, setLinked] = useState<Doc[]>([]);
   const [picking, setPicking] = useState(false);
+  const [adding, setAdding] = useState<{ mode: AddMode; files?: File[] } | null>(null);
+  const [dropping, setDropping] = useState(false);
   // People who can be tagged here (@Name), and every name, so tags show in the text.
   const [taggableIds, setTaggableIds] = useState<string[]>([]);
   const taggable = users.filter(u => taggableIds.includes(u.userId));
@@ -415,12 +418,28 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       )}
 
       {seesDocs && (
-        <section className="wk-section" aria-labelledby="wk-doc-h">
+        <section
+          className={`wk-section ${dropping ? 'is-dropping' : ''}`} aria-labelledby="wk-doc-h"
+          // Files dropped here open "Add a document" with them ready to upload.
+          onDragOver={linksDocs ? e => { if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); setDropping(true); } } : undefined}
+          onDragLeave={linksDocs ? e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropping(false); } : undefined}
+          onDrop={linksDocs ? e => {
+            if (!e.dataTransfer.files.length) return;
+            e.preventDefault();
+            setDropping(false);
+            setAdding({ mode: 'upload', files: Array.from(e.dataTransfer.files) });
+          } : undefined}
+        >
           <div className="wk-section-head">
             <h3 id="wk-doc-h">Linked documents{linked.length > 0 && <span className="wk-count">{linked.length}</span>}</h3>
-            {linksDocs && <button type="button" className="wk-link" onClick={() => setPicking(true)}><Link2 size={14} aria-hidden="true" /> Link a document</button>}
+            {linksDocs && (
+              <span className="wk-doc-actions">
+                <button type="button" className="wk-link" onClick={() => setAdding({ mode: 'upload' })}><Plus size={14} aria-hidden="true" /> Add a document</button>
+                <button type="button" className="wk-link" onClick={() => setPicking(true)}><Link2 size={14} aria-hidden="true" /> Link a document</button>
+              </span>
+            )}
           </div>
-          {linked.length === 0 ? <p className="wk-muted">No documents linked.</p> : (
+          {linked.length === 0 ? <p className="wk-muted">{linksDocs ? 'No documents yet. Add one, link one from Docs, or drop files here.' : 'No documents linked.'}</p> : (
             <ul className="wk-doclinks" aria-label="Linked documents">
               {linked.map(d => (
                 <li key={d.documentId}>
@@ -474,6 +493,14 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       </div>
       </div>
 
+      {adding && (
+        <DocAdder
+          workItemId={item.workItemId} itemKey={item.key} itemTitle={item.title} mode={adding.mode} files={adding.files}
+          onClose={() => setAdding(null)}
+          onAdded={doc => setLinked(prev => [...prev.filter(d => d.documentId !== doc.documentId), doc].sort((a, b) => a.name.localeCompare(b.name)))}
+          onOpenPage={documentId => { setAdding(null); navigate(`/work?tab=docs&doc=${encodeURIComponent(documentId)}`); }}
+        />
+      )}
       {picking && <DocPicker alreadyLinked={linked.map(d => d.documentId)} onClose={() => setPicking(false)} onPick={d => void linkDoc(d)} />}
 
       {escalating && (
