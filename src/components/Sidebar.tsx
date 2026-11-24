@@ -4,7 +4,8 @@ import { ChevronDown, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSupportStore } from '../store/useSupportStore';
 import { visibleGroups, isItemActive, FOLDED_BY_DEFAULT, FOLDING_STARTS_AT } from './nav/navConfig';
-import { useBadgeCounts, initialsOf } from './nav/navHelpers';
+import { useBadgeCounts } from './nav/navHelpers';
+import UserAvatar from './UserAvatar';
 import './Sidebar.css';
 
 /** Which groups this person folded or unfolded themselves; everything else follows the defaults. */
@@ -135,13 +136,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
             </nav>
 
             <div className="ne-side-foot">
-                <span className="ne-side-avatar" title={collapsed ? `${user?.name || ''} · ${user?.role || ''}` : undefined}>{initialsOf(user?.name)}</span>
-                {!collapsed && (
-                    <span className="ne-side-who">
-                        <span className="ne-side-name">{user?.name || 'Signed in'}</span>
-                        <span className="ne-side-role">{user?.role || ''}</span>
-                    </span>
-                )}
+                <NavLink to="/profile" className="ne-side-me" aria-label={`My profile: ${user?.name || 'you'}`} title={collapsed ? `${user?.name || ''} · My profile` : 'My profile'}>
+                    <UserAvatar userId={user?.id} name={user?.name} photoVersion={user?.photoVersion} size={32} className="ne-side-avatar" />
+                    {!collapsed && (
+                        <span className="ne-side-who">
+                            <span className="ne-side-name">{user?.name || 'Signed in'}</span>
+                            <span className="ne-side-role">{user?.jobTitle || user?.role || ''}</span>
+                        </span>
+                    )}
+                </NavLink>
                 <button type="button" className="ne-side-out" onClick={handleLogout} aria-label="Sign out" title="Sign out">
                     <LogOut size={17} />
                 </button>

@@ -91,6 +91,7 @@
 .ne-avatarbtn {
     width: 44px; height: 44px; border-radius: 999px; border: none;
     background: #334155; color: #E2E8F0; font: 700 14px var(--font-family); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0;
 }
 .ne-profile-pop {
     position: absolute; right: 0; top: calc(100% + 8px); width: 240px;
@@ -107,6 +108,8 @@
     font: 600 14px var(--font-family); cursor: pointer;
 }
 .ne-profile-out:hover { background: #FEF3F2; }
+.ne-profile-link { color: var(--ink); }
+.ne-profile-link:hover { background: #F2F4F7; }
 
 /* ── Phone tab bar ────────────────────────────────────────────────── */
 .ne-tabs {
