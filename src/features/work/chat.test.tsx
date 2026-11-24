@@ -45,8 +45,9 @@ describe('tagging helpers', () => {
 describe('team chat', () => {
   it('shows the conversations, the unread tag for me, and clears it on opening', async () => {
     open('/work');
-    // Asha tagged me in the HMS conversation: the tab and the bell both say so.
-    expect(await screen.findByRole('button', { name: /Notifications, 1 unread/ })).toBeInTheDocument();
+    // Asha tagged me in the HMS conversation: the tab and the bell both say so. (The bell's second
+    // one is Bilal's tag in a comment on the story, from the example data.)
+    expect(await screen.findByRole('button', { name: /Notifications, 2 unread/ })).toBeInTheDocument();
     const tab = screen.getByRole('tab', { name: /Chat/ });
     await waitFor(() => expect(within(tab).getByLabelText(/unread/)).toBeInTheDocument());
 
@@ -55,7 +56,7 @@ describe('team chat', () => {
     expect(await within(log).findByText(/billing demo is on Friday/)).toBeInTheDocument();
     expect(within(log).getByText('Important')).toBeInTheDocument();
     expect(within(log).getByRole('button', { name: /HMS-3/ })).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole('button', { name: /Notifications, 0 unread/ })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('button', { name: /Notifications, 1 unread/ })).toBeInTheDocument());
   });
 
   it('sends a message that tags a teammate, picked from the @ list', async () => {

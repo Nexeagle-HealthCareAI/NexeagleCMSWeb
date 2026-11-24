@@ -8,7 +8,7 @@ import { lastSeenText } from '../activityMeta';
 import { docsService } from '../docs/docsService';
 import type { DocNotification } from '../docs/types';
 import { BADGE_POLL_MS, CHAT_CHANGED } from '../chatMeta';
-import type { GuardEvent, LastSeen, MyPresence, WorkNotification, WorkUser } from '../types';
+import type { GuardEvent, LastSeen, MyPresence, WorkItemMentionNote, WorkNotification, WorkUser } from '../types';
 import { workService } from '../services/workService';
 import { formatWhen } from '../workMeta';
 import { Avatar } from './parts';
@@ -26,10 +26,12 @@ export const GUARD_EVENT = 'wk-guard';
 const NOTE_TEXT: Record<WorkNotification['kind'], string> = { Mention: 'tagged you', Escalation: 'escalated to you', Direct: 'sent you a message' };
 const DOC_NOTE_TEXT: Record<DocNotification['kind'], string> = { Mention: 'tagged you in a comment on', Reply: 'replied to your comment on', Comment: 'commented on' };
 
-/** One line of the bell: a chat notification or a document-comment one. */
+const PLACE_TEXT: Record<WorkItemMentionNote['place'], string> = { comment: 'a comment on', description: 'the description of', blocked: 'what is blocking' };
+
+/** One line of the bell: a chat notification, a tag in a work item, or a document-comment one. */
 interface BellNote {
   id: string;
-  from: 'chat' | 'docs';
+  from: 'chat' | 'item' | 'docs';
   line: string;
   text: string;
   isRead: boolean;
@@ -41,6 +43,10 @@ interface BellNote {
 const fromChat = (n: WorkNotification): BellNote => ({
   id: n.notificationId, from: 'chat', line: `${n.actorName} ${NOTE_TEXT[n.kind]} in ${n.channelName}`, text: n.text, isRead: n.isRead,
   isEscalation: n.kind === 'Escalation', createdAt: n.createdAt, to: `/work?tab=chat&channel=${encodeURIComponent(n.channelId)}`,
+});
+const fromItem = (n: WorkItemMentionNote): BellNote => ({
+  id: n.notificationId, from: 'item', line: `${n.actorName} tagged you in ${PLACE_TEXT[n.place]} ${n.itemKey} “${n.itemTitle}”`, text: n.text,
+  isRead: n.isRead, isEscalation: false, createdAt: n.createdAt, to: `/work?item=${encodeURIComponent(n.workItemId)}`,
 });
 const fromDocs = (n: DocNotification): BellNote => ({
   id: n.notificationId, from: 'docs', line: `${n.actorName} ${DOC_NOTE_TEXT[n.kind]} “${n.documentName}”`, text: n.text, isRead: n.isRead,
@@ -67,19 +73,24 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
 
   // Chat and document-comment notifications together, newest first.
   const loadNotes = useCallback(async (): Promise<BellNote[]> => {
-    const [chat, docs] = await Promise.all([
+    const [chat, tags, docs] = await Promise.all([
       workService.notifications().catch(() => []),
+      workService.itemMentions().catch(() => []),
       seesDocs ? docsService.commentNotifications().catch(() => []) : Promise.resolve([]),
     ]);
-    return [...chat.map(fromChat), ...docs.map(fromDocs)].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return [...chat.map(fromChat), ...tags.map(fromItem), ...docs.map(fromDocs)].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [seesDocs]);
 
   // Unread chat and notifications, checked now and then while the board is open.
   const check = useCallback(() => {
-    Promise.all([workService.chatState(), seesDocs ? docsService.commentNotifications().catch(() => []) : Promise.resolve([])])
-      .then(async ([state, docNotes]) => {
+    Promise.all([
+      workService.chatState(),
+      workService.itemMentions().catch(() => [] as WorkItemMentionNote[]),
+      seesDocs ? docsService.commentNotifications().catch(() => []) : Promise.resolve([]),
+    ])
+      .then(async ([state, tags, docNotes]) => {
         report.current?.(state.channels.reduce((sum, c) => sum + c.unread, 0));
-        const unread = state.unreadNotifications + docNotes.filter(n => !n.isRead).length;
+        const unread = state.unreadNotifications + tags.filter(n => !n.isRead).length + docNotes.filter(n => !n.isRead).length;
         setUnreadNotes(unread);
         const rose = lastCount.current >= 0 && unread > lastCount.current;
         lastCount.current = unread;
@@ -118,12 +129,14 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
   };
   const openNote = (n: BellNote) => {
     setBellOpen(false);
-    const read = n.from === 'chat' ? workService.readNotifications([n.id]) : docsService.readCommentNotifications([n.id]);
+    const read = n.from === 'chat' ? workService.readNotifications([n.id])
+      : n.from === 'item' ? workService.readItemMentions([n.id])
+        : docsService.readCommentNotifications([n.id]);
     void read.then(check).catch(() => undefined);
     navigate(n.to);
   };
   const readAll = () => {
-    void Promise.all([workService.readNotifications(), seesDocs ? docsService.readCommentNotifications() : Promise.resolve()])
+    void Promise.all([workService.readNotifications(), workService.readItemMentions(), seesDocs ? docsService.readCommentNotifications() : Promise.resolve()])
       .then(() => { setNotes(prev => (prev || []).map(n => ({ ...n, isRead: true }))); check(); })
       .catch(() => undefined);
   };
@@ -178,7 +191,7 @@ export default function PresenceBar({ onUnread }: { onUnread?: (unreadChat: numb
               <strong>Notifications</strong>
               {unreadNotes > 0 && <button type="button" className="wk-link" onClick={readAll}>Mark all read</button>}
             </div>
-            {notes === null ? <p className="wk-muted">Loading…</p> : notes.length === 0 ? <p className="wk-muted">Nothing yet. You are told here when someone tags you, escalates to you, messages you or comments on your document.</p> : notes.map(n => (
+            {notes === null ? <p className="wk-muted">Loading…</p> : notes.length === 0 ? <p className="wk-muted">Nothing yet. You are told here when someone tags you (in chat, a task or a document), escalates to you, messages you or comments on your document.</p> : notes.map(n => (
               <button key={`${n.from}-${n.id}`} type="button" className={`wk-note ${n.isRead ? '' : 'is-unread'} ${n.isEscalation ? 'is-escalation' : ''}`} onClick={() => openNote(n)}>
                 <span>{n.line}</span>
                 <small>{n.text}</small>

@@ -10,6 +10,8 @@ import { errorMessage, workService } from '../services/workService';
 import { Avatar, Dialog, StatusPill, TypeIcon } from './parts';
 import EscalateDialog from './EscalateDialog';
 import WorkEditor from './WorkEditor';
+import MentionField from './MentionField';
+import { mentionedIn, splitMentions } from '../chatMeta';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { canEditDocs, canViewDocs } from '../access';
 import { docsService } from '../docs/docsService';
@@ -33,10 +35,13 @@ interface Props {
   onOpen: (itemId: string) => void;
   onAddChild: (parent: WorkItem) => void;
   onDeleted: () => void;
+  /** The board shown now; an item opened from elsewhere (a tag, the chat) may be on another one. */
+  projectId?: string;
+  onProjectFound?: (projectId: string) => void;
 }
 
 /** The item page, shown as a panel on the right so the list stays in view. */
-export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canDelete, onClose, onChanged, onOpen, onAddChild, onDeleted }: Props) {
+export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canDelete, onClose, onChanged, onOpen, onAddChild, onDeleted, projectId, onProjectFound }: Props) {
   const [item, setItem] = useState<WorkItemDetail | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -60,6 +65,13 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
   const linksDocs = canEdit && canEditDocs(permissions);
   const [linked, setLinked] = useState<Doc[]>([]);
   const [picking, setPicking] = useState(false);
+  // People who can be tagged here (@Name), and every name, so tags show in the text.
+  const [taggableIds, setTaggableIds] = useState<string[]>([]);
+  const taggable = users.filter(u => taggableIds.includes(u.userId));
+  const names = users.map(u => u.fullName);
+  const found = useRef(onProjectFound);
+  useEffect(() => { found.current = onProjectFound; }, [onProjectFound]);
+  const tags = (text: string) => splitMentions(text, names).map((part, i) => (part.mention ? <mark key={i}>{part.text}</mark> : <span key={i}>{part.text}</span>));
 
   const show = useCallback((d: WorkItemDetail) => {
     setItem(d);
@@ -86,6 +98,19 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       .catch(e => { if (alive) setError(errorMessage(e, 'Could not open this item.')); });
     return () => { alive = false; };
   }, [itemId, show]);
+
+  // Opened from a tag or a link: show the item's own board behind it.
+  useEffect(() => {
+    if (item && projectId && item.projectId !== projectId) found.current?.(item.projectId);
+  }, [item, projectId]);
+
+  useEffect(() => {
+    if (!canEdit) return;
+    let alive = true;
+    setTaggableIds([]);
+    workService.taggable(itemId).then(ids => { if (alive) setTaggableIds(ids); }).catch(() => undefined);
+    return () => { alive = false; };
+  }, [itemId, canEdit]);
 
   // Documents tagged on this item. Ones in a folder locked to the reader are not sent at all.
   useEffect(() => {
@@ -154,16 +179,19 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
     else setLabels(item.labels.join(', '));
   };
   const saveText = async () => {
-    if (await save({ description: draft.trim() ? draft : null })) { setEditingText(false); setTextVersion(v => v + 1); }
+    const text = draft.trim() ? draft : null;
+    if (await save({ description: text, descriptionMentionUserIds: text ? mentionedIn(text, taggable) : [] })) { setEditingText(false); setTextVersion(v => v + 1); }
   };
   const block = async () => {
     if (!blockReason.trim()) { toast.error('Say what is blocking this item.'); return; }
-    if (await save({ isBlocked: true, blockedReason: blockReason.trim() })) setAskBlock(false);
+    const reason = blockReason.trim();
+    if (await save({ isBlocked: true, blockedReason: reason, blockedMentionUserIds: mentionedIn(reason, taggable) })) setAskBlock(false);
   };
   const addComment = async () => {
     if (!comment.trim()) return;
     try {
-      const added = await workService.addComment(item.workItemId, comment.trim());
+      const body = comment.trim();
+      const added = await workService.addComment(item.workItemId, body, mentionedIn(body, taggable));
       setItem({ ...item, comments: [...item.comments, added] });
       setComment('');
     } catch (e) {
@@ -236,7 +264,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       {item.isBlocked && (
         <div className="wk-blocked" role="status">
           <Ban size={16} aria-hidden="true" />
-          <span><strong>Blocked.</strong> {item.blockedReason}</span>
+          <span><strong>Blocked.</strong> {item.blockedReason ? tags(item.blockedReason) : null}</span>
           {canEdit && <button type="button" className="wk-link" onClick={() => void save({ isBlocked: false, blockedReason: null })}>Unblock</button>}
         </div>
       )}
@@ -293,10 +321,10 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
       {canEdit && !item.isBlocked && (
         askBlock ? (
           <div className="wk-blockform">
-            <label className="wk-field">
-              <span>What is blocking it?</span>
-              <input value={blockReason} maxLength={300} onChange={e => setBlockReason(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void block(); }} autoFocus />
-            </label>
+            <div className="wk-field">
+              <span>What is blocking it? Type @ to tag who can help.</span>
+              <MentionField value={blockReason} onChange={setBlockReason} users={taggable} maxLength={300} label="What is blocking it?" autoFocus onSubmit={() => void block()} />
+            </div>
             <button type="button" className="wk-btn" onClick={() => setAskBlock(false)}>Cancel</button>
             <button type="button" className="wk-btn is-primary" onClick={() => void block()}>Mark blocked</button>
           </div>
@@ -312,14 +340,14 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
         </div>
         {editingText ? (
           <>
-            <WorkEditor key={`edit-${textVersion}`} initialMarkdown={item.description || ''} editable onChange={setDraft} label="Description" />
+            <WorkEditor key={`edit-${textVersion}`} initialMarkdown={item.description || ''} editable onChange={setDraft} label="Description" mentionUsers={taggable} mentionNames={names} />
             <div className="wk-form-actions">
               <button type="button" className="wk-btn" onClick={() => setEditingText(false)}>Cancel</button>
               <button type="button" className="wk-btn is-primary" disabled={saving} onClick={() => void saveText()}>Save</button>
             </div>
           </>
         ) : item.description ? (
-          <WorkEditor key={`read-${textVersion}`} initialMarkdown={item.description} editable={false} onChange={() => undefined} label="Description" />
+          <WorkEditor key={`read-${textVersion}`} initialMarkdown={item.description} editable={false} onChange={() => undefined} label="Description" mentionNames={names} />
         ) : (
           <p className="wk-muted">No description yet.</p>
         )}
@@ -374,21 +402,21 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
         <div className="wk-section-head"><h3 id="wk-com-h">Comments{item.comments.length > 0 && <span className="wk-count">{item.comments.length}</span>}</h3></div>
         <ul className="wk-comments">
           {item.comments.map(c => (
-            <li key={c.commentId}>
+            <li key={c.commentId} className={currentUserId && c.mentionUserIds?.includes(currentUserId) ? 'is-for-me' : undefined}>
               <Avatar name={c.authorName} />
               <div>
                 <p className="wk-comment-meta"><strong>{c.authorName}</strong> <span>{formatWhen(c.createdAt)}</span>
                   {(canDelete || (canEdit && c.authorUserId === currentUserId)) && <button type="button" className="wk-link" onClick={() => void removeComment(c.commentId)}>Remove</button>}
                 </p>
-                <p className="wk-comment-body">{c.body}</p>
+                <p className="wk-comment-body">{tags(c.body)}</p>
               </div>
             </li>
           ))}
         </ul>
         {canEdit && (
           <div className="wk-commentbox">
-            <textarea aria-label="Add a comment" rows={2} value={comment} maxLength={10000} placeholder="Add a comment…" onChange={e => setComment(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) void addComment(); }} />
+            <MentionField value={comment} onChange={setComment} users={taggable} multiline maxLength={10000} placeholder="Add a comment… type @ to tag someone"
+              label="Add a comment" onSubmit={() => void addComment()} />
             <button type="button" className="wk-btn is-primary" disabled={!comment.trim()} onClick={() => void addComment()}>Comment</button>
           </div>
         )}
