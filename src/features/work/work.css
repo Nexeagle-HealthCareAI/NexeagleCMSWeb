@@ -443,3 +443,7 @@ html.wk-veiled #root { filter: blur(18px); }
 .wk-item-side .wk-field select.wk-status-todo { background-color: #F2F4F7; color: #344054; border-color: #E4E7EC; }
 .wk-item-side .wk-field select.wk-status-inprogress { background-color: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
 .wk-item-side .wk-field select.wk-status-done { background-color: #D1FADF; color: #05603A; border-color: #A6F4C5; }
+
+/* Share a work item */
+.wk-share { min-width: 250px; }
+.wk-share-note { margin: 4px 0 2px; padding: 8px 10px 4px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.4; color: var(--ink-3); }
