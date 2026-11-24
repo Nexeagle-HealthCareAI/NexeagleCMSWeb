@@ -4,7 +4,7 @@ import { salesLeadService, type SalesLeadSummary, type LeadStage } from '../serv
 import { LeadDetailDrawer } from './LeadDetailDrawer';
 import { adminService, type Assignee } from '../../admin/services/adminService';
 import '../pages/Marketing.css';
-import '../../settings/pages/Settings.css';
+import '../marketingPanels.css';
 
 const STAGES: LeadStage[] = ['New', 'Contacted', 'Demo Scheduled', 'Demo Done', 'Negotiation', 'Closed Won', 'Closed Lost'];
 

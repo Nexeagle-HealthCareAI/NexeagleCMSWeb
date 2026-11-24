@@ -5,7 +5,7 @@ import { LeadsPipeline } from '../components/LeadsPipeline';
 import { CrmKanbanPage } from '../components/CrmKanbanPage';
 import { SocialCampaignsPage } from '../components/SocialCampaignsPage';
 import { MarketingDashboard } from '../components/MarketingDashboard';
-import '../../settings/pages/Settings.css';
+import '../marketingPanels.css';
 import '../../dashboard/pages/PremiumHospitals.css';
 import '../../insights/components/Insights.css';
 import './Marketing.css';
