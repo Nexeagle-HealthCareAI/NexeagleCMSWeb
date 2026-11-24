@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Ban, ChevronRight, Link2, Plus, Siren, Trash2, X } from 'lucide-react';
+import { Ban, ChevronDown, ChevronRight, ChevronUp, Link2, Maximize2, PanelRight, Plus, Siren, Trash2, UserCheck, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { ItemPriority, UpdateItemPayload, WorkItem, WorkItemDetail, WorkStatus, WorkUser } from '../types';
@@ -19,6 +19,8 @@ import { DocIcon } from '../docs/DocIcon';
 import DocPicker from '../docs/DocPicker';
 import type { Doc } from '../docs/types';
 
+export type ItemView = 'window' | 'panel';
+
 interface Props {
   itemId: string;
   items: WorkItem[];
@@ -35,13 +37,19 @@ interface Props {
   onOpen: (itemId: string) => void;
   onAddChild: (parent: WorkItem) => void;
   onDeleted: () => void;
+  /** window: a large window over the board (the default); panel: beside the list. */
+  view?: ItemView;
+  onViewChange?: (view: ItemView) => void;
+  /** The items before and after this one in the list, to step through without closing. */
+  previousId?: string | null;
+  nextId?: string | null;
   /** The board shown now; an item opened from elsewhere (a tag, the chat) may be on another one. */
   projectId?: string;
   onProjectFound?: (projectId: string) => void;
 }
 
 /** The item page, shown as a panel on the right so the list stays in view. */
-export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canDelete, onClose, onChanged, onOpen, onAddChild, onDeleted, projectId, onProjectFound }: Props) {
+export default function ItemDrawer({ itemId, items, users, statuses, currentUserId, canEdit, canDelete, onClose, onChanged, onOpen, onAddChild, onDeleted, projectId, onProjectFound, view = 'panel', onViewChange, previousId, nextId }: Props) {
   const [item, setItem] = useState<WorkItemDetail | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -147,17 +155,28 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
     }
   };
 
+  const isWindow = view === 'window';
+  const shell = `wk-drawer ${isWindow ? 'is-window' : ''}`;
+  // Unsaved typing: clicking outside the window must not throw it away.
+  const dirty = !!comment.trim() || editingText || askBlock;
+  /** In window mode the item sits in a large window over the board; a click outside closes it. */
+  const frame = (content: React.ReactElement) => (isWindow ? (
+    <div className="wk-window-backdrop" onMouseDown={e => { if (e.target === e.currentTarget && !dirty) onClose(); }}>{content}</div>
+  ) : content);
+
   if (error) {
-    return (
-      <aside className="wk-drawer" aria-label="Work item" ref={panel} tabIndex={-1}>
+    return frame(
+      <aside className={shell} aria-label="Work item" ref={panel} tabIndex={-1}>
         <div className="wk-drawer-head"><span /><button type="button" className="wk-iconbtn" onClick={onClose} aria-label="Close"><X size={18} /></button></div>
         <p className="wk-error" role="alert">{error}</p>
       </aside>
     );
   }
   if (!item) {
-    return <aside className="wk-drawer" aria-label="Work item" aria-busy="true" ref={panel} tabIndex={-1}><p className="wk-muted">Loading…</p></aside>;
+    return frame(<aside className={shell} aria-label="Work item" aria-busy="true" ref={panel} tabIndex={-1}><p className="wk-muted">Loading…</p></aside>);
   }
+  const assignedToMe = !!currentUserId && item.assigneeUserId === currentUserId;
+  const canTakeIt = canEdit && !!currentUserId && !assignedToMe && users.some(u => u.userId === currentUserId);
 
   const parentTypes = allowedParentTypes(item.itemType);
   const parentChoices = items.filter(i => parentTypes.includes(i.itemType) && i.workItemId !== item.workItemId).sort((a, b) => a.number - b.number);
@@ -234,8 +253,8 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
     }
   };
 
-  return (
-    <aside className="wk-drawer" aria-label={`${item.key} ${item.title}`} ref={panel} tabIndex={-1}>
+  return frame(
+    <aside className={shell} aria-label={`${item.key} ${item.title}`} ref={panel} tabIndex={-1}>
       <div className="wk-drawer-head">
         <div className="wk-crumbs">
           {item.parentId && item.parentKey && (
@@ -249,6 +268,15 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
           {saving && <span className="wk-muted" role="status">Saving…</span>}
         </div>
         <div className="wk-drawer-tools">
+          {(previousId !== undefined || nextId !== undefined) && (
+            <>
+              <button type="button" className="wk-iconbtn" disabled={!previousId} onClick={() => previousId && onOpen(previousId)} aria-label="Previous item" title="Previous item"><ChevronUp size={18} /></button>
+              <button type="button" className="wk-iconbtn" disabled={!nextId} onClick={() => nextId && onOpen(nextId)} aria-label="Next item" title="Next item"><ChevronDown size={18} /></button>
+            </>
+          )}
+          {onViewChange && (isWindow
+            ? <button type="button" className="wk-iconbtn" onClick={() => onViewChange('panel')} aria-label="Show beside the list" title="Show beside the list"><PanelRight size={17} /></button>
+            : <button type="button" className="wk-iconbtn" onClick={() => onViewChange('window')} aria-label="Open in a large window" title="Open in a large window"><Maximize2 size={17} /></button>)}
           {canEdit && <button type="button" className="wk-iconbtn" onClick={() => setEscalating(true)} aria-label="Escalate" title="Escalate"><Siren size={17} /></button>}
           {canDelete && <button type="button" className="wk-iconbtn" onClick={() => { setTypedKey(''); setConfirmDelete(true); }} aria-label="Delete item" title="Delete"><Trash2 size={17} /></button>}
           <button type="button" className="wk-iconbtn" onClick={onClose} aria-label="Close" title="Close"><X size={18} /></button>
@@ -269,10 +297,13 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
         </div>
       )}
 
+      <div className="wk-item-body">
+      <div className="wk-item-side">
+        <h3 className="wk-side-title">Details</h3>
       <div className="wk-fields">
-        <label className="wk-field">
+        <label className="wk-field is-status">
           <span>Status</span>
-          <select value={item.status} disabled={!canEdit} onChange={e => void save({ status: e.target.value })}>
+          <select className={`wk-status-select wk-status-${item.statusCategory.toLowerCase()}`} value={item.status} disabled={!canEdit} onChange={e => void save({ status: e.target.value })}>
             {statuses.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}
             {!statuses.some(s => s.key === item.status) && <option value={item.status}>{item.statusName}</option>}
           </select>
@@ -284,6 +315,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
             {users.map(u => <option key={u.userId} value={u.userId}>{u.fullName}</option>)}
             {item.assigneeUserId && !users.some(u => u.userId === item.assigneeUserId) && <option value={item.assigneeUserId}>{item.assigneeName || 'Former staff'}</option>}
           </select>
+          {canTakeIt && <button type="button" className="wk-link wk-take" onClick={() => void save({ assigneeUserId: currentUserId })}><UserCheck size={14} aria-hidden="true" /> Assign to me</button>}
         </label>
         <label className="wk-field">
           <span>Priority</span>
@@ -333,6 +365,9 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
         )
       )}
 
+        <p className="wk-muted wk-meta">Reported by {item.reporterName || 'someone'} · created {formatWhen(item.createdAt)} · updated {formatWhen(item.updatedAt)}</p>
+      </div>
+      <div className="wk-item-main">
       <section className="wk-section" aria-labelledby="wk-desc-h">
         <div className="wk-section-head">
           <h3 id="wk-desc-h">Description</h3>
@@ -432,8 +467,10 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
             {item.history.map(h => <li key={h.historyId}><strong>{h.actorName}</strong> {describeChange(h.field, h.oldValue, h.newValue)} <span>{formatWhen(h.createdAt)}</span></li>)}
           </ul>
         )}
-        <p className="wk-muted wk-meta">Reported by {item.reporterName || 'someone'} · created {formatWhen(item.createdAt)} · updated {formatWhen(item.updatedAt)}</p>
       </section>
+
+      </div>
+      </div>
 
       {picking && <DocPicker alreadyLinked={linked.map(d => d.documentId)} onClose={() => setPicking(false)} onPick={d => void linkDoc(d)} />}
 
