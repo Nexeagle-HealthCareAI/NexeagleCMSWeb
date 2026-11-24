@@ -183,11 +183,93 @@ export interface SearchListQuery {
     limit?: number;
 }
 
+// ── Every appointment, by channel ───────────────────────────────────────────────────────────────
+
+export type AppointmentChannel = 'doctordekho' | 'whatsapp' | 'hospital';
+export type AppointmentChannelFilter = 'all' | 'online' | AppointmentChannel;
+export type AppointmentGroupBy = 'day' | 'week' | 'month';
+
+export interface AppointmentPeriodRow {
+    /** First day of the period, yyyy-MM-dd ("total" for the totals). */
+    start: string;
+    doctorDekho: number;
+    whatsApp: number;
+    hospitalDesk: number;
+    online: number;
+    total: number;
+    cancelled: number;
+    isPartial: boolean;
+}
+
+export interface AppointmentPlaceRow {
+    id: string;
+    name: string;
+    hospital: string | null;
+    doctorDekho: number;
+    whatsApp: number;
+    hospitalDesk: number;
+    online: number;
+    total: number;
+}
+
+export interface AppointmentOption { id: string; name: string; hospitalId: string | null }
+
+export interface AppointmentTrend {
+    from: string;
+    to: string;
+    groupBy: AppointmentGroupBy;
+    dateBy: 'booked' | 'appointment';
+    totals: AppointmentPeriodRow;
+    periods: AppointmentPeriodRow[];
+    topHospitals: AppointmentPlaceRow[];
+    topDoctors: AppointmentPlaceRow[];
+    hospitals: AppointmentOption[];
+    doctors: AppointmentOption[];
+}
+
+export interface AppointmentQuery {
+    from?: string;
+    to?: string;
+    dateBy?: 'booked' | 'appointment';
+    groupBy?: AppointmentGroupBy;
+    channel?: AppointmentChannelFilter;
+    hospitalId?: string;
+    doctorId?: string;
+    search?: string;
+    includeCancelled?: boolean;
+    page?: number;
+    limit?: number;
+}
+
+export interface AppointmentRow {
+    apptId: string;
+    bookedAt: string;
+    apptDate: string;
+    channel: AppointmentChannel;
+    channelLabel: string;
+    status: string;
+    statusCode: string;
+    patientName: string | null;
+    /** Masked without the contacts permission. */
+    patientMobile: string | null;
+    doctorName: string | null;
+    hospitalName: string | null;
+    loggedIn: boolean;
+}
+
+const appointmentParams = (q: AppointmentQuery) => ({
+    ...(q.from ? { from: q.from } : {}), ...(q.to ? { to: q.to } : {}),
+    dateBy: q.dateBy ?? 'booked', channel: q.channel ?? 'all',
+    ...(q.groupBy ? { groupBy: q.groupBy } : {}),
+    ...(q.hospitalId ? { hospitalId: q.hospitalId } : {}), ...(q.doctorId ? { doctorId: q.doctorId } : {}),
+});
+
 const range = (from?: string, to?: string) => ({ ...(from ? { from } : {}), ...(to ? { to } : {}) });
 
 export const channelInsights = {
-    weeklyGrowth: async (weeks: number) =>
-        (await api.get<WeeklyGrowth>(API_ENDPOINTS.INSIGHTS.WEEKLY_GROWTH, { params: { weeks } })).data,
+    /** The last `weeks` weeks, or every week with a day between from and to. */
+    weeklyGrowth: async (weeks: number, from?: string, to?: string) =>
+        (await api.get<WeeklyGrowth>(API_ENDPOINTS.INSIGHTS.WEEKLY_GROWTH, { params: from && to ? { from, to } : { weeks } })).data,
     whatsAppDaily: async (from?: string, to?: string) =>
         (await api.get<WhatsAppDailyStats>(API_ENDPOINTS.INSIGHTS.WHATSAPP_DAILY, { params: range(from, to) })).data,
     whatsAppPeople: async (q: WhatsAppPeopleQuery) =>
@@ -198,6 +280,12 @@ export const channelInsights = {
         (await api.get<WhatsAppTranscript>(`${API_ENDPOINTS.INSIGHTS.WHATSAPP_PEOPLE}/${encodeURIComponent(sessionId)}`)).data,
     doctorDekhoDaily: async (from?: string, to?: string) =>
         (await api.get<DoctorDekhoDailyStats>(API_ENDPOINTS.INSIGHTS.DOCTORDEKHO_DAILY, { params: range(from, to) })).data,
+    appointmentTrend: async (q: AppointmentQuery) =>
+        (await api.get<AppointmentTrend>(API_ENDPOINTS.INSIGHTS.APPOINTMENT_TREND, { params: appointmentParams(q) })).data,
+    appointmentList: async (q: AppointmentQuery) =>
+        (await api.get<PagedResponse<AppointmentRow>>(API_ENDPOINTS.INSIGHTS.APPOINTMENT_LIST, {
+            params: { ...appointmentParams(q), ...(q.search ? { search: q.search } : {}), includeCancelled: q.includeCancelled ?? true, page: q.page ?? 1, limit: q.limit ?? 25 },
+        })).data,
     searchAnalysis: async (from?: string, to?: string, channel: SearchChannel = 'all') =>
         (await api.get<SearchInsights>(API_ENDPOINTS.INSIGHTS.SEARCH_ANALYSIS, { params: { ...range(from, to), channel } })).data,
     searchList: async (q: SearchListQuery) =>

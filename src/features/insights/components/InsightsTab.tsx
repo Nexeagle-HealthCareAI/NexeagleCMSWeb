@@ -2,7 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SiteVisitsPanel } from './SiteVisitsPanel';
 import { PatientLoginsPanel } from './PatientLoginsPanel';
-import { OnlineAppointmentsPanel } from './OnlineAppointmentsPanel';
+import { AppointmentsPanel } from './AppointmentsPanel';
 import { WeeklyGrowthPanel } from './WeeklyGrowthPanel';
 import { WhatsAppBotPanel } from './WhatsAppBotPanel';
 import { DoctorDekhoDailyPanel } from './DoctorDekhoDailyPanel';
@@ -58,7 +58,7 @@ export const InsightsTab: React.FC = () => {
                 {activeSubTab === 'searchKinds' && <SearchKindsPanel />}
                 {activeSubTab === 'visits' && <SiteVisitsPanel />}
                 {activeSubTab === 'logins' && <PatientLoginsPanel />}
-                {activeSubTab === 'appointments' && <OnlineAppointmentsPanel />}
+                {activeSubTab === 'appointments' && <AppointmentsPanel />}
             </div>
         </div>
     );

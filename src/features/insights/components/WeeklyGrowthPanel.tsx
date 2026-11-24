@@ -3,9 +3,10 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { TrendingUp } from 'lucide-react';
 import { InsightsExplainer } from './InsightsExplainer';
 import { channelInsights, shortDay, type WeeklyGrowth } from '../services/channelInsights';
+import { istDaysAgo, todayIst } from '../utils/istDate';
 
 const PERIODS = [8, 12, 26, 52] as const;
-type Period = typeof PERIODS[number];
+type Period = typeof PERIODS[number] | 'custom';
 
 // One colour per channel, the same everywhere on this page.
 export const CHANNEL_COLOURS = { whatsapp: '#16a34a', doctordekho: '#2563eb', nexeagle: '#7c3aed' } as const;
@@ -19,9 +20,9 @@ type LineKey = typeof LINES[number]['key'];
 
 const fmt = (n: number | null | undefined) => (n == null ? '—' : n.toLocaleString('en-IN'));
 
-/** Change from the last full week to the one before it. */
+/** Change from the last full week to the one before it (values of full weeks only). */
 function change(values: (number | null)[]): string | null {
-    const full = values.slice(0, -1).filter((v): v is number => v != null);
+    const full = values.filter((v): v is number => v != null);
     if (full.length < 2) return null;
     const [before, last] = full.slice(-2);
     if (before === 0) return last > 0 ? 'new this week' : null;
@@ -34,18 +35,26 @@ export const WeeklyGrowthPanel: React.FC = () => {
     const [weeks, setWeeks] = useState<Period>(12);
     const [growth, setGrowth] = useState<WeeklyGrowth | null>(null);
     const [failed, setFailed] = useState(false);
-    const [loadedFor, setLoadedFor] = useState<number | null>(null);
+    const [loadedFor, setLoadedFor] = useState<string | null>(null);
+    // A chosen range: every week (Monday to Sunday) with a day in it, up to two years.
+    const [customFrom, setCustomFrom] = useState(istDaysAgo(90));
+    const [customTo, setCustomTo] = useState(todayIst());
+    const custom = weeks === 'custom';
+    const ready = !custom || Boolean(customFrom && customTo);
+    const asked = custom ? `${customFrom}|${customTo}` : String(weeks);
     const [hidden, setHidden] = useState<LineKey[]>([]);
 
     useEffect(() => {
+        if (!ready) return;
         let alive = true;
-        channelInsights.weeklyGrowth(weeks)
+        const key = custom ? `${customFrom}|${customTo}` : String(weeks);
+        (custom ? channelInsights.weeklyGrowth(0, customFrom, customTo) : channelInsights.weeklyGrowth(weeks as number))
             .then(g => { if (alive) { setGrowth(g); setFailed(false); } })
             .catch(() => { if (alive) setFailed(true); })
-            .finally(() => { if (alive) setLoadedFor(weeks); });
+            .finally(() => { if (alive) setLoadedFor(key); });
         return () => { alive = false; };
-    }, [weeks]);
-    const loading = loadedFor !== weeks;
+    }, [weeks, custom, customFrom, customTo, ready]);
+    const loading = loadedFor !== asked;
 
     const data = useMemo(() => (growth?.weeks ?? []).map(w => ({
         label: shortDay(w.weekStart) + (w.isPartial ? ' (so far)' : ''),
@@ -58,11 +67,12 @@ export const WeeklyGrowthPanel: React.FC = () => {
     // The week in progress would make every line dip at the end; it is in the cards and the table instead.
     const chartData = useMemo(() => data.filter(d => !d.isPartial), [data]);
 
+    const running = data.length > 0 && data[data.length - 1].isPartial ? data[data.length - 1] : null;
     const summary = LINES.map(l => ({
         ...l,
-        last: data.length > 1 ? data[data.length - 2][l.dataKey] : null,
-        thisWeek: data.length > 0 ? data[data.length - 1][l.dataKey] : null,
-        change: change(data.map(d => d[l.dataKey])),
+        last: chartData.length > 0 ? chartData[chartData.length - 1][l.dataKey] : null,
+        thisWeek: running ? running[l.dataKey] : null,
+        change: change(chartData.map(d => d[l.dataKey])),
     }));
 
     const toggle = (key: LineKey) => setHidden(prev => (prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]));
@@ -85,10 +95,19 @@ export const WeeklyGrowthPanel: React.FC = () => {
                             {p} weeks
                         </button>
                     ))}
+                    <button className={`insights-filter-btn ${custom ? 'active' : ''}`} onClick={() => setWeeks('custom')}>Custom</button>
                 </div>
+                {custom && (
+                    <>
+                        <input type="date" value={customFrom} max={customTo || todayIst()} onChange={e => setCustomFrom(e.target.value)} className="insights-date-input" aria-label="From" />
+                        <span style={{ fontSize: 12, color: '#64748b' }}>to</span>
+                        <input type="date" value={customTo} min={customFrom || undefined} max={todayIst()} onChange={e => setCustomTo(e.target.value)} className="insights-date-input" aria-label="To" />
+                        <span className="insights-card-note" style={{ margin: 0 }}>Whole weeks, Monday to Sunday · up to 2 years</span>
+                    </>
+                )}
             </div>
 
-            {loading && !growth ? <div className="insights-empty">Loading…</div> : failed || !growth ? (
+            {!ready ? <div className="insights-empty">Pick a start and end date.</div> : loading && !growth ? <div className="insights-empty">Loading…</div> : failed || !growth ? (
                 <div className="insights-empty">Could not load the weekly figures. Try again in a moment.</div>
             ) : (
                 <div style={{ opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s' }}>
@@ -105,7 +124,7 @@ export const WeeklyGrowthPanel: React.FC = () => {
                                 <div className="insights-stat-label">{s.name}, last full week</div>
                                 <div className="insights-channel-sub">
                                     {s.change && <span>{s.change}</span>}
-                                    <span>This week so far: {fmt(s.thisWeek as number | null)}</span>
+                                    {running && <span>This week so far: {fmt(s.thisWeek as number | null)}</span>}
                                 </div>
                             </div>
                         ))}
@@ -113,7 +132,7 @@ export const WeeklyGrowthPanel: React.FC = () => {
 
                     <div className="insights-mini-table-card">
                         <h3 className="insights-mini-table-title"><TrendingUp size={14} className="insights-title-icon" />Growth by week</h3>
-                        <div className="insights-growth-chart" role="img" aria-label={`People and visits per week, last ${weeks} weeks`}>
+                        <div className="insights-growth-chart" role="img" aria-label={custom ? `People and visits per week, ${customFrom} to ${customTo}` : `People and visits per week, last ${weeks} weeks`}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
                                     <CartesianGrid vertical={false} stroke="#eef2f6" />
