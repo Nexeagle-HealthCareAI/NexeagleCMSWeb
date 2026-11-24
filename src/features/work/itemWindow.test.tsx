@@ -76,6 +76,10 @@ describe('An item in a large window', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Link a document' });
     expect(within(dialog).getByRole('searchbox', { name: 'Search documents' })).toBeInTheDocument();
     await user.click(await within(dialog).findByRole('button', { name: /How we work/ }));
-    expect(await within(panel).findByRole('button', { name: /How we work/ })).toBeInTheDocument();
+    // The picker sits inside the window and has its own "How we work" button: wait for it to close,
+    // then look for the linked document itself (not its "Remove the link to …" button).
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Link a document' })).not.toBeInTheDocument());
+    const linked = within(panel).getByRole('list', { name: 'Linked documents' });
+    expect(within(linked).getByRole('button', { name: /^(Page\s*)?How we work$/ })).toBeInTheDocument();
   });
 });
