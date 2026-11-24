@@ -1,6 +1,6 @@
 import { api } from '../../../services/api';
 import { WORK_MOCK } from '../access';
-import type { ChatChannel, ChatMessage, ChatState, SendMessagePayload, WorkNotification, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
+import type { ChatChannel, ChatMessage, ChatState, SendMessagePayload, WorkNotification, WorkItemMentionNote, ActivityQuery, GuardEvent, LastSeen, MyPresence, WorkActivity, WorkProjectAccess, CreateItemPayload, StatusCategory, UpdateItemPayload, WorkComment, WorkItem, WorkItemDetail, WorkProject, WorkStatus, WorkUser } from '../types';
 import { mockWork } from './mockWork';
 
 // Daily Work Board calls (CMS API: WorkController). Every answer is { success, data, message }.
@@ -53,7 +53,14 @@ const real = {
   createItem: async (p: CreateItemPayload) => (await api.post('/work/items', p)).data.data as WorkItemDetail,
   updateItem: async (id: string, p: UpdateItemPayload) => (await api.put(`/work/items/${enc(id)}`, p)).data.data as WorkItemDetail,
   deleteItem: async (id: string) => { await api.delete(`/work/items/${enc(id)}`); },
-  addComment: async (id: string, body: string) => (await api.post(`/work/items/${enc(id)}/comments`, { body })).data.data as WorkComment,
+  addComment: async (id: string, body: string, mentionUserIds: string[] = []) =>
+    (await api.post(`/work/items/${enc(id)}/comments`, { body, mentionUserIds })).data.data as WorkComment,
+  /** Who can be tagged in this item (everyone on an open board, the members of a members-only one), not me. */
+  taggable: async (id: string) => (await api.get(`/work/items/${enc(id)}/taggable`)).data.data as string[],
+  /** Where someone tagged me in a work item, newest first. */
+  itemMentions: async () => (await api.get('/work/mentions')).data.data as WorkItemMentionNote[],
+  /** No ids: every one. */
+  readItemMentions: async (notificationIds: string[] = []) => { await api.post('/work/mentions/read', { notificationIds }); },
   deleteComment: async (commentId: string) => { await api.delete(`/work/comments/${enc(commentId)}`); },
 };
 
