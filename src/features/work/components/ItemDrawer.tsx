@@ -13,7 +13,8 @@ import WorkEditor from './WorkEditor';
 import MentionField from './MentionField';
 import { mentionedIn, splitMentions } from '../chatMeta';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { canEditDocs, canViewDocs } from '../access';
+import { canEditDocs, canExportWork, canViewDocs } from '../access';
+import ShareItem from './ShareItem';
 import { docsService } from '../docs/docsService';
 import { DocIcon } from '../docs/DocIcon';
 import DocPicker from '../docs/DocPicker';
@@ -277,6 +278,7 @@ export default function ItemDrawer({ itemId, items, users, statuses, currentUser
           {onViewChange && (isWindow
             ? <button type="button" className="wk-iconbtn" onClick={() => onViewChange('panel')} aria-label="Show beside the list" title="Show beside the list"><PanelRight size={17} /></button>
             : <button type="button" className="wk-iconbtn" onClick={() => onViewChange('window')} aria-label="Open in a large window" title="Open in a large window"><Maximize2 size={17} /></button>)}
+          <ShareItem itemId={item.workItemId} itemKey={item.key} title={item.title} canExport={canExportWork(permissions)} />
           {canEdit && <button type="button" className="wk-iconbtn" onClick={() => setEscalating(true)} aria-label="Escalate" title="Escalate"><Siren size={17} /></button>}
           {canDelete && <button type="button" className="wk-iconbtn" onClick={() => { setTypedKey(''); setConfirmDelete(true); }} aria-label="Delete item" title="Delete"><Trash2 size={17} /></button>}
           <button type="button" className="wk-iconbtn" onClick={onClose} aria-label="Close" title="Close"><X size={18} /></button>

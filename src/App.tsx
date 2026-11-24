@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
 import Layout from './components/Layout';
 import Dashboard from './features/dashboard/pages/Dashboard';
@@ -40,6 +40,7 @@ import './styles/harmony.css';
 // Auth gate: requires login, and forces a password change when flagged.
 const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { children: React.ReactElement; allowWhilePasswordChange?: boolean }) => {
   const { isAuthenticated, isLoading, mustChangePassword } = useAuthStore();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -49,7 +50,8 @@ const ProtectedRoute = ({ children, allowWhilePasswordChange = false }: { childr
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Remember where they were going (a shared link to a work item, say) to go there after signing in.
+  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   if (mustChangePassword && !allowWhilePasswordChange) return <Navigate to="/change-password" replace />;
   return children;
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { returnPath } from '../returnPath';
 import { ArrowLeft, KeyRound, Loader2, Lock, Mail, MessageSquare, Phone, RefreshCw, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
@@ -71,6 +72,9 @@ type ForgotStep = 'request' | 'reset' | 'done';
 const Login: React.FC = () => {
     const { login, isLoading, error } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
+    // Back to the page they opened before signing in (a shared work item link, say); only pages of this CMS.
+    const afterSignIn = returnPath((location.state as { from?: unknown } | null)?.from);
 
     // shared
     const [mode, setMode] = useState<Mode>('password');
@@ -128,7 +132,7 @@ const Login: React.FC = () => {
     // ── password submit ──
     const handlePasswordLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        try { await login(identifier, password); navigate('/'); } catch { /* store holds error */ }
+        try { await login(identifier, password); navigate(afterSignIn, { replace: true }); } catch { /* store holds error */ }
     };
 
     // ── otp step 1: request ──
@@ -157,7 +161,7 @@ const Login: React.FC = () => {
         setOtpLoading(true);
         try {
             await useAuthStore.getState().applyOtpSession(identifier, code);
-            navigate('/');
+            navigate(afterSignIn, { replace: true });
         } catch (err: any) {
             setOtpError(err.message || 'Invalid or expired OTP');
             setDigits(['', '', '', '', '', '']);

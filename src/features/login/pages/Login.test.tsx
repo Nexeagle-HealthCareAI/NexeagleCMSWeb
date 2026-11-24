@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Login from './Login';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 // Mock dependencies
 vi.mock('../../../store/useAuthStore');
@@ -88,7 +88,21 @@ describe('Login Component', () => {
         fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'password123' } });
         fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
 
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
+    });
+
+    it('goes back to a shared work item link after signing in', async () => {
+        mockLogin.mockResolvedValue(undefined);
+        render(
+            <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: '/work?item=abc' } }]}>
+                <Login />
+            </MemoryRouter>
+        );
+        fireEvent.change(screen.getByPlaceholderText('email@nexeagle.com or +91…'), { target: { value: 'test@test.com' } });
+        fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'password123' } });
+        fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/work?item=abc', { replace: true }));
     });
 
     it('should display error message when login fails', () => {
