@@ -11,7 +11,7 @@ import { errorMessage, workService } from '../services/workService';
 import BoardView from './BoardView';
 import { ColumnDialog, RemoveColumnDialog } from './ColumnDialogs';
 import CreateItemDialog from './CreateItemDialog';
-import ItemDrawer from './ItemDrawer';
+import ItemDrawer, { type ItemView } from './ItemDrawer';
 import ListView, { ColumnPicker } from './ListView';
 import MembersDialog from './MembersDialog';
 import NewProjectDialog from './NewProjectDialog';
@@ -139,6 +139,21 @@ export default function WorkManagement() {
   // While filtering, nothing is collapsed: a match hidden inside a closed parent would look like no match.
   const rows = useMemo(() => buildTree(items, shown, filtering ? new Set() : collapsed), [items, shown, collapsed, filtering]);
 
+  // How an item opens: a large window over the board, or beside the list. Each person's choice is kept.
+  const [itemView, setItemView] = useState<ItemView>(() => {
+    try { return localStorage.getItem('wk.itemView') === 'panel' ? 'panel' : 'window'; } catch { return 'window'; }
+  });
+  const changeView = (v: ItemView) => {
+    setItemView(v);
+    try { localStorage.setItem('wk.itemView', v); } catch { /* the choice just is not kept */ }
+  };
+  // Previous and next in the list as it is shown now, to step through items without closing.
+  const steps = useMemo(() => {
+    const ids = rows.map(r => r.item.workItemId);
+    const at = openId ? ids.indexOf(openId) : -1;
+    return at < 0 ? { previousId: undefined, nextId: undefined } : { previousId: ids[at - 1] ?? null, nextId: ids[at + 1] ?? null };
+  }, [rows, openId]);
+
   // The board shows the work itself. Epics and features are containers, so they stay in the list
   // unless the type filter asks for them.
   const boardItems = useMemo(
@@ -212,7 +227,7 @@ export default function WorkManagement() {
   const showBoard = view === 'board' && !loading && items.length > 0;
 
   return (
-    <div className={`wk-layout ${openId ? 'has-drawer' : ''}`}>
+    <div className={`wk-layout ${openId && itemView === 'panel' ? 'has-drawer' : ''}`}>
       <div className="wk-main">
         <div className="wk-bar">
           <div className="ne-seg" role="tablist" aria-label="Project">
@@ -319,6 +334,7 @@ export default function WorkManagement() {
           itemId={openId} items={items} users={users} statuses={statuses} currentUserId={me?.id ?? null} canEdit={canEdit} canDelete={canDelete}
           onClose={closeItem} onChanged={reload} onOpen={openItem}
           projectId={projectId} onProjectFound={id => { if (projects.some(p => p.projectId === id)) chooseProject(id, true); }}
+          view={itemView} onViewChange={changeView} previousId={steps.previousId} nextId={steps.nextId}
           onAddChild={parent => setCreating({ parent })}
           onDeleted={() => { closeItem(); reload(); }}
         />
