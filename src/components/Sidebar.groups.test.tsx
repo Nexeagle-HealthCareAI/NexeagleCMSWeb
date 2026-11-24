@@ -73,6 +73,15 @@ describe('side menu', () => {
   it('shows every page as an icon in the narrow menu', () => {
     render(<MemoryRouter><Sidebar collapsed onToggle={() => undefined} /></MemoryRouter>);
     const menu = screen.getByRole('navigation');
-    expect(within(menu).getAllByRole('link')).toHaveLength(allItems(EVERYTHING).length);
+    expect(within(menu).getAllByRole('link')).toHaveLength(allItems(EVERYTHING).filter(i => !i.searchOnly).length);
+  });
+});
+
+describe('my profile', () => {
+  it('opens from my name at the foot of the menu, for everyone, and is found by search', () => {
+    render(<MemoryRouter><Sidebar collapsed={false} onToggle={() => undefined} /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: /^My profile/ })).toHaveAttribute('href', '/profile');
+    expect(allItems([]).map(i => i.to)).toContain('/profile');
+    expect(within(screen.getByRole('navigation')).queryByRole('link', { name: /My profile/ })).not.toBeInTheDocument();
   });
 });

@@ -29,6 +29,8 @@ interface AuthState {
     /** OTP login – call after the user enters the 6-digit code. */
     applyOtpSession: (identifier: string, otp: string) => Promise<void>;
     fetchMe: () => Promise<void>;
+    /** After the person changes their own profile: show the new name, title or photo everywhere. */
+    patchUser: (patch: Partial<User>) => void;
     changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
     hasAccess: (permissionKey: string) => boolean;
     /** Silently renew the access token using the HttpOnly refresh cookie. */
@@ -113,6 +115,11 @@ export const useAuthStore = create<AuthState>()(
                 } catch {
                     // 401s are handled by the api interceptor (refresh or logout).
                 }
+            },
+
+            patchUser: (patch) => {
+                const user = get().user;
+                if (user) set({ user: { ...user, ...patch } });
             },
 
             changePassword: async (currentPassword, newPassword) => {

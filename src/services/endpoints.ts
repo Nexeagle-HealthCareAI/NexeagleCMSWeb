@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
         ROLES: '/roles',                 // GET list, POST create; /roles/:id PUT/DELETE
         PERMISSIONS: '/permissions',     // GET catalog
     },
+    PROFILE: '/profile',                 // GET/PUT my profile; /profile/photo PUT (multipart "file") / DELETE. Photos: GET /users/:id/photo?v=
     HOSPITALS: {
         GET_ALL: '/hospitals',
         GET_BY_ID: '/hospitals', // Usage: /hospitals/:id

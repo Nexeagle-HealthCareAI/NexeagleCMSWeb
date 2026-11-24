@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { WifiOff, RefreshCw, LogOut, Download, X, Search, Menu as MenuIcon, Home, Building2, CreditCard, MessageSquare } from 'lucide-react';
+import { WifiOff, RefreshCw, LogOut, Download, X, Search, Menu as MenuIcon, UserCircle, Home, Building2, CreditCard, MessageSquare } from 'lucide-react';
 import Sidebar from './Sidebar';
-import { useBadgeCounts, initialsOf } from './nav/navHelpers';
+import { useBadgeCounts } from './nav/navHelpers';
+import UserAvatar from './UserAvatar';
 import CommandPalette from './CommandPalette';
 import { visibleGroups, isItemActive, groupOfPath, allItems } from './nav/navConfig';
 import { useSupportStore } from '../store/useSupportStore';
@@ -193,7 +194,7 @@ const Layout: React.FC = () => {
                         </button>
                         <div className="ne-phonebar-profile" onClick={(e) => e.stopPropagation()}>
                             <button type="button" className="ne-avatarbtn" onClick={() => setProfileOpen(!isProfileOpen)} aria-label="Account" aria-expanded={isProfileOpen}>
-                                {initialsOf(user?.name)}
+                                <UserAvatar userId={user?.id} name={user?.name} photoVersion={user?.photoVersion} size={30} />
                             </button>
                             {isProfileOpen && (
                                 <div className="ne-profile-pop" role="menu">
@@ -202,6 +203,9 @@ const Layout: React.FC = () => {
                                         <span>{user?.email}</span>
                                         {user?.role && <span className="ne-profile-role">{user.role}</span>}
                                     </div>
+                                    <button type="button" role="menuitem" className="ne-profile-out ne-profile-link" onClick={() => { setProfileOpen(false); navigate('/profile'); }}>
+                                        <UserCircle size={16} /> My profile
+                                    </button>
                                     <button type="button" role="menuitem" className="ne-profile-out" onClick={() => { setProfileOpen(false); logout(); navigate('/login'); }}>
                                         <LogOut size={16} /> Sign out
                                     </button>

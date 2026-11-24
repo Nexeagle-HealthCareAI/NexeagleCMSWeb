@@ -7,6 +7,9 @@ export interface User {
     email: string;
     name: string;
     role: string;
+    jobTitle?: string | null;
+    /** Changes whenever the person's photo changes; empty when they have none. */
+    photoVersion?: string | null;
 }
 
 export interface LoginResponse {

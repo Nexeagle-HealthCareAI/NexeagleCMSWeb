@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, Gift, KeyRound,
-    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, Settings, ListChecks,
+    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
 import { canViewWork } from '../../features/work/access';
@@ -31,6 +31,8 @@ export interface NavItem {
     badge?: BadgeKey;
     /** Paths that also count as "this page" (old URLs, detail pages). */
     alsoActive?: string[];
+    /** Found by the Ctrl K search but not listed in the menu (My profile opens from the name at the foot of the menu). */
+    searchOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -98,7 +100,7 @@ export const NAV_GROUPS: NavGroup[] = [
             { key: 'users', label: 'Users & access', short: 'Users', to: '/users', icon: Users, allowed: has('user-management.view'), keywords: 'roles permissions staff' },
             { key: 'migration', label: 'Data migration', short: 'Migration', to: '/data-migration', icon: UploadCloud, allowed: has('data-migration.manage'), keywords: 'import upload excel' },
             { key: 'freetier', label: 'Free tier & night jobs', short: 'Free tier', to: '/free-tier', icon: Moon, allowed: has('onboarded-hospitals.view'), keywords: 'operations limits night jobs' },
-            { key: 'settings', label: 'Settings', to: '/settings', icon: Settings, allowed: has('settings.view'), keywords: 'profile account' },
+            { key: 'profile', label: 'My profile', short: 'Profile', to: '/profile', icon: UserCircle, allowed: anyone, searchOnly: true, alsoActive: ['/settings'], keywords: 'settings account photo picture phone password' },
         ],
     },
 ];
@@ -111,12 +113,19 @@ export const FOLDED_BY_DEFAULT = ['reports', 'content', 'ai', 'admin'];
 /** With this few pages in someone's menu there is nothing to fold. */
 export const FOLDING_STARTS_AT = 9;
 
-export const visibleGroups = (perms: string[]): NavGroup[] =>
+const allowedGroups = (perms: string[]): NavGroup[] =>
     NAV_GROUPS
         .map(g => ({ ...g, items: g.items.filter(i => i.allowed(perms)) }))
         .filter(g => g.items.length > 0);
 
-export const allItems = (perms: string[]): NavItem[] => visibleGroups(perms).flatMap(g => g.items.map(i => ({ ...i })));
+/** The menu: groups with the pages this person may open (search-only pages left out). */
+export const visibleGroups = (perms: string[]): NavGroup[] =>
+    allowedGroups(perms)
+        .map(g => ({ ...g, items: g.items.filter(i => !i.searchOnly) }))
+        .filter(g => g.items.length > 0);
+
+/** Every page this person may open, for the search. */
+export const allItems = (perms: string[]): NavItem[] => allowedGroups(perms).flatMap(g => g.items.map(i => ({ ...i })));
 
 /** Is this menu item the page we are on? Today matches only "/". */
 export const isItemActive = (item: NavItem, pathname: string): boolean => {

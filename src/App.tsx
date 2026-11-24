@@ -12,7 +12,7 @@ import OnboardedHospitals from './features/dashboard/pages/OnboardedHospitals';
 import RadCentersPage from './features/radCenters/pages/RadCentersPage';
 import RadCentreDetails from './features/radCenters/pages/RadCentreDetails';
 import DoctorsPage from './features/doctors/pages/DoctorsPage';
-import SettingsPage from './features/settings/pages/Settings';
+import MyProfile from './features/profile/pages/MyProfile';
 import LiveSupport from './features/support/pages/LiveSupport';
 import DataMigrationPage from './features/dataMigration/pages/DataMigrationPage';
 import NewMigrationWizard from './features/dataMigration/pages/NewMigrationWizard';
@@ -106,7 +106,6 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/users-access" element={<RequirePermission perm="dashboard.view"><Dashboard /></RequirePermission>} />
 
           {/* Protected app shell */}
           <Route path="/" element={
@@ -165,7 +164,9 @@ function App() {
               <Route path="learning" element={<VitaLearningPage />} />
               <Route path="settings" element={<VitaSettingsPage />} />
             </Route>
-            <Route path="settings" element={<RequirePermission perm="settings.view"><SettingsPage /></RequirePermission>} />
+            {/* Everyone's own profile (the old Settings page needed settings.view). */}
+            <Route path="profile" element={<MyProfile />} />
+            <Route path="settings" element={<Navigate to="/profile" replace />} />
             <Route path="support" element={<RequirePermission perm="live-support.view"><LiveSupport key="live" view="live" /></RequirePermission>} />
             <Route path="support/history" element={<RequirePermission perm="live-support.view"><LiveSupport key="history" view="history" /></RequirePermission>} />
             <Route path="users" element={<RequirePermission perm="user-management.view"><UsersAccess /></RequirePermission>} />

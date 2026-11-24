@@ -26,6 +26,9 @@ export interface UserSummary {
     userId: string;
     email: string;
     fullName: string;
+    phoneNumber?: string | null;
+    jobTitle?: string | null;
+    photoVersion?: string | null;
     isActive: boolean;
     mustChangePassword: boolean;
     lastLoginAt?: string | null;
@@ -47,9 +50,13 @@ export const adminService = {
     getUsers: () => api.get<UserSummary[]>(API_ENDPOINTS.ADMIN.USERS).then((r) => r.data),
     getAssignees: () => api.get<Assignee[]>(API_ENDPOINTS.ADMIN.ASSIGNEES).then((r) => r.data),
     getUser: (id: string) => api.get<UserDetail>(`${API_ENDPOINTS.ADMIN.USERS}/${id}`).then((r) => r.data),
-    createUser: (p: { email: string; fullName: string; password: string; roleIds: string[] }) =>
+    createUser: (p: { email: string; fullName: string; password: string; roleIds: string[]; phoneNumber?: string; jobTitle?: string }) =>
         api.post<UserDetail>(API_ENDPOINTS.ADMIN.USERS, p).then((r) => r.data),
-    updateUser: (id: string, p: { fullName?: string; isActive?: boolean; roleIds?: string[]; overrides?: PermissionOverride[] }) =>
+    /** Leave a field out to keep it; an empty phoneNumber or jobTitle removes it. */
+    updateUser: (id: string, p: {
+        email?: string; fullName?: string; phoneNumber?: string; jobTitle?: string;
+        isActive?: boolean; roleIds?: string[]; overrides?: PermissionOverride[];
+    }) =>
         api.put<UserDetail>(`${API_ENDPOINTS.ADMIN.USERS}/${id}`, p).then((r) => r.data),
     resetPassword: (id: string, newPassword: string) =>
         api.post(`${API_ENDPOINTS.ADMIN.USERS}/${id}/reset-password`, { newPassword }).then(() => undefined),
