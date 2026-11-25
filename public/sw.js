@@ -40,6 +40,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
+  // Only this site's own GET requests are handled here. Uploads (POST), the API on its own domain,
+  // fonts and other sites go straight to the network, so the browser reports their real error.
+  if (event.request.method !== 'GET' || requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
   // Skip intercepting API calls (we handle API requests via app layer caching)
   if (requestUrl.pathname.includes('/api/')) {
     return;
@@ -59,7 +65,8 @@ self.addEventListener('fetch', (event) => {
           // If offline, serve from cache
           return caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
-            return caches.match('/index.html'); // SPA fallback
+            // SPA fallback; with nothing cached either, a plain "offline" page instead of a browser error.
+            return caches.match('/index.html').then((page) => page || offline());
           });
         })
     );
@@ -85,9 +92,19 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         }
         const clone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => { /* full or private */ });
         return networkResponse;
-      });
+      }).catch(() => Response.error()); // the network dropped: fail this one file quietly, not with an uncaught error
     })
   );
 });
+
+/** Shown when a page is opened with no connection and nothing cached. */
+function offline() {
+  return new Response(
+    '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>' +
+    '<body style="font-family:system-ui,sans-serif;padding:40px;color:#344054"><h1 style="font-size:20px">You are offline</h1>' +
+    '<p>NexEagle CMS could not be reached. Check your connection and reload.</p></body>',
+    { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+  );
+}
