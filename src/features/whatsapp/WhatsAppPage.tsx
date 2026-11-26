@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Navigate, useParams } from 'react-router-dom';
+import { Link, NavLink, Navigate, useParams } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import '../healthWiki/healthWiki.css';
@@ -13,6 +13,7 @@ import TemplatesTab from './components/TemplatesTab';
 import ContactsTab from './components/ContactsTab';
 import BillingTab from './components/BillingTab';
 import SettingsTab from './components/SettingsTab';
+import SetupTab from './components/SetupTab';
 
 // WhatsApp: the CMS's own marketing number (not the Doctor Dekho bot's). Inbox, broadcasts,
 // templates and their approval, contacts and opt-in, spend against the budget, business profile.
@@ -25,6 +26,7 @@ export const WA_TABS = [
   { id: 'contacts', label: 'Contacts' },
   { id: 'billing', label: 'Billing' },
   { id: 'settings', label: 'Settings' },
+  { id: 'setup', label: 'Setup' },
 ] as const;
 type TabId = (typeof WA_TABS)[number]['id'];
 
@@ -34,12 +36,15 @@ export default function WhatsAppPage() {
   const can = waCan(perms);
   const [number, setNumber] = useState<WaNumber | null>(null);
   const [numberError, setNumberError] = useState<string | null>(null);
+  const [numberVersion, setNumberVersion] = useState(0);
 
   useEffect(() => {
     let live = true;
-    waService.number().then(n => { if (live) setNumber(n); }).catch(e => { if (live) setNumberError(waError(e)); });
+    waService.number()
+      .then(n => { if (live) { setNumber(n); setNumberError(null); } })
+      .catch(e => { if (live) setNumberError(waError(e)); });
     return () => { live = false; };
-  }, []);
+  }, [numberVersion]);
 
   if (tab && !WA_TABS.some(t => t.id === tab)) return <Navigate to="/whatsapp" replace />;
   const current: TabId = (tab as TabId) || 'inbox';
@@ -63,10 +68,10 @@ export default function WhatsAppPage() {
         )}
       </div>
 
-      {(numberError || (number && !number.connected)) && (
+      {(numberError || (number && !number.connected)) && current !== 'setup' && (
         <div className="wa-banner" role="status">
-          <b>The WhatsApp number is not connected here yet.</b> {number?.problem || numberError}
-          {' '}Screens still open; sending waits until an administrator connects the number (see the setup guide).
+          <b>The WhatsApp number is not connected yet.</b> {number?.problem || numberError}
+          {' '}<Link to="/whatsapp/setup">Open Setup</Link>
         </div>
       )}
 
@@ -85,6 +90,7 @@ export default function WhatsAppPage() {
           {current === 'contacts' && <ContactsTab can={can} />}
           {current === 'billing' && <BillingTab />}
           {current === 'settings' && <SettingsTab can={can} />}
+          {current === 'setup' && <SetupTab can={can} onConnected={() => setNumberVersion(v => v + 1)} />}
         </div>
       </div>
     </div>

@@ -183,3 +183,20 @@
   .wa-var { grid-template-columns: 1fr 1fr; }
   .wa-dl { grid-template-columns: 1fr; }
 }
+
+/* Setup */
+.wa-status { border-color: #fedf89; background: #fffcf5; }
+.wa-status.ready { border-color: #abefc6; background: #f6fef9; }
+.wa-checklist { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.wa-checklist li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.wa-checklist li > svg { flex: none; margin-top: 1px; }
+.wa-ck-ok { color: #079455; }
+.wa-ck-warn { color: #dc6803; }
+.wa-ck-fail { color: #d92d20; }
+.wa-ck-todo { color: #98a2b3; }
+.wa-flushrow { margin-top: 0; flex-wrap: nowrap; }
+.wa-flushrow input { flex: 1; min-width: 0; }
+.wa-mono { font-family: ui-monospace, monospace; font-size: 12px; }
+.wa-test-phone { max-width: 260px; }
+.wa-page input[type=password], .wa-page input[type=number], .wa-page input[type=date], .wa-page input[type=datetime-local] { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 13px; background: #fff; color: var(--text-primary); }
+.wa-page input[type=password]:disabled { background: #f3f4f6; }

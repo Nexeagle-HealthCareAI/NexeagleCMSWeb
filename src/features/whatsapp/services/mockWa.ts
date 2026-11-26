@@ -1,7 +1,7 @@
 import type {
   ChatView, WaAgent, WaBroadcast, WaBroadcastPreview, WaBroadcastRequest, WaChat, WaContact, WaContactPage, WaContactQuery,
   WaImportCommon, WaImportResult, WaImportRow, WaMessage, WaMetaSpendDay, WaNote, WaNumber, WaProfile, WaRate, WaRecipient,
-  WaSaveContact, WaSaveTemplate, WaSettings, WaSpend, WaTemplate, WaThread,
+  WaSaveContact, WaSaveTemplate, WaSettings, WaSetup, WaSetupChecks, WaSetupSave, WaSpend, WaTemplate, WaThread,
 } from '../types';
 import { fill, requiredKeys, variablesIn } from '../waUtils';
 
@@ -104,6 +104,26 @@ let settings: WaSettings = {
   ],
 };
 let profile: WaProfile = { about: 'Hospital software for India (example)', description: 'Example business description.', email: 'hello@example.com', websites: ['https://example.com'], vertical: 'HEALTH', address: 'Example address' };
+
+let setup: WaSetup = {
+  canEdit: true, phoneNumberId: '100000000000001', wabaId: '200000000000002', appId: '300000000000003', hasAccessToken: true, accessTokenHint: 'x9Qa',
+  tokenSource: 'cms', hasAppSecret: true, verifyToken: '5f2c0d9e7b1a4c3d8e6f0a2b4c6d8e0f', hasVerifyToken: true, unreadable: false, canEncrypt: true,
+  suggestedWebhookUrl: 'https://cms-api.nexeagle.com/api/v1/whatsapp/webhook', webhookUrl: null, webhookConnectedAt: null, lastWebhookAt: null,
+  updatedAt: ago(60 * 3), updatedBy: 'Example teammate',
+};
+let subscribed = false;
+const checks = (): WaSetupChecks => {
+  const keys = !!(setup.phoneNumberId && setup.wabaId && setup.hasAccessToken && setup.hasAppSecret);
+  const items: WaSetupChecks['items'] = [
+    { key: 'keys-entered', label: 'Keys entered', state: keys ? 'ok' : 'todo', detail: keys ? null : 'Missing: some keys.' },
+    { key: 'token', label: 'Token works', state: keys ? 'ok' : 'todo', detail: keys ? '+91 90000 00000 · Example Business' : null },
+    { key: 'number', label: 'Number is in the account', state: keys ? 'ok' : 'todo', detail: keys ? '2 number(s) in the account.' : null },
+    { key: 'subscribed', label: "App receives the account's webhooks", state: subscribed ? 'ok' : 'todo', detail: subscribed ? 'Example app' : 'No app is subscribed to this account yet.' },
+    { key: 'webhook', label: "Number's messages come to the CMS", state: setup.webhookConnectedAt ? 'ok' : 'todo', detail: setup.webhookUrl ?? 'They go to https://example-bot/webhook now.' },
+    { key: 'arriving', label: 'Messages arriving', state: setup.webhookConnectedAt ? 'ok' : 'todo', detail: setup.webhookConnectedAt ? 'Last from Meta: just now.' : 'Nothing yet. Send any message from a phone to the number.' },
+  ];
+  return { items, ready: items.every(i => i.state === 'ok') };
+};
 
 const chatOf = (c: WaContact): WaChat => {
   const chat: WaChat = {
@@ -341,5 +361,28 @@ export const mockWa = {
       byBroadcast: broadcasts.filter(b => b.actualCost > 0).map(b => ({ broadcastId: b.broadcastId, name: b.name, cost: b.actualCost, delivered: b.delivered })),
     };
   },
+  setup: async () => ({ ...setup }),
+  saveSetup: async (p: WaSetupSave) => {
+    await pause();
+    if (p.phoneNumberId && !/^\d{5,25}$/.test(p.phoneNumberId)) throw new Error('The phone number ID is the long number Meta shows under the phone number (digits only), not the phone number itself.');
+    setup = {
+      ...setup, phoneNumberId: p.phoneNumberId || null, wabaId: p.wabaId || null, appId: p.appId || null,
+      hasAccessToken: p.clearAccessToken ? false : setup.hasAccessToken || !!p.accessToken,
+      accessTokenHint: p.clearAccessToken ? null : p.accessToken ? p.accessToken.slice(-4) : setup.accessTokenHint,
+      tokenSource: 'cms', hasAppSecret: p.clearAppSecret ? false : setup.hasAppSecret || !!p.appSecret,
+      updatedAt: new Date().toISOString(), updatedBy: ME.fullName,
+    };
+    return { ...setup };
+  },
+  newVerifyToken: async () => { setup = { ...setup, verifyToken: Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2) }; return { ...setup }; },
+  setupChecks: async (): Promise<WaSetupChecks> => { await pause(); return checks(); },
+  subscribeApp: async () => { subscribed = true; return checks(); },
+  connectWebhook: async (url: string) => {
+    await pause();
+    if (!url.startsWith('https://')) throw new Error('Meta only calls https addresses.');
+    setup = { ...setup, webhookUrl: url, webhookConnectedAt: new Date().toISOString() };
+    return checks();
+  },
+  testMessage: async (phone: string) => ({ data: 'wamid.test', message: `Sent Meta's sample message to ${phone}.` }),
   metaSpend: async (from: string): Promise<WaMetaSpendDay[]> => [{ date: from, category: 'MARKETING', volume: 112, cost: 96.67 }],
 };

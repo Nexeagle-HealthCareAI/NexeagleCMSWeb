@@ -221,3 +221,37 @@ export interface WaSpend {
   byBroadcast: WaSpendBroadcast[];
 }
 export interface WaMetaSpendDay { date: string; category: string; volume: number; cost: number }
+
+export interface WaSetup {
+  canEdit: boolean;
+  phoneNumberId?: string | null;
+  wabaId?: string | null;
+  appId?: string | null;
+  hasAccessToken: boolean;
+  accessTokenHint?: string | null;
+  tokenSource: 'cms' | 'server' | 'none';
+  hasAppSecret: boolean;
+  verifyToken?: string | null;
+  hasVerifyToken: boolean;
+  unreadable: boolean;
+  canEncrypt: boolean;
+  suggestedWebhookUrl: string;
+  webhookUrl?: string | null;
+  webhookConnectedAt?: string | null;
+  lastWebhookAt?: string | null;
+  updatedAt?: string | null;
+  updatedBy?: string | null;
+}
+
+export interface WaSetupSave {
+  phoneNumberId?: string;
+  wabaId?: string;
+  appId?: string;
+  accessToken?: string;
+  appSecret?: string;
+  clearAccessToken?: boolean;
+  clearAppSecret?: boolean;
+}
+
+export interface WaSetupCheck { key: string; label: string; state: 'ok' | 'warn' | 'fail' | 'todo'; detail?: string | null }
+export interface WaSetupChecks { items: WaSetupCheck[]; ready: boolean }

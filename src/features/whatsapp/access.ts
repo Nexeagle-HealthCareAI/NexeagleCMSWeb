@@ -12,6 +12,8 @@ export const WA_TEMPLATES = 'whatsapp.templates';
 export const WA_APPROVE = 'whatsapp.approve';
 /** Business profile, budget, sending speed and rates. */
 export const WA_SETTINGS = 'whatsapp.settings';
+/** Enter the Meta keys and connect the webhook (WhatsApp → Setup). */
+export const WA_CONNECT = 'whatsapp.connect';
 /** Doctor Dekho patients' numbers (Patient app insights → contacts). */
 export const PATIENT_CONTACTS = 'insights.contacts';
 
@@ -23,6 +25,7 @@ export interface WaCan {
   templates: boolean;
   approve: boolean;
   settings: boolean;
+  connect: boolean;
   patients: boolean;
 }
 
@@ -30,7 +33,7 @@ export const waCan = (perms: string[]): WaCan => {
   const has = (p: string) => WA_MOCK || perms.includes(p);
   return {
     view: has(WA_VIEW), reply: has(WA_REPLY), contacts: has(WA_CONTACTS), broadcast: has(WA_BROADCAST),
-    templates: has(WA_TEMPLATES), approve: has(WA_APPROVE), settings: has(WA_SETTINGS), patients: has(PATIENT_CONTACTS),
+    templates: has(WA_TEMPLATES), approve: has(WA_APPROVE), settings: has(WA_SETTINGS), connect: has(WA_CONNECT), patients: has(PATIENT_CONTACTS),
   };
 };
 

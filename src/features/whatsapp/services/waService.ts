@@ -3,7 +3,7 @@ import { WA_MOCK } from '../access';
 import type {
   ChatView, WaAgent, WaBroadcast, WaBroadcastPreview, WaBroadcastRequest, WaChat, WaContact, WaContactPage, WaContactQuery,
   WaImportCommon, WaImportResult, WaImportRow, WaMessage, WaMetaSpendDay, WaNote, WaNumber, WaProfile, WaRate, WaRecipient,
-  WaSaveContact, WaSaveTemplate, WaSettings, WaSpend, WaTemplate, WaThread,
+  WaSaveContact, WaSaveTemplate, WaSettings, WaSetup, WaSetupChecks, WaSetupSave, WaSpend, WaTemplate, WaThread,
 } from '../types';
 import { mockWa } from './mockWa';
 
@@ -68,6 +68,13 @@ const real = {
   settings: async () => d<WaSettings>(await api.get('/whatsapp/settings')),
   saveSettings: async (p: { monthlyBudget?: number | null; sendPerSecond?: number; rates?: WaRate[] }) => d<WaSettings>(await api.put('/whatsapp/settings', p)),
   spend: async (from: string, to: string) => d<WaSpend>(await api.get('/whatsapp/spend', { params: { from, to } })),
+  setup: async () => d<WaSetup>(await api.get('/whatsapp/setup')),
+  saveSetup: async (p: WaSetupSave) => d<WaSetup>(await api.put('/whatsapp/setup', p)),
+  newVerifyToken: async () => d<WaSetup>(await api.post('/whatsapp/setup/verify-token')),
+  setupChecks: async () => d<WaSetupChecks>(await api.get('/whatsapp/setup/checks', { timeout: 60_000 })),
+  subscribeApp: async () => d<WaSetupChecks>(await api.post('/whatsapp/setup/subscribe-app', undefined, { timeout: 60_000 })),
+  connectWebhook: async (url: string) => d<WaSetupChecks>(await api.post('/whatsapp/setup/connect-webhook', { url }, { timeout: 60_000 })),
+  testMessage: async (phone: string) => (await api.post('/whatsapp/setup/test', { phone })).data as { data: string; message?: string },
   metaSpend: async (from: string, to: string) => d<WaMetaSpendDay[]>(await api.get('/whatsapp/spend/meta', { params: { from, to }, timeout: 60_000 })),
 };
 

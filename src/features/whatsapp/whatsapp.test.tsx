@@ -2,11 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { toast } from 'sonner';
 
 vi.mock('./access', () => ({
   WA_MOCK: true,
   canViewWhatsApp: () => true,
-  waCan: () => ({ view: true, reply: true, contacts: true, broadcast: true, templates: true, approve: true, settings: true, patients: true }),
+  waCan: () => ({ view: true, reply: true, contacts: true, broadcast: true, templates: true, approve: true, settings: true, connect: true, patients: true }),
 }));
 
 import WhatsAppPage from './WhatsAppPage';
@@ -162,5 +163,38 @@ describe('WhatsApp contacts', () => {
     await user.click(save);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(await screen.findByText('+91 91234 56789')).toBeInTheDocument();
+  });
+});
+
+describe('WhatsApp setup', () => {
+  it('connects the number step by step and shows what is left', async () => {
+    const user = userEvent.setup();
+    open('/whatsapp/setup');
+    expect(await screen.findByRole('heading', { name: 'Not fully connected yet' })).toBeInTheDocument();
+    expect(screen.getByText('No app is subscribed to this account yet.')).toBeInTheDocument();
+
+    // Secrets are never shown back: the field is empty, and says one is saved.
+    expect(screen.getByText(/Saved \(ends …x9Qa\)/)).toBeInTheDocument();
+    await user.clear(screen.getByRole('textbox', { name: 'Phone number ID' }));
+    await user.type(screen.getByRole('textbox', { name: 'Phone number ID' }), '+91 98765 43210');
+    const refused = vi.spyOn(toast, 'error');
+    await user.click(screen.getByRole('button', { name: 'Save keys' }));
+    await waitFor(() => expect(refused).toHaveBeenCalledWith(expect.stringMatching(/not the phone number itself/)));
+    refused.mockRestore();
+
+    await user.click(screen.getByRole('button', { name: 'Subscribe the app' }));
+    const address = screen.getByRole('textbox', { name: /Webhook address/ });
+    expect(address).toHaveValue('https://cms-api.nexeagle.com/api/v1/whatsapp/webhook');
+    await user.click(screen.getByRole('button', { name: 'Connect webhook' }));
+    expect(await screen.findByRole('heading', { name: 'Connected: sending and receiving work' })).toBeInTheDocument();
+  });
+
+  it('refuses an address Meta cannot call', async () => {
+    const user = userEvent.setup();
+    open('/whatsapp/setup');
+    const address = await screen.findByRole('textbox', { name: /Webhook address/ });
+    await user.clear(address);
+    await user.type(address, 'http://151.185.45.77:5002/api/v1/whatsapp/webhook');
+    expect(screen.getByText('Meta only calls https addresses.')).toBeInTheDocument();
   });
 });
