@@ -8,7 +8,7 @@ import { allItems, NAV_GROUPS } from './nav/navConfig';
 
 const EVERYTHING = [
   'work.view', 'onboarded-hospitals.view', 'dashboard.view', 'subscriptions.view', 'marketing.view', 'live-support.view',
-  'health-wiki.manage', 'emergency.manage', 'vita.view', 'user-management.view', 'data-migration.manage', 'settings.view', 'partners.manage',
+  'health-wiki.manage', 'emergency.manage', 'vita.view', 'user-management.view', 'data-migration.manage', 'settings.view', 'partners.manage', 'whatsapp.view',
 ];
 const open = (path = '/') =>
   render(<MemoryRouter initialEntries={[path]}><Sidebar collapsed={false} onToggle={() => undefined} /></MemoryRouter>);
@@ -23,9 +23,9 @@ describe('side menu', () => {
   });
 
   it('groups pages by the job they do', () => {
-    expect(NAV_GROUPS.map(g => g.label)).toEqual(['', 'Customers', 'Billing', 'Support', 'Reports', 'Content', 'AI agents', 'Admin']);
+    expect(NAV_GROUPS.map(g => g.label)).toEqual(['', 'Customers', 'Billing', 'Marketing', 'Support', 'Reports', 'Content', 'AI agents', 'Admin']);
     open();
-    for (const name of ['Customers', 'Billing', 'Support', 'Reports', 'Content', 'AI agents', 'Admin']) {
+    for (const name of ['Customers', 'Billing', 'Marketing', 'Support', 'Reports', 'Content', 'AI agents', 'Admin']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
   });
