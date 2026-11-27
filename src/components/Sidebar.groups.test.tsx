@@ -8,7 +8,7 @@ import { allItems, NAV_GROUPS } from './nav/navConfig';
 
 const EVERYTHING = [
   'work.view', 'onboarded-hospitals.view', 'dashboard.view', 'subscriptions.view', 'marketing.view', 'live-support.view',
-  'health-wiki.manage', 'emergency.manage', 'vita.view', 'user-management.view', 'data-migration.manage', 'settings.view', 'partners.manage', 'whatsapp.view',
+  'health-wiki.manage', 'emergency.manage', 'vita.view', 'user-management.view', 'data-migration.manage', 'settings.view', 'partners.manage', 'whatsapp.view', 'social.view',
 ];
 const open = (path = '/') =>
   render(<MemoryRouter initialEntries={[path]}><Sidebar collapsed={false} onToggle={() => undefined} /></MemoryRouter>);
@@ -16,10 +16,17 @@ const open = (path = '/') =>
 describe('side menu', () => {
   beforeEach(() => { localStorage.clear(); useAuthStore.setState({ permissions: EVERYTHING }); });
 
-  it('no longer has Partners, Leads & CRM or Social posts, anywhere', () => {
+  it('no longer has Partners or Leads & CRM, anywhere', () => {
     const labels = allItems(EVERYTHING).map(i => i.label).join(' | ');
-    expect(labels).not.toMatch(/Partner|Lead|CRM|Social/i);
-    expect(allItems(EVERYTHING).map(i => i.to)).not.toEqual(expect.arrayContaining(['/partners', '/leads', '/social']));
+    expect(labels).not.toMatch(/Partner|Lead|CRM|Social posts/i);
+    expect(allItems(EVERYTHING).map(i => i.to)).not.toEqual(expect.arrayContaining(['/partners', '/leads']));
+  });
+
+  it('has Social (Facebook and Instagram) under Marketing, for people with social.view', () => {
+    const marketing = NAV_GROUPS.find(g => g.key === 'marketing')!;
+    expect(marketing.items.map(i => i.label)).toEqual(['WhatsApp', 'Social']);
+    expect(allItems(EVERYTHING).find(i => i.key === 'social')?.to).toBe('/social');
+    expect(allItems(EVERYTHING.filter(p => p !== 'social.view')).some(i => i.key === 'social')).toBe(false);
   });
 
   it('groups pages by the job they do', () => {

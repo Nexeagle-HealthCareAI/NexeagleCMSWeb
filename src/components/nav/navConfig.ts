@@ -1,18 +1,20 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, Gift, KeyRound,
-    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle,
+    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
 import { canViewWork } from '../../features/work/access';
 import { canViewWhatsApp } from '../../features/whatsapp/access';
+import { canViewSocial } from '../../features/social/access';
 
 /**
  * The CMS menu, grouped by job. One list drives the side menu, the phone menu
  * sheet and the Ctrl K search, so a page is added in exactly one place.
  *
- * Partners, Leads & CRM and Social posts were taken out of the CMS in November 2026: no menu
- * item, and their old addresses go to Today (see App.tsx).
+ * Partners, Leads & CRM and the old Social posts page were taken out of the CMS in November 2026: no
+ * menu item, and /partners and /leads go to Today (see App.tsx). /social is now the Facebook and
+ * Instagram section (Marketing → Social).
  *
  * `allowed` mirrors the route gates in App.tsx (RequirePermission) — the menu
  * only hides what the route would refuse anyway.
@@ -71,9 +73,10 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
     },
     {
-        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's).
+        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's), and the Facebook Page + Instagram.
         key: 'marketing', label: 'Marketing', items: [
             { key: 'whatsapp', label: 'WhatsApp', to: '/whatsapp', icon: MessageCircle, allowed: canViewWhatsApp, keywords: 'whatsapp marketing broadcast templates inbox chats messages contacts opt-in campaign billing spend profile' },
+            { key: 'social', label: 'Social', to: '/social', icon: Share2, allowed: canViewSocial, keywords: 'facebook instagram meta page posts reels stories schedule calendar comments messenger dm inbox lead ads cost per lead' },
         ],
     },
     {
