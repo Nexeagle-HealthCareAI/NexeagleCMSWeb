@@ -189,6 +189,18 @@ describe('WhatsApp setup', () => {
     expect(await screen.findByRole('heading', { name: 'Connected: sending and receiving work' })).toBeInTheDocument();
   });
 
+  it('sets up the business profile from Setup and shows what is missing', async () => {
+    const user = userEvent.setup();
+    open('/whatsapp/setup');
+    expect(await screen.findByText(/Missing: photo\. Fill it in below\./)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '5 · Business profile' })).toBeInTheDocument();
+    const about = screen.getByRole('textbox', { name: /About/ });
+    await user.clear(about);
+    await user.type(about, 'Hospital software for India');
+    await user.click(screen.getByRole('button', { name: 'Save profile' }));
+    await waitFor(() => expect(screen.getByRole('textbox', { name: /About/ })).toHaveValue('Hospital software for India'));
+  });
+
   it('refuses an address Meta cannot call', async () => {
     const user = userEvent.setup();
     open('/whatsapp/setup');

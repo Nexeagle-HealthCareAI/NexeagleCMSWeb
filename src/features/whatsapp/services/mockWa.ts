@@ -117,12 +117,17 @@ const checks = (): WaSetupChecks => {
   const items: WaSetupChecks['items'] = [
     { key: 'keys-entered', label: 'Keys entered', state: keys ? 'ok' : 'todo', detail: keys ? null : 'Missing: some keys.' },
     { key: 'token', label: 'Token works', state: keys ? 'ok' : 'todo', detail: keys ? '+91 90000 00000 · Example Business' : null },
+    { key: 'display-name', label: 'Display name approved by Meta', state: keys ? 'ok' : 'todo', detail: keys ? 'Example Business' : null },
     { key: 'number', label: 'Number is in the account', state: keys ? 'ok' : 'todo', detail: keys ? '2 number(s) in the account.' : null },
     { key: 'subscribed', label: "App receives the account's webhooks", state: subscribed ? 'ok' : 'todo', detail: subscribed ? 'Example app' : 'No app is subscribed to this account yet.' },
     { key: 'webhook', label: "Number's messages come to the CMS", state: setup.webhookConnectedAt ? 'ok' : 'todo', detail: setup.webhookUrl ?? 'They go to https://example-bot/webhook now.' },
     { key: 'arriving', label: 'Messages arriving', state: setup.webhookConnectedAt ? 'ok' : 'todo', detail: setup.webhookConnectedAt ? 'Last from Meta: just now.' : 'Nothing yet. Send any message from a phone to the number.' },
   ];
-  return { items, ready: items.every(i => i.state === 'ok') };
+  if (keys) {
+    const gaps = [!profile.pictureUrl && 'photo', !profile.about && 'about', !profile.description && 'description', !profile.email && 'email', !profile.websites.length && 'website'].filter(Boolean);
+    items.push({ key: 'profile', label: 'Business profile filled in', state: gaps.length ? 'warn' : 'ok', detail: gaps.length ? `Missing: ${gaps.join(', ')}. Fill it in below.` : null });
+  }
+  return { items, ready: items.filter(i => i.key !== 'profile').every(i => i.state === 'ok') };
 };
 
 const chatOf = (c: WaContact): WaChat => {

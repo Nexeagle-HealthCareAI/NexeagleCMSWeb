@@ -5,6 +5,7 @@ import type { WaCan } from '../access';
 import { waService, waError } from '../services/waService';
 import type { WaSetup, WaSetupCheck, WaSetupChecks } from '../types';
 import { when } from '../waUtils';
+import ProfileCard from './ProfileCard';
 
 // WhatsApp → Setup: connect the marketing number to Meta without touching servers or GitHub.
 // Keys are typed in here and stored encrypted; the checks show what is still missing, and the buttons do the
@@ -74,6 +75,15 @@ export default function SetupTab({ can, onConnected }: { can: WaCan; onConnected
       <WebhookCard setup={setup} edit={edit} connected={step('webhook') === 'ok'} onDone={c => { setChecks(c); reload(); }} onNewToken={s => setSetup(s)} />
 
       <TestCard edit={edit} />
+
+      {checks?.items.some(i => i.key === 'token' && i.state === 'ok')
+        ? <ProfileCard title="5 · Business profile" canEdit={can.settings} onSaved={recheck} />
+        : (
+          <section className="wa-chart-card">
+            <h3 className="wa-h3">5 · Business profile</h3>
+            <p className="wa-small hw-muted">Photo, about, description, email and websites people see in WhatsApp. Opens once the token works.</p>
+          </section>
+        )}
     </div>
   );
 }
