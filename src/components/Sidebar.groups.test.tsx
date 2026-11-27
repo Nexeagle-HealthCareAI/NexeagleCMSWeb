@@ -16,10 +16,10 @@ const open = (path = '/') =>
 describe('side menu', () => {
   beforeEach(() => { localStorage.clear(); useAuthStore.setState({ permissions: EVERYTHING }); });
 
-  it('no longer has Partners or Leads & CRM, anywhere', () => {
+  it('no longer has Partners, Leads & CRM or Referral codes, anywhere', () => {
     const labels = allItems(EVERYTHING).map(i => i.label).join(' | ');
-    expect(labels).not.toMatch(/Partner|Lead|CRM|Social posts/i);
-    expect(allItems(EVERYTHING).map(i => i.to)).not.toEqual(expect.arrayContaining(['/partners', '/leads']));
+    expect(labels).not.toMatch(/Partner|Lead|CRM|Social posts|Referral/i);
+    for (const to of ['/partners', '/leads', '/referral-codes']) expect(allItems(EVERYTHING).map(i => i.to)).not.toContain(to);
   });
 
   it('has Social (Facebook and Instagram) under Marketing, for people with social.view', () => {

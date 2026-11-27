@@ -1,6 +1,5 @@
 import React from 'react';
 import { PlansTab } from '../subscriptions/PlansTab';
-import { ReferralCodesTab } from '../subscriptions/ReferralCodesTab';
 import { InsightsTab } from '../insights/components/InsightsTab';
 import { RouterAgentsTab } from '../routerAgents/pages/RouterAgentsTab';
 import { HospitalOperationsTab } from '../operations/components/HospitalOperationsTab';
@@ -27,13 +26,6 @@ export const PlansPage: React.FC = () => (
     <div className="ne-page">
         <PageHead title="Plans & prices" sub="The 1HMS plans customers can choose, and what each costs." />
         <PlansTab />
-    </div>
-);
-
-export const ReferralCodesPage: React.FC = () => (
-    <div className="ne-page">
-        <PageHead title="Referral codes" sub="Codes that give a discount or extra months when a customer pays." />
-        <ReferralCodesTab />
     </div>
 );
 
