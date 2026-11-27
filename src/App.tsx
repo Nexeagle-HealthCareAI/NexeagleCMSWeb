@@ -4,7 +4,7 @@ import { useAuthStore } from './store/useAuthStore';
 import Layout from './components/Layout';
 import Dashboard from './features/dashboard/pages/Dashboard';
 import TodayPage from './features/today/TodayPage';
-import { ApprovalsPage, PlansPage, ReferralCodesPage, InsightsPage, SymptomRouterPage, FreeTierPage } from './features/shell/MenuPages';
+import { ApprovalsPage, PlansPage, InsightsPage, SymptomRouterPage, FreeTierPage } from './features/shell/MenuPages';
 import Login from './features/login/pages/Login';
 import ChangePassword from './features/login/pages/ChangePassword';
 import HospitalDetails from './features/dashboard/pages/HospitalDetails';
@@ -138,11 +138,12 @@ function App() {
             <Route path="rad-centers" element={<RequirePermission perm="dashboard.view"><RadCentersPage /></RequirePermission>} />
             <Route path="rad-centers/:id" element={<RequirePermission perm="dashboard.view"><RadCentreDetails /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
-            {/* Partners and Leads & CRM were taken out of the CMS (November 2026).
+            {/* Partners, Leads & CRM and Referral codes were taken out of the CMS (November 2026).
                 Old links and bookmarks land on Today instead of an empty page.
                 /social is now the Facebook and Instagram section (below). */}
             <Route path="partners" element={<Navigate to="/" replace />} />
             <Route path="leads" element={<Navigate to="/" replace />} />
+            <Route path="referral-codes" element={<Navigate to="/" replace />} />
             <Route path="data-migration" element={<RequirePermission perm="data-migration.manage"><DataMigrationPage /></RequirePermission>} />
             <Route path="data-migration/new" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
             <Route path="data-migration/:id" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
@@ -150,7 +151,6 @@ function App() {
             {/* Money: Manage Subscription's four tabs are now three pages (1HMS and 1Rad approvals share one). */}
             <Route path="approvals" element={<RequirePermission perm="subscriptions.view"><ApprovalsPage /></RequirePermission>} />
             <Route path="plans" element={<RequirePermission perm="subscriptions.view"><PlansPage /></RequirePermission>} />
-            <Route path="referral-codes" element={<RequirePermission perm="subscriptions.view"><ReferralCodesPage /></RequirePermission>} />
             <Route path="subscriptions" element={<Navigate to="/approvals" replace />} />
             <Route path="manage-plans" element={<Navigate to="/plans" replace />} />
             {/* Pages that used to be tabs inside Doctor Dekho and Onboarded Hospitals. */}

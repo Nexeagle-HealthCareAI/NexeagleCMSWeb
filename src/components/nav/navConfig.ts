@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-    Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, Gift, KeyRound,
+    Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, KeyRound,
     BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
@@ -12,8 +12,8 @@ import { canViewSocial } from '../../features/social/access';
  * The CMS menu, grouped by job. One list drives the side menu, the phone menu
  * sheet and the Ctrl K search, so a page is added in exactly one place.
  *
- * Partners, Leads & CRM and the old Social posts page were taken out of the CMS in November 2026: no
- * menu item, and /partners and /leads go to Today (see App.tsx). /social is now the Facebook and
+ * Partners, Leads & CRM, the old Social posts page and Referral codes were taken out of the CMS in
+ * November 2026: no menu item, and /partners, /leads and /referral-codes go to Today (see App.tsx). /social is now the Facebook and
  * Instagram section (Marketing → Social).
  *
  * `allowed` mirrors the route gates in App.tsx (RequirePermission) — the menu
@@ -69,7 +69,6 @@ export const NAV_GROUPS: NavGroup[] = [
         key: 'money', label: 'Billing', items: [
             { key: 'approvals', label: 'Payment approvals', short: 'Approvals', to: '/approvals', icon: CreditCard, allowed: has('subscriptions.view'), badge: 'approvals', keywords: 'subscription payments verify approve money', alsoActive: ['/subscriptions'] },
             { key: 'plans', label: 'Plans & prices', short: 'Plans', to: '/plans', icon: Tag, allowed: has('subscriptions.view'), keywords: 'subscription plans pricing manage plans' },
-            { key: 'referral', label: 'Referral codes', short: 'Referral codes', to: '/referral-codes', icon: Gift, allowed: has('subscriptions.view'), keywords: 'discount coupon' },
         ],
     },
     {
