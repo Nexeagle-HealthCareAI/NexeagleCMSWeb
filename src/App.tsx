@@ -33,6 +33,8 @@ import WhatsAppPage from './features/whatsapp/WhatsAppPage';
 import { canViewWhatsApp } from './features/whatsapp/access';
 import SocialPage from './features/social/SocialPage';
 import { canViewSocial } from './features/social/access';
+import GooglePage from './features/google/GooglePage';
+import { canViewGoogle } from './features/google/access';
 import { canViewWork } from './features/work/access';
 import RequirePermission from './components/RequirePermission';
 import EmergencyPage from './features/emergency/EmergencyPage';
@@ -77,6 +79,12 @@ const RequireWhatsApp = ({ children }: { children: React.ReactElement }) => {
 const RequireSocial = ({ children }: { children: React.ReactElement }) => {
   const permissions = useAuthStore((st) => st.permissions) || [];
   return canViewSocial(permissions) ? children : <Navigate to="/no-access" replace />;
+};
+
+// Google (Analytics, Ads, lead forms) is gated by `google.view` (or the local mock flag, VITE_GOOGLE_MOCK).
+const RequireGoogle = ({ children }: { children: React.ReactElement }) => {
+  const permissions = useAuthStore((st) => st.permissions) || [];
+  return canViewGoogle(permissions) ? children : <Navigate to="/no-access" replace />;
 };
 
 // Health Wiki is gated by `health-wiki.manage` (or the local mock flag while the backend is not wired).
@@ -166,6 +174,8 @@ function App() {
             <Route path="social" element={<RequireSocial><SocialPage /></RequireSocial>} />
             <Route path="social/:tab" element={<RequireSocial><SocialPage /></RequireSocial>} />
             <Route path="social/:tab/:id" element={<RequireSocial><SocialPage /></RequireSocial>} />
+            <Route path="google" element={<RequireGoogle><GooglePage /></RequireGoogle>} />
+            <Route path="google/:tab" element={<RequireGoogle><GooglePage /></RequireGoogle>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
             <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />
