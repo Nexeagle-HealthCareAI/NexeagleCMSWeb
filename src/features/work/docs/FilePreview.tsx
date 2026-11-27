@@ -13,6 +13,7 @@ type View =
   | { state: 'image' | 'pdf'; url: string; blob: Blob }
   | { state: 'text'; text: string; blob: Blob }
   | { state: 'word'; html: string; blob: Blob }
+  | { state: 'unreadable'; blob: Blob }
   | { state: 'none'; blob: Blob };
 
 const TEXT_PREVIEW_LIMIT = 300_000;
@@ -47,9 +48,15 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
           const text = await blob.slice(0, TEXT_PREVIEW_LIMIT).text();
           if (alive) setView({ state: 'text', text, blob });
         } else if (doc.name.toLowerCase().endsWith('.docx')) {
-          const mammoth = await import('mammoth/mammoth.browser');
-          const result = await mammoth.convertToHtml({ arrayBuffer: await blob.arrayBuffer() });
-          if (alive) setView({ state: 'word', html: result.value, blob });
+          // The file arrived; only the readable copy can fail here (an unusual or damaged .docx).
+          try {
+            const mammoth = await import('mammoth/mammoth.browser');
+            const result = await mammoth.convertToHtml({ arrayBuffer: await blob.arrayBuffer() });
+            if (alive) setView({ state: 'word', html: result.value, blob });
+          } catch (e) {
+            console.warn('Word preview failed', e);
+            if (alive) setView({ state: 'unreadable', blob });
+          }
         } else {
           setView({ state: 'none', blob });
         }
@@ -75,6 +82,14 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
         {/* sandbox with no allowances: the copy cannot run scripts, open windows or reach the CMS. */}
         <iframe srcDoc={page} sandbox="" title={`${doc.name} (readable copy)`} />
         <p className="wk-muted dc-preview-note">This is a readable copy{mayExport ? '. Download the file to see its exact layout.' : ' of the Word file.'} {download}</p>
+      </div>
+    );
+  }
+  if (view.state === 'unreadable') {
+    return (
+      <div className="dc-preview is-none">
+        <p>The file is stored safely, but this Word file cannot be shown as a readable copy here.{mayExport ? ' Download it to open it in Word.' : ' Downloading is turned off for you on this screen.'}</p>
+        {download}
       </div>
     );
   }

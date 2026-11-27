@@ -6,6 +6,29 @@ import { mockDocs } from './mockDocs';
 // Docs tab calls (CMS API: DocsController). Every answer is { success, data, message }.
 const enc = encodeURIComponent;
 
+/**
+ * A file is asked for as bytes, so when the API refuses, its { message } arrives as bytes too and
+ * errorMessage() cannot read it. Turn that body back into JSON so the API's own reason is shown
+ * (e.g. "The file could not be opened: the storage keys may not read the bucket ...").
+ */
+const blobText = (b: Blob): Promise<string> =>
+  typeof b.text === 'function'
+    ? b.text()
+    : new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ''));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(b);
+    });
+
+export async function readBlobError(e: unknown): Promise<unknown> {
+  const r = (e as { response?: { data?: unknown } })?.response;
+  if (r && typeof Blob !== 'undefined' && r.data instanceof Blob) {
+    try { r.data = JSON.parse(await blobText(r.data)); } catch { r.data = undefined; }
+  }
+  return e;
+}
+
 const real = {
   folders: async () => (await api.get('/docs/folders')).data.data as DocFolder[],
   createFolder: async (p: SaveFolderPayload) => (await api.post('/docs/folders', p)).data.data as DocFolder,
@@ -32,8 +55,13 @@ const real = {
     return (await api.post('/docs/upload', body, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 180_000 })).data.data as DocDetail;
   },
   /** The file's bytes. versionId gives an earlier version. */
-  file: async (id: string, versionId?: string) =>
-    (await api.get(`/docs/${enc(id)}/file`, { params: versionId ? { versionId } : undefined, responseType: 'blob', timeout: 180_000 })).data as Blob,
+  file: async (id: string, versionId?: string) => {
+    try {
+      return (await api.get(`/docs/${enc(id)}/file`, { params: versionId ? { versionId } : undefined, responseType: 'blob', timeout: 180_000 })).data as Blob;
+    } catch (e) {
+      throw await readBlobError(e);
+    }
+  },
   remove: async (id: string) => { await api.delete(`/docs/${enc(id)}`); },
   restore: async (id: string) => { await api.post(`/docs/${enc(id)}/restore`); },
   bin: async () => (await api.get('/docs/bin')).data.data as DocBin,
