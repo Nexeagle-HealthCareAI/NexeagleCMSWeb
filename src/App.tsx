@@ -30,6 +30,8 @@ import { canUseHealthWiki } from './features/healthWiki/access';
 import WorkBoardPage from './features/work/pages/WorkBoardPage';
 import WhatsAppPage from './features/whatsapp/WhatsAppPage';
 import { canViewWhatsApp } from './features/whatsapp/access';
+import SocialPage from './features/social/SocialPage';
+import { canViewSocial } from './features/social/access';
 import { canViewWork } from './features/work/access';
 import RequirePermission from './components/RequirePermission';
 import EmergencyPage from './features/emergency/EmergencyPage';
@@ -68,6 +70,12 @@ const RequireWork = ({ children }: { children: React.ReactElement }) => {
 const RequireWhatsApp = ({ children }: { children: React.ReactElement }) => {
   const permissions = useAuthStore((st) => st.permissions) || [];
   return canViewWhatsApp(permissions) ? children : <Navigate to="/no-access" replace />;
+};
+
+// Social (Facebook Page + Instagram) is gated by `social.view` (or the local mock flag, VITE_SOCIAL_MOCK).
+const RequireSocial = ({ children }: { children: React.ReactElement }) => {
+  const permissions = useAuthStore((st) => st.permissions) || [];
+  return canViewSocial(permissions) ? children : <Navigate to="/no-access" replace />;
 };
 
 // Health Wiki is gated by `health-wiki.manage` (or the local mock flag while the backend is not wired).
@@ -130,11 +138,11 @@ function App() {
             <Route path="rad-centers" element={<RequirePermission perm="dashboard.view"><RadCentersPage /></RequirePermission>} />
             <Route path="rad-centers/:id" element={<RequirePermission perm="dashboard.view"><RadCentreDetails /></RequirePermission>} />
             <Route path="doctors" element={<DoctorsPage />} />
-            {/* Partners, Leads & CRM and Social posts were taken out of the CMS (November 2026).
-                Old links and bookmarks land on Today instead of an empty page. */}
+            {/* Partners and Leads & CRM were taken out of the CMS (November 2026).
+                Old links and bookmarks land on Today instead of an empty page.
+                /social is now the Facebook and Instagram section (below). */}
             <Route path="partners" element={<Navigate to="/" replace />} />
             <Route path="leads" element={<Navigate to="/" replace />} />
-            <Route path="social" element={<Navigate to="/" replace />} />
             <Route path="data-migration" element={<RequirePermission perm="data-migration.manage"><DataMigrationPage /></RequirePermission>} />
             <Route path="data-migration/new" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
             <Route path="data-migration/:id" element={<RequirePermission perm="data-migration.manage"><NewMigrationWizard /></RequirePermission>} />
@@ -153,6 +161,9 @@ function App() {
             <Route path="work" element={<RequireWork><WorkBoardPage /></RequireWork>} />
             <Route path="whatsapp" element={<RequireWhatsApp><WhatsAppPage /></RequireWhatsApp>} />
             <Route path="whatsapp/:tab" element={<RequireWhatsApp><WhatsAppPage /></RequireWhatsApp>} />
+            <Route path="social" element={<RequireSocial><SocialPage /></RequireSocial>} />
+            <Route path="social/:tab" element={<RequireSocial><SocialPage /></RequireSocial>} />
+            <Route path="social/:tab/:id" element={<RequireSocial><SocialPage /></RequireSocial>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
             <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />
