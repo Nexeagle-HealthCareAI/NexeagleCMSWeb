@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle, ArchiveRestore, Archive as ArchiveIcon, MessageCircle, MapPin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ArchiveRestore, Archive as ArchiveIcon, MessageCircle, MapPin, ExternalLink, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
+import { getHospitalById, getHospitalAppointmentStats, archiveHospital, restoreHospital, renewHospitalSubscription, type Hospital, type HospitalAppointmentSourceStats } from '../services/hospitalService';
 import HospitalLocationMap from '../components/HospitalLocationMap';
 import { whatsappLink, renewalText } from '../../../utils/whatsapp';
 import './customers.css';
@@ -56,6 +56,14 @@ const HospitalDetails: React.FC = () => {
     const [archiveConfirmText, setArchiveConfirmText] = useState('');
     const [isArchiving, setIsArchiving] = useState(false);
     const [isRestoring, setIsRestoring] = useState(false);
+    const canManageSubscription = useAuthStore((s) => s.hasAccess('subscriptions.manage'));
+    const [showRenewModal, setShowRenewModal] = useState(false);
+    const [renewEndDate, setRenewEndDate] = useState('');
+    const [renewReference, setRenewReference] = useState('');
+    const [renewAmount, setRenewAmount] = useState('');
+    const [renewPaymentMode, setRenewPaymentMode] = useState('');
+    const [isRenewing, setIsRenewing] = useState(false);
+    const [renewOverLimitDetails, setRenewOverLimitDetails] = useState<string[] | null>(null);
 
     React.useEffect(() => {
         if (!id) return;
@@ -111,6 +119,43 @@ const HospitalDetails: React.FC = () => {
             toast.error('Failed to restore hospital');
         } finally {
             setIsRestoring(false);
+        }
+    };
+
+    const closeRenewModal = () => {
+        setShowRenewModal(false);
+        setRenewEndDate('');
+        setRenewReference('');
+        setRenewAmount('');
+        setRenewPaymentMode('');
+        setRenewOverLimitDetails(null);
+    };
+
+    const handleRenewSubmit = async (allowOverLimit = false) => {
+        if (!hospital || !renewReference.trim()) {
+            toast.error('A reference / reason is required to renew.');
+            return;
+        }
+        setIsRenewing(true);
+        try {
+            await renewHospitalSubscription(hospital.id, {
+                subscriptionEndDate: renewEndDate || undefined,
+                reference: renewReference.trim(),
+                amount: renewAmount ? parseFloat(renewAmount) : undefined,
+                paymentMode: renewPaymentMode.trim() || undefined,
+                allowOverLimit,
+            });
+            toast.success('Subscription renewed');
+            closeRenewModal();
+            setHospital(await getHospitalById(hospital.id));
+        } catch (err: any) {
+            if (err?.response?.status === 409 && err.response.data?.overLimit) {
+                setRenewOverLimitDetails(err.response.data.details ?? []);
+            } else {
+                toast.error(err?.response?.data?.message || err?.response?.data || 'Could not renew the subscription.');
+            }
+        } finally {
+            setIsRenewing(false);
         }
     };
 
@@ -337,6 +382,11 @@ const HospitalDetails: React.FC = () => {
                                 </>
                             )}
                         </dl>
+                        {canManageSubscription && (
+                            <button type="button" className="cu-btn" onClick={() => setShowRenewModal(true)}>
+                                <RefreshCw size={16} /> Renew subscription
+                            </button>
+                        )}
                     </section>
                     <section className="cx-card cx-flush">
                         <div className="cx-card-head cx-pad"><h2>Payments · {payments.length}</h2></div>
@@ -426,6 +476,39 @@ const HospitalDetails: React.FC = () => {
                             <button type="button" className="cu-btn" onClick={() => { setShowArchiveModal(false); setArchiveConfirmText(''); }}>Cancel</button>
                             <button type="button" className="cu-btn cx-danger" disabled={archiveConfirmText !== h.name || isArchiving} onClick={handleArchive}>
                                 {isArchiving ? 'Archiving…' : 'Archive hospital'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showRenewModal && (
+                <div className="cx-modal-back" onClick={closeRenewModal}>
+                    <div className="cx-modal" role="dialog" aria-modal="true" aria-labelledby="cx-renew" onClick={e => e.stopPropagation()}>
+                        <h2 id="cx-renew">Renew subscription</h2>
+                        {renewOverLimitDetails ? (
+                            <p role="alert">
+                                This hospital exceeds the plan limits: {renewOverLimitDetails.join(' and ')}.
+                                You can renew anyway, or ask the hospital to reduce its count first.
+                            </p>
+                        ) : (
+                            <p>
+                                Renews <strong>{h.name}</strong>'s current plan{h.subscriptionPlanName ? ` (${h.subscriptionPlanName})` : ''}.
+                                Leave the end date blank to use the plan's normal billing cycle.
+                            </p>
+                        )}
+                        <label htmlFor="cx-renew-date">Custom end date (optional)</label>
+                        <input id="cx-renew-date" type="date" value={renewEndDate} onChange={e => setRenewEndDate(e.target.value)} />
+                        <label htmlFor="cx-renew-reference">Reference / reason <strong>*</strong></label>
+                        <input id="cx-renew-reference" value={renewReference} onChange={e => setRenewReference(e.target.value)} placeholder="e.g. Cash payment received at front desk" autoComplete="off" />
+                        <label htmlFor="cx-renew-amount">Amount (optional)</label>
+                        <input id="cx-renew-amount" type="number" min="0" value={renewAmount} onChange={e => setRenewAmount(e.target.value)} placeholder="₹" />
+                        <label htmlFor="cx-renew-mode">Payment mode (optional)</label>
+                        <input id="cx-renew-mode" value={renewPaymentMode} onChange={e => setRenewPaymentMode(e.target.value)} placeholder="Cash / Cheque / UPI / Bank Transfer" />
+                        <div className="cx-modal-actions">
+                            <button type="button" className="cu-btn" onClick={closeRenewModal} disabled={isRenewing}>Cancel</button>
+                            <button type="button" className="cu-btn" disabled={!renewReference.trim() || isRenewing} onClick={() => handleRenewSubmit(renewOverLimitDetails !== null)}>
+                                {isRenewing ? 'Renewing…' : renewOverLimitDetails ? 'Renew anyway' : 'Renew subscription'}
                             </button>
                         </div>
                     </div>
