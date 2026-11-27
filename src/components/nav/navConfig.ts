@@ -1,10 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, Gift, KeyRound,
-    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks,
+    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
 import { canViewWork } from '../../features/work/access';
+import { canViewWhatsApp } from '../../features/whatsapp/access';
 
 /**
  * The CMS menu, grouped by job. One list drives the side menu, the phone menu
@@ -67,6 +68,12 @@ export const NAV_GROUPS: NavGroup[] = [
             { key: 'approvals', label: 'Payment approvals', short: 'Approvals', to: '/approvals', icon: CreditCard, allowed: has('subscriptions.view'), badge: 'approvals', keywords: 'subscription payments verify approve money', alsoActive: ['/subscriptions'] },
             { key: 'plans', label: 'Plans & prices', short: 'Plans', to: '/plans', icon: Tag, allowed: has('subscriptions.view'), keywords: 'subscription plans pricing manage plans' },
             { key: 'referral', label: 'Referral codes', short: 'Referral codes', to: '/referral-codes', icon: Gift, allowed: has('subscriptions.view'), keywords: 'discount coupon' },
+        ],
+    },
+    {
+        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's).
+        key: 'marketing', label: 'Marketing', items: [
+            { key: 'whatsapp', label: 'WhatsApp', to: '/whatsapp', icon: MessageCircle, allowed: canViewWhatsApp, keywords: 'whatsapp marketing broadcast templates inbox chats messages contacts opt-in campaign billing spend profile' },
         ],
     },
     {
