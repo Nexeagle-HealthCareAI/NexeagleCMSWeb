@@ -14,6 +14,7 @@ import RadCentreDetails from './features/radCenters/pages/RadCentreDetails';
 import DoctorsPage from './features/doctors/pages/DoctorsPage';
 import MyProfile from './features/profile/pages/MyProfile';
 import LiveSupport from './features/support/pages/LiveSupport';
+import PlanCalculatorPage from './features/subscriptions/PlanCalculatorPage';
 import DataMigrationPage from './features/dataMigration/pages/DataMigrationPage';
 import NewMigrationWizard from './features/dataMigration/pages/NewMigrationWizard';
 import PartnerDashboard from './features/partners/pages/PartnerDashboard';
@@ -151,6 +152,7 @@ function App() {
             {/* Money: Manage Subscription's four tabs are now three pages (1HMS and 1Rad approvals share one). */}
             <Route path="approvals" element={<RequirePermission perm="subscriptions.view"><ApprovalsPage /></RequirePermission>} />
             <Route path="plans" element={<RequirePermission perm="subscriptions.view"><PlansPage /></RequirePermission>} />
+            <Route path="plan-calculator" element={<RequirePermission perm="subscriptions.manage"><PlanCalculatorPage /></RequirePermission>} />
             <Route path="subscriptions" element={<Navigate to="/approvals" replace />} />
             <Route path="manage-plans" element={<Navigate to="/plans" replace />} />
             {/* Pages that used to be tabs inside Doctor Dekho and Onboarded Hospitals. */}

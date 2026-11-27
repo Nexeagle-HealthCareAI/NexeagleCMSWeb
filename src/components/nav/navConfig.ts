@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-    Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, KeyRound,
+    Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, KeyRound, Calculator,
     BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
@@ -69,6 +69,7 @@ export const NAV_GROUPS: NavGroup[] = [
         key: 'money', label: 'Billing', items: [
             { key: 'approvals', label: 'Payment approvals', short: 'Approvals', to: '/approvals', icon: CreditCard, allowed: has('subscriptions.view'), badge: 'approvals', keywords: 'subscription payments verify approve money', alsoActive: ['/subscriptions'] },
             { key: 'plans', label: 'Plans & prices', short: 'Plans', to: '/plans', icon: Tag, allowed: has('subscriptions.view'), keywords: 'subscription plans pricing manage plans' },
+            { key: 'plan-calculator', label: 'Plan calculator', to: '/plan-calculator', icon: Calculator, allowed: has('subscriptions.manage'), keywords: 'subscription capacity modules custom pricing tiers' },
         ],
     },
     {
