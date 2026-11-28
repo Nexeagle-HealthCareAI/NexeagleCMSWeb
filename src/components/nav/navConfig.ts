@@ -1,12 +1,13 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, KeyRound, Calculator,
-    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2,
+    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2, LineChart,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
 import { canViewWork } from '../../features/work/access';
 import { canViewWhatsApp } from '../../features/whatsapp/access';
 import { canViewSocial } from '../../features/social/access';
+import { canViewGoogle } from '../../features/google/access';
 
 /**
  * The CMS menu, grouped by job. One list drives the side menu, the phone menu
@@ -14,7 +15,7 @@ import { canViewSocial } from '../../features/social/access';
  *
  * Partners, Leads & CRM, the old Social posts page and Referral codes were taken out of the CMS in
  * November 2026: no menu item, and /partners, /leads and /referral-codes go to Today (see App.tsx). /social is now the Facebook and
- * Instagram section (Marketing → Social).
+ * Instagram section (Marketing → Social); /google is Google Analytics, Ads and lead forms (Marketing → Google).
  *
  * `allowed` mirrors the route gates in App.tsx (RequirePermission) — the menu
  * only hides what the route would refuse anyway.
@@ -73,10 +74,11 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
     },
     {
-        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's), and the Facebook Page + Instagram.
+        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's), the Facebook Page + Instagram, and Google.
         key: 'marketing', label: 'Marketing', items: [
             { key: 'whatsapp', label: 'WhatsApp', to: '/whatsapp', icon: MessageCircle, allowed: canViewWhatsApp, keywords: 'whatsapp marketing broadcast templates inbox chats messages contacts opt-in campaign billing spend profile' },
             { key: 'social', label: 'Social', to: '/social', icon: Share2, allowed: canViewSocial, keywords: 'facebook instagram meta page posts reels stories schedule calendar comments messenger dm inbox lead ads cost per lead' },
+            { key: 'google', label: 'Google', to: '/google', icon: LineChart, allowed: canViewGoogle, keywords: 'google analytics ga4 ads adwords search console seo visitors visits traffic pages campaigns keywords lead forms cost per lead conversions tag' },
         ],
     },
     {

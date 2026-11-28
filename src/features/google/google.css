@@ -1,0 +1,39 @@
+/* Google section. Builds on the WhatsApp (wa-) and Social (sc-) styles it imports. */
+.gg-ga { background: #f9ab00; }
+.gg-ads { background: #1a73e8; }
+.gg-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gg-two > .wa-chart-card { min-width: 0; margin: 0; }
+.gg-table td, .gg-table th { vertical-align: top; }
+.gg-share { height: 5px; background: #f2f4f7; border-radius: 3px; margin-top: 4px; min-width: 60px; }
+.gg-share > div { height: 5px; background: var(--primary); border-radius: 3px; }
+.gg-events { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 6px 0 0; }
+.gg-split { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+.gg-split > .hw-tbl { min-width: 0; }
+.gg-rowbtn { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: inherit; cursor: pointer; text-align: left; word-break: break-all; }
+.gg-rowbtn:hover { color: var(--primary); }
+tr.gg-on td { background: #eef0ff; }
+.gg-detail { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.gg-path { font-size: 15px; word-break: break-all; }
+.gg-mini { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.gg-mini > div { background: #f9fafb; border-radius: 8px; padding: 8px 10px; }
+.gg-mini dt { font-size: 11px; color: var(--text-secondary); }
+.gg-mini dd { margin: 0; font-weight: 700; font-size: 16px; }
+.gg-h4 { margin: 4px 0 0; font-size: 13px; font-weight: 700; }
+.gg-src { display: flex; flex-direction: column; gap: 2px; }
+.gg-query { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid #f2f4f7; padding-top: 6px; }
+.gg-plat { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.gg-setup { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
+.gg-setup > .wa-settings { padding: 0; min-width: 0; }
+.gg-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+.gg-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 12px; }
+.gg-wrap { flex-wrap: wrap; }
+.gg-ok { color: #067647; }
+.gg-notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); }
+.gg-check { display: inline-flex; align-items: center; gap: 6px; }
+.gg-num { width: 110px; text-align: right; }
+@media (max-width: 1100px) {
+  .gg-split, .gg-setup { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .gg-two, .gg-grid2, .gg-grid3 { grid-template-columns: minmax(0, 1fr); }
+}
