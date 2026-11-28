@@ -6,6 +6,7 @@ import { errorMessage } from '../services/workService';
 import { docsService } from './docsService';
 import { formatSize, kindOf, saveBlob } from './docsMeta';
 import type { DocDetail } from './types';
+import { MAX_COLUMNS, MAX_ROWS, columnName, readCsv, type Sheet } from './sheetReader';
 
 type View =
   | { state: 'loading' }
@@ -13,6 +14,8 @@ type View =
   | { state: 'image' | 'pdf'; url: string; blob: Blob }
   | { state: 'text'; text: string; blob: Blob }
   | { state: 'word'; html: string; blob: Blob }
+  | { state: 'sheet'; sheets: Sheet[]; blob: Blob }
+  | { state: 'oldExcel'; blob: Blob }
   | { state: 'unreadable'; blob: Blob }
   | { state: 'none'; blob: Blob };
 
@@ -20,7 +23,8 @@ const TEXT_PREVIEW_LIMIT = 300_000;
 
 /**
  * Shows a file inside the CMS where the browser can do it safely: images and PDFs as they are, text
- * as text, and Word (.docx) files as a readable copy. Everything else offers a download.
+ * as text, Word (.docx) files as a readable copy, and spreadsheets (.xlsx, .csv) as a table of their
+ * values. Everything else offers a download.
  *
  * The file is fetched with the reader's login and shown from memory, so no address to the file ever
  * exists outside this page. A Word file's copy is put in a frame that may not run scripts.
@@ -44,7 +48,22 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
           const typed = new Blob([blob], { type: kind === 'pdf' ? 'application/pdf' : blob.type.startsWith('image/') ? blob.type : 'image/png' });
           url = URL.createObjectURL(typed);
           setView({ state: kind, url, blob });
-        } else if (kind === 'text' || doc.name.toLowerCase().endsWith('.csv')) {
+        } else if (/\.(xlsx|xlsm)$/i.test(doc.name)) {
+          // Values only, read in the browser (sheetReader.ts); the reader is loaded when first needed.
+          try {
+            const { readXlsx } = await import('./xlsxReader');
+            const sheets = await readXlsx(await blob.arrayBuffer());
+            if (alive) setView({ state: 'sheet', sheets, blob });
+          } catch (e) {
+            console.warn('Spreadsheet preview failed', e);
+            if (alive) setView({ state: 'unreadable', blob });
+          }
+        } else if (doc.name.toLowerCase().endsWith('.csv')) {
+          const text = await blob.text();
+          if (alive) setView({ state: 'sheet', sheets: [readCsv(text)], blob });
+        } else if (doc.name.toLowerCase().endsWith('.xls')) {
+          setView({ state: 'oldExcel', blob });
+        } else if (kind === 'text') {
           const text = await blob.slice(0, TEXT_PREVIEW_LIMIT).text();
           if (alive) setView({ state: 'text', text, blob });
         } else if (doc.name.toLowerCase().endsWith('.docx')) {
@@ -85,10 +104,20 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
       </div>
     );
   }
-  if (view.state === 'unreadable') {
+  if (view.state === 'sheet') return <SheetPreview sheets={view.sheets} note={download} />;
+  if (view.state === 'oldExcel') {
     return (
       <div className="dc-preview is-none">
-        <p>The file is stored safely, but this Word file cannot be shown as a readable copy here.{mayExport ? ' Download it to open it in Word.' : ' Downloading is turned off for you on this screen.'}</p>
+        <p>This is the older Excel format (.xls), which cannot be shown here. Open it in Excel and save it as .xlsx, then upload that version to see it in the CMS.{!mayExport && ' Downloading is turned off for you on this screen.'}</p>
+        {download}
+      </div>
+    );
+  }
+  if (view.state === 'unreadable') {
+    const what = kind === 'sheet' ? 'spreadsheet' : 'Word file';
+    return (
+      <div className="dc-preview is-none">
+        <p>The file is stored safely, but this {what} cannot be shown here.{mayExport ? ` Download it to open it in ${kind === 'sheet' ? 'Excel' : 'Word'}.` : ' Downloading is turned off for you on this screen.'}</p>
         {download}
       </div>
     );
@@ -97,6 +126,47 @@ export default function FilePreview({ doc }: { doc: DocDetail }) {
     <div className="dc-preview is-none">
       <p>This type of file cannot be shown here.{!mayExport && ' Downloading is turned off for you on this screen.'}</p>
       {download}
+    </div>
+  );
+}
+
+/** A spreadsheet's values as a table, one tab per sheet, with Excel's column letters and row numbers. */
+function SheetPreview({ sheets, note }: { sheets: Sheet[]; note: React.ReactNode }) {
+  const [at, setAt] = useState(0);
+  const sheet = sheets[Math.min(at, sheets.length - 1)];
+  return (
+    <div className="dc-preview is-sheet">
+      {sheets.length > 1 && (
+        <div className="dc-sheet-tabs" role="tablist" aria-label="Sheets">
+          {sheets.map((s, i) => (
+            <button key={`${s.name}-${i}`} type="button" role="tab" aria-selected={i === at} className={i === at ? 'is-on' : ''} onClick={() => setAt(i)}>
+              {s.name}{s.hidden && <span className="wk-muted"> (hidden)</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      {sheet.rows.length === 0 ? (
+        <p className="wk-muted dc-preview-note">{sheet.truncated ? 'This sheet is too large to show here.' : 'This sheet is empty.'}</p>
+      ) : (
+        <div className="dc-sheet-scroll" tabIndex={0} role="region" aria-label={`Sheet ${sheet.name}`}>
+          <table className="dc-sheet">
+            <thead>
+              <tr><th aria-label="Row" />{Array.from({ length: sheet.columns }, (_, c) => <th key={c} scope="col">{columnName(c)}</th>)}</tr>
+            </thead>
+            <tbody>
+              {sheet.rows.map((row, r) => (
+                <tr key={r}>
+                  <th scope="row">{r + 1}</th>
+                  {row.map((v, c) => <td key={c} className={/^[-+]?[\d.,₹$%]+$/.test(v) ? 'is-num' : undefined}>{v}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="wk-muted dc-preview-note">
+        Values only{sheet.truncated ? `; the first ${MAX_ROWS.toLocaleString('en-IN')} rows and ${MAX_COLUMNS} columns are shown` : ''}. Formulas, colours and charts are in the file itself. {note}
+      </p>
     </div>
   );
 }
