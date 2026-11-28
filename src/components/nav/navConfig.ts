@@ -1,13 +1,14 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     Home, Building2, ScanLine, Stethoscope, CreditCard, Tag, KeyRound, Calculator,
-    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2, LineChart,
+    BarChart3, TrendingUp, MessageSquare, History, BookOpen, Siren, Bot, Route, FlaskConical, UploadCloud, Moon, Users, UserCircle, ListChecks, MessageCircle, Share2, LineChart, Search,
 } from 'lucide-react';
 import { canUseHealthWiki } from '../../features/healthWiki/access';
 import { canViewWork } from '../../features/work/access';
 import { canViewWhatsApp } from '../../features/whatsapp/access';
 import { canViewSocial } from '../../features/social/access';
 import { canViewGoogle } from '../../features/google/access';
+import { canViewKeywords } from '../../features/keywords/access';
 
 /**
  * The CMS menu, grouped by job. One list drives the side menu, the phone menu
@@ -74,11 +75,12 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
     },
     {
-        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's), the Facebook Page + Instagram, and Google.
+        // The CMS's own WhatsApp marketing number (not the Doctor Dekho bot's), the Facebook Page + Instagram, Google, and Keywords.
         key: 'marketing', label: 'Marketing', items: [
             { key: 'whatsapp', label: 'WhatsApp', to: '/whatsapp', icon: MessageCircle, allowed: canViewWhatsApp, keywords: 'whatsapp marketing broadcast templates inbox chats messages contacts opt-in campaign billing spend profile' },
             { key: 'social', label: 'Social', to: '/social', icon: Share2, allowed: canViewSocial, keywords: 'facebook instagram meta page posts reels stories schedule calendar comments messenger dm inbox lead ads cost per lead' },
             { key: 'google', label: 'Google', to: '/google', icon: LineChart, allowed: canViewGoogle, keywords: 'google analytics ga4 ads adwords search console seo visitors visits traffic pages campaigns keywords lead forms cost per lead conversions tag' },
+            { key: 'keywords', label: 'Keywords', to: '/keywords', icon: Search, allowed: canViewKeywords, keywords: 'keywords seo search terms search console keyword planner topics content plan blog articles hindi hinglish bengali ranking position' },
         ],
     },
     {

@@ -35,6 +35,8 @@ import SocialPage from './features/social/SocialPage';
 import { canViewSocial } from './features/social/access';
 import GooglePage from './features/google/GooglePage';
 import { canViewGoogle } from './features/google/access';
+import KeywordsPage from './features/keywords/KeywordsPage';
+import { canViewKeywords } from './features/keywords/access';
 import { canViewWork } from './features/work/access';
 import RequirePermission from './components/RequirePermission';
 import EmergencyPage from './features/emergency/EmergencyPage';
@@ -85,6 +87,12 @@ const RequireSocial = ({ children }: { children: React.ReactElement }) => {
 const RequireGoogle = ({ children }: { children: React.ReactElement }) => {
   const permissions = useAuthStore((st) => st.permissions) || [];
   return canViewGoogle(permissions) ? children : <Navigate to="/no-access" replace />;
+};
+
+// Keywords (search phrases, topics, content plan) is gated by `keywords.view` (or the local mock flag, VITE_KEYWORDS_MOCK).
+const RequireKeywords = ({ children }: { children: React.ReactElement }) => {
+  const permissions = useAuthStore((st) => st.permissions) || [];
+  return canViewKeywords(permissions) ? children : <Navigate to="/no-access" replace />;
 };
 
 // Health Wiki is gated by `health-wiki.manage` (or the local mock flag while the backend is not wired).
@@ -176,6 +184,8 @@ function App() {
             <Route path="social/:tab/:id" element={<RequireSocial><SocialPage /></RequireSocial>} />
             <Route path="google" element={<RequireGoogle><GooglePage /></RequireGoogle>} />
             <Route path="google/:tab" element={<RequireGoogle><GooglePage /></RequireGoogle>} />
+            <Route path="keywords" element={<RequireKeywords><KeywordsPage /></RequireKeywords>} />
+            <Route path="keywords/:tab" element={<RequireKeywords><KeywordsPage /></RequireKeywords>} />
             <Route path="health-wiki" element={<RequireHealthWiki><HealthWikiPage /></RequireHealthWiki>} />
             <Route path="health-wiki/contributors" element={<RequireHealthWiki><ContributorsPage /></RequireHealthWiki>} />
             <Route path="health-wiki/topics" element={<RequireHealthWiki><TopicRequestsPage /></RequireHealthWiki>} />

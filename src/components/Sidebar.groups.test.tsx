@@ -8,7 +8,7 @@ import { allItems, NAV_GROUPS } from './nav/navConfig';
 
 const EVERYTHING = [
   'work.view', 'onboarded-hospitals.view', 'dashboard.view', 'subscriptions.view', 'marketing.view', 'live-support.view',
-  'health-wiki.manage', 'emergency.manage', 'vita.view', 'user-management.view', 'data-migration.manage', 'settings.view', 'partners.manage', 'whatsapp.view', 'social.view', 'google.view',
+  'health-wiki.manage', 'emergency.manage', 'vita.view', 'user-management.view', 'data-migration.manage', 'settings.view', 'partners.manage', 'whatsapp.view', 'social.view', 'google.view', 'keywords.view',
 ];
 const open = (path = '/') =>
   render(<MemoryRouter initialEntries={[path]}><Sidebar collapsed={false} onToggle={() => undefined} /></MemoryRouter>);
@@ -24,9 +24,14 @@ describe('side menu', () => {
 
   it('has Social (Facebook and Instagram) under Marketing, for people with social.view', () => {
     const marketing = NAV_GROUPS.find(g => g.key === 'marketing')!;
-    expect(marketing.items.map(i => i.label)).toEqual(['WhatsApp', 'Social', 'Google']);
+    expect(marketing.items.map(i => i.label)).toEqual(['WhatsApp', 'Social', 'Google', 'Keywords']);
     expect(allItems(EVERYTHING).find(i => i.key === 'social')?.to).toBe('/social');
     expect(allItems(EVERYTHING.filter(p => p !== 'social.view')).some(i => i.key === 'social')).toBe(false);
+  });
+
+  it('has Keywords under Marketing, for people with keywords.view', () => {
+    expect(allItems(EVERYTHING).find(i => i.key === 'keywords')?.to).toBe('/keywords');
+    expect(allItems(EVERYTHING.filter(p => p !== 'keywords.view')).some(i => i.key === 'keywords')).toBe(false);
   });
 
   it('has Google (Analytics, Ads, lead forms) under Marketing, for people with google.view', () => {
