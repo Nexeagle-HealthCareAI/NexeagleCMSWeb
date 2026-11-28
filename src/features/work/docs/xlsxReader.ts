@@ -152,4 +152,3 @@ export async function readXlsx(data: ArrayBuffer): Promise<Sheet[]> {
   if (!sheets.length) throw new Error('The workbook has no sheets to show.');
   return sheets;
 }
-
