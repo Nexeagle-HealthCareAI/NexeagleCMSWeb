@@ -255,3 +255,17 @@ button.dc-tree-caret:hover { background: #E4E7EC; }
 .dc-thread-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .dc-thread-foot small { color: var(--ink-3); font-size: 12px; }
 .dc-thread-foot .wk-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+/* Spreadsheets (FilePreview → SheetPreview): sheet tabs, then the values with Excel's letters and numbers. */
+.dc-preview.is-sheet { align-items: stretch; }
+.dc-sheet-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.dc-sheet-tabs button { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: 600 13px var(--font-family); color: var(--ink-2); }
+.dc-sheet-tabs button.is-on { background: #ECFDF3; border-color: #75E0A7; color: #067647; }
+.dc-sheet-scroll { max-height: 72vh; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.dc-sheet-scroll:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.dc-sheet { border-collapse: separate; border-spacing: 0; font-size: 13px; min-width: 100%; }
+.dc-sheet td, .dc-sheet th { padding: 6px 10px; border-right: 1px solid #EAECF0; border-bottom: 1px solid #EAECF0; white-space: nowrap; max-width: 360px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.dc-sheet td.is-num { text-align: right; font-variant-numeric: tabular-nums; }
+.dc-sheet thead th { position: sticky; top: 0; z-index: 2; background: #F2F4F7; color: var(--ink-2); font-weight: 600; text-align: center; }
+.dc-sheet tbody th { position: sticky; left: 0; z-index: 1; background: #F9FAFB; color: var(--ink-3); font-weight: 500; text-align: right; min-width: 44px; }
+.dc-sheet thead th:first-child { left: 0; z-index: 3; }
+.dc-sheet tbody tr:first-child td { font-weight: 600; }
